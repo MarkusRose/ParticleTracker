@@ -1,0 +1,12 @@
+.readImage.py.swo
+01sanityCheck.tif
+02gaussFilter.tif
+03localMax.tif
+04MaxFilter.tif
+05MaxFilter2.tif
+05MedianFilter.tif
+Biblio/
+ImageTester/
+foundParticles.txt
+images/
+tester.tif

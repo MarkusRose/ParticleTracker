@@ -1,0 +1,178 @@
+import numpy as np
+import pysm.new_cython
+import readImage
+from scipy import ndimage
+
+
+def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,eccentricity_thresh,sigma_thresh):
+    image = readImage.readImage(img)
+    readImage.saveImageToFile(image,"01sanityCheck.tif")
+
+    gausFiltImage = ndimage.filters.gaussian_filter(image,sigma,order=0)
+    readImage.saveImageToFile(gausFiltImage,"02gaussFilter.tif")
+    
+    localMaxImage = ndimage.filters.maximum_filter(gausFiltImage,size=local_max_window)
+    readImage.saveImageToFile(localMaxImage,"03localMax.tif")
+
+    img_max_filter = gausFiltImage.copy()
+    img_max_filter[(gausFiltImage != localMaxImage)] = 0
+    readImage.saveImageToFile(img_max_filter,"04MaxFilter.tif")
+    
+    median_img = ndimage.filters.median_filter(image, (21,21))
+    readImage.saveImageToFile(median_img,"05MedianFilter.tif")
+    (background_mean,background_std) = (median_img.mean(),median_img.std())
+#    print(background_mean,background_std)
+    
+    cutoff = readImage.otsuMethod(image)
+
+    imgMaxNoBack = (img_max_filter >= background_mean + signal_power * background_std)
+    readImage.saveImageToFile(imgMaxNoBack,"05MaxFilter2.tif")
+     #Check if maxima found
+    if imgMaxNoBack.any() == True:
+        print("JeaJeaJea")
+
+#    gaussian_fit = pysm.new_cython.fit_gaussians_2d(image,sigma,
+#            imgMaxNoBack,
+#            background_mean,background_std,frame=0,template_size=None,
+#            bit_depth=16,eccentricity_thresh=1.5,sigma_thresh=2)
+    
+#    if np.array_equal(img_max_filter,pysmMaxImage):
+#        print("Jippiiiee")
+#    else:
+#        print("OhOh!!!")
+    particle_list = []
+    template_size = signal_power * np.ceil(sigma) - 1
+    psf_range = np.floor(template_size/2)
+
+    num_rows = image.shape[0]
+    num_cols = image.shape[1]
+
+    local_max_pixels = np.nonzero(imgMaxNoBack)
+    #print np.transpose(local_max_pixels)
+
+    print("Found local Maxima: "+str(len(local_max_pixels[0])))
+
+    for i in xrange(len(local_max_pixels[0])):
+        row0 = int(local_max_pixels[0][i])
+        col0 = int(local_max_pixels[1][i])
+        #print(row0,' ',col0)
+
+        row_min = row0 - psf_range
+        row_max = row0 + psf_range
+        col_min = col0 - psf_range
+        col_max = col0 + psf_range
+
+        if (row_min < 0 or row_max >= num_rows or
+                col_min < 0 or col_max >= num_cols):
+            #print("Oh, too close to frame boarder to fit a gaussian.")
+            continue
+        else:
+            #print("So where is the point?")
+            pass
+
+        
+        ''' #Check ROI 
+        print("row0 = ",row0)
+        print("col0 = ",col0)
+        print("row_min = ",row_min)
+        print("row_max = ",row_max)
+        print("col_min = ",col_min)
+        print("col_max = ",col_max)
+        '''
+
+        fitdata = pysm.new_cython.fitgaussian2d(
+                    image[row_min:row_max, col_min:col_max],
+                    background_mean)
+        
+        '''#Check fitdata
+        print("Background: ", str(fitdata[0]))
+        print("Amplitude: ", str(fitdata[1]))
+        print("X: ", str(fitdata[2]))
+        print("Y: ", str(fitdata[3]))
+        print("Width_X: ", str(fitdata[4]))
+        print("Width_Y: ", str(fitdata[5]))
+        '''
+
+        ##############
+        #FIT CHECKING
+        ##############
+        if fitdata[0] <= 0 or fitdata[1] <=0:
+            print("Fit did not converge")
+            #Fit did not converge
+            continue
+        
+        if (np.abs(fitdata[5]/fitdata[4]) >= eccentricity_thresh or 
+            np.abs(fitdata[4]/fitdata[5]) >= eccentricity_thresh):
+            print("Fit too eccentric")
+            #Fit too eccentric
+            continue
+        
+        if (fitdata[4] > (sigma_thresh * sigma) or 
+			fitdata[4] < (sigma / sigma_thresh) or
+            fitdata[5] > (sigma_thresh * sigma) or
+            fitdata[5] < (sigma / sigma_thresh)):
+            print("Fit too unlike theoretical psf")
+            #Fit too unlike theoretical psf
+            continue
+
+        #Create a new Particle
+        #TODO:        
+        #p = cparticle.CParticle()
+        p = pysm.new_cython.TempParticle()        
+        
+        #TODO: Implement Particle ID
+        p.frame = frame
+        p.position = np.array([row_min, row_max, col_min, col_max])
+        
+        p.height = fitdata[0]
+        p.amplitude = fitdata[1]
+        
+        #TODO: FIX THIS BUG (switching of x and y)
+        p.y = fitdata[2] + row_min
+        p.x = fitdata[3] + col_min
+        p.width_x = np.abs(fitdata[4])
+        p.width_y = np.abs(fitdata[5])
+        p.volume = (2 * np.pi * p.amplitude * p.width_x * p.width_y)
+        
+        # normalized volume for intensity moment descrimination in
+        # linking step
+        p.norm_volume = \
+        	(2 * np.pi * (p.amplitude / (2**bit_depth - 1)) * 
+			 p.width_x * p.width_y)
+        
+        # calculate signal to noise
+        # (for our purposes a simple calc of amplitude of signal minus 
+        # the background over the intensity of the background)
+        p.sn = (p.amplitude + p.height) / p.height
+        
+        particle_list.append(p)
+
+
+    print("Number of Particles found: " + str(len(particle_list)))
+
+    mean = 0
+
+    for p in particle_list:
+        mean += p.height + p.amplitude
+    mean /= len(particle_list)
+
+    stdev = 0
+
+    for p in particle_list:
+        stdev += (mean - (p.height + p.amplitude))**2
+    stdev = np.sqrt(stdev)
+    stdev /= len(particle_list) + 1
+
+    for p in particle_list[:]:
+        if (p.height+p.amplitude) < (mean-stdev):
+            particle_list.remove(p)
+
+    print("mean: " + str(mean))
+    print("stdev: " + str(stdev))
+    print("Number of Particles remaining: " + str(len(particle_list)))
+
+            
+
+    return particle_list
+
+
