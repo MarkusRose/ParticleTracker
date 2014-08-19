@@ -1,6 +1,8 @@
 import detectParticles
+import readImage
 import ctrack
 import sys
+import markPosition
 
 img = [
     "/home/markus/LittleHelpers/MatlabSimulations/Particle diffusion/mol_image1.tif",
@@ -67,13 +69,20 @@ def testTracks(tracks):
 if __name__=="__main__":
 
     print('\n==== Start Localization and Detection ====')
-    particle_data = detectParticles.multiImageDetect(img,sigma,local_max_window,signal_power,bit_depth,eccentricity_thresh,sigma_thresh)
+#    particle_data = detectParticles.multiImageDetect(img,sigma,local_max_window,signal_power,bit_depth,eccentricity_thresh,sigma_thresh)
 
+    a = detectParticles.detectParticles("mol_image1.tif",sigma,local_max_window,signal_power,bit_depth,0,eccentricity_thresh,sigma_thresh)
+    print(a)
+    print(a[0])
+    #detectParticles.writeDetectedParticles([a])
+    image = readImage.readImage("mol_image1.tif")
+    markPosition.markPositionsFromList(image,a[0])
+    
 #    if not dataCorrect(particle_data):
 #        sys.exit("Particle data not correct")
 
     print('\n==== Start Tracking ====\n')
-    tracks = ctrack.link_particles(particle_data,max_displacement)
+#    tracks = ctrack.link_particles(particle_data,max_displacement)
 
     #testTracks(tracks)
     print("Done! FEIERABEND!")
