@@ -15,17 +15,26 @@ from scipy.misc import imsave
 '''First we have to read the image'''
 def readImage(imagepath):
     inImage = Image.open(imagepath)
+    bit_depth = 16
+    if inImage.mode == 'L':
+        bit_depth = 8
+    elif inImage.mode == 'I;16B':
+        bit_depth = 16
+    else:
+        print("Bit_depth unknown, set to 16bit")
+        bit_depth = 16
+
     a = np.asarray(inImage.getdata())
 #    print(a.dtype)
     a = np.resize(a.astype(float),inImage.size)
-    return adjustRange(a)
+    return adjustRange(a,bit_depth)
 
 
 '''
 Image is not read as unsigned integer, so range is [-2^(bit/2),(2^(bit/2)-1)]
 Range must be adjusted to [0,2^(bit)-1]
 '''
-def adjustRange(image):
+def adjustRange(image,bit_depth):
     '''
     print(image.min())
     print
@@ -40,7 +49,7 @@ def adjustRange(image):
     print
     print(image.min())
     '''
-    return image
+    return image/(1.0*(2**bit_depth))
 
 
 '''

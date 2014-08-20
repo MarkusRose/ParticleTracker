@@ -72,11 +72,13 @@ if __name__=="__main__":
 #    particle_data = detectParticles.multiImageDetect(img,sigma,local_max_window,signal_power,bit_depth,eccentricity_thresh,sigma_thresh)
 
     a = detectParticles.detectParticles("mol_image1.tif",sigma,local_max_window,signal_power,bit_depth,0,eccentricity_thresh,sigma_thresh)
-    print(a)
-    print(a[0])
     #detectParticles.writeDetectedParticles([a])
     image = readImage.readImage("mol_image1.tif")
-    markPosition.markPositionsFromList(image,a[0])
+    markings = markPosition.markPositionsFromList(image,a[0])
+    markedlines = markPosition.connectPositions(image,a[0])
+    markPosition.superimpose(image,markings)
+    markPosition.superconnected(image,markedlines)
+    markPosition.justsuper(image,markings,markedlines)
     
 #    if not dataCorrect(particle_data):
 #        sys.exit("Particle data not correct")
