@@ -91,16 +91,21 @@ def writeTrajectories(tracks):
     track_num = 0
     for track in tracks:
         track_num += 1
-        outfile.write('\n-Track {:2.0f} -------------------------------------\n'.format(track_num))
-        outfile.write("x      y    width_x   width_y  height  amplitude     sn     volume \n")
+        outfile.write('\n\n# -Track {:2.0f} -------------------------------------\n'.format(track_num))
+        outfile.write("# x      y    width_x   width_y  height  amplitude     sn     volume \n")
         for particle in track.track:
+            print particle['x']
+            if np.isnan(particle['x']):
+                outfile.write("# ")
             for name in particle.dtype.names:
                 if name == 'particle_id' or name == 'frame' or name == 'sn':
                     continue
-                outfile.write("{:3.2f} ".format(particle[name]))
-            outfile.write("{:3.2f} ".format(particle['sn']))
+                outfile.write("{:3.4f} ".format(particle[name]))
+            outfile.write("{:3.4f} ".format(particle['sn']))
             outfile.write("\n")
+
     print("Done writing Tracks")
+    print("Number of Tracks found: {:}".format(len(tracks)))
     return
 
 def link_particles(particle_data, max_displacement,

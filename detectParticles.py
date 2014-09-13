@@ -1,7 +1,7 @@
 import numpy as np
 import pysm.new_cython
 import readImage
-from scipy import ndimage
+from scipy import ndimage, optimize
 
 
 def writeDetectedParticles(particles):
@@ -21,7 +21,7 @@ def multiImageDetect(img,
                     signal_power,
                     bit_depth,
                     eccentricity_thresh,
-                    sigma_thresh):
+                    sigma_thresh,output=False):
     particle_data = []
     frame = 0
     for image in img:
@@ -35,33 +35,82 @@ def multiImageDetect(img,
                 bit_depth,
                 frame,
                 eccentricity_thresh,
-                sigma_thresh)
+                sigma_thresh,output)
 
         particle_data.append(particles)
     writeDetectedParticles(particle_data)
     pd = []
     for fr in particle_data:
         pd.append(fr[0])
-    print pd
+#    print pd
     return pd
 
+def fitgaussian2d(data, background_mean, user_moments = None):
+    """Returns (height, amplitude, x, y, width_x, width_y) as a numpy array
+    found by least squares fitting of gaussian variables:"""
+    
+    if user_moments == None:
+        initial_params = image_moments(data, background_mean)
+    else:
+        initial_params = user_moments
+    
+    #ravel is a special case for "unraveling" higher dimensional arrays into 1D arrays
+    errorfunction = lambda p: np.ravel((gaussian2d(*p)(*np.indices(data.shape)) - data))
+    p, cov, infodict, errmsg, success = optimize.leastsq(errorfunction, initial_params, full_output=1)
 
-def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,eccentricity_thresh,sigma_thresh):
+    return p
+
+def image_moments(data, mean_background):
+    total = data.sum()
+    Y,X = np.indices(data.shape)
+  
+    x = (X*data).sum()/total
+    y = (Y*data).sum()/total
+    
+    col = data[:, int(x)]
+    width_y = np.sqrt(np.abs((np.arange(col.size)-y)**2*col).sum()/col.sum())
+    
+    row = data[int(y), :]
+    width_x = np.sqrt(np.abs((np.arange(row.size)-x)**2*row).sum()/row.sum())
+    
+    height = mean_background
+    amplitude = data.max() - height
+    
+    return (height, amplitude, x, y, width_x, width_y)
+
+def gaussian2d(height, amplitude, center_x, 
+               center_y, width_x, width_y):
+    """Return 2d gaussian lamda(x,y) function"""
+    
+    height = float(height)
+    amplitude = float(amplitude)
+    width_x = float(width_x)
+    width_y = float(width_y)
+    
+    return (lambda x,y: height + 
+            amplitude*np.exp(-(((center_x-x)/width_x)**2+((center_y-y)/width_y)**2)/2))
+
+def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,eccentricity_thresh,sigma_thresh,output):
     image = readImage.readImage(img)
-    readImage.saveImageToFile(image,"01sanityCheck.tif")
+    if output:
+        readImage.saveImageToFile(image,"01sanityCheck.tif")
 
     gausFiltImage = ndimage.filters.gaussian_filter(image,sigma,order=0)
-    readImage.saveImageToFile(gausFiltImage,"02gaussFilter.tif")
+    if output:
+        readImage.saveImageToFile(gausFiltImage,"02gaussFilter.tif")
     
     localMaxImage = ndimage.filters.maximum_filter(gausFiltImage,size=local_max_window)
-    readImage.saveImageToFile(localMaxImage,"03localMax.tif")
+    if output:
+        readImage.saveImageToFile(localMaxImage,"03localMax.tif")
 
     img_max_filter = gausFiltImage.copy()
     img_max_filter[(gausFiltImage != localMaxImage)] = 0
-    readImage.saveImageToFile(img_max_filter,"04MaxFilter.tif")
+    if output:
+        readImage.saveImageToFile(img_max_filter,"04MaxFilter.tif")
     
     median_img = ndimage.filters.median_filter(image, (21,21))
-    readImage.saveImageToFile(median_img,"05MedianFilter.tif")
+    if False:
+        readImage.saveImageToFile(median_img,"05MedianFilter.tif")
     (background_mean,background_std) = (median_img.mean(),median_img.std())
 #    print(background_mean,background_std)
     
@@ -69,7 +118,8 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
     cutoff = background_mean + signal_power * background_std
 
     imgMaxNoBack = (img_max_filter >= cutoff)
-    readImage.saveImageToFile(imgMaxNoBack,"05MaxFilter2.tif")
+    if output:
+        readImage.saveImageToFile(imgMaxNoBack,"05MaxBinary.tif")
      #Check if maxima found
     if imgMaxNoBack.any() == True:
         print("JeaJeaJea")
@@ -126,7 +176,7 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
         print("col_max = ",col_max)
         '''
 
-        fitdata = pysm.new_cython.fitgaussian2d(
+        fitdata = fitgaussian2d(
                     image[row_min:row_max, col_min:col_max],
                     background_mean)
         
@@ -159,6 +209,14 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
             fitdata[5] > (sigma_thresh * sigma) or
             fitdata[5] < (sigma / sigma_thresh)):
             #print("Fit too unlike theoretical psf")
+            #if fitdata[4] > (sigma_thresh * sigma) :
+            #    print("spot x too large")
+            #elif fitdata[4] < (sigma / sigma_thresh):
+            #    print("spot x too small")
+            #elif fitdata[5] > (sigma_thresh * sigma):
+            #    print("spot y too large")
+            #elif fitdata[5] < (sigma / sigma_thresh):   
+            #    print("spot y too small")
             #Fit too unlike theoretical psf
             continue
 

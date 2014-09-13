@@ -10,3 +10,8 @@ ImageTester/
 foundParticles.txt
 images/
 tester.tif
+Analysis/
+Video/
+foundTracks.txt
+mol_parameters26.txt
+pysm/ctrack.py
