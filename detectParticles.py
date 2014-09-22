@@ -1,6 +1,7 @@
 import numpy as np
 import pysm.new_cython
 import readImage
+import filters
 from scipy import ndimage, optimize
 
 
@@ -95,7 +96,19 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
     if output:
         readImage.saveImageToFile(image,"01sanityCheck.tif")
 
-    gausFiltImage = ndimage.filters.gaussian_filter(image,sigma,order=0)
+    median_img = ndimage.filters.median_filter(image, (21,21))
+    if False:
+        readImage.saveImageToFile(median_img,"05MedianFilter.tif")
+    (background_mean,background_std) = (median_img.mean(),median_img.std())
+#    print(background_mean,background_std)
+    cutoff = readImage.otsuMethod(image)
+    cutoff = background_mean + signal_power * background_std
+
+    boxcarImage = filters.boxcarFilter(image,boxsize=5,cutoff=cutoff)
+    if output:
+        readImage.saveImageToFile(boxcarImage,"02boxFilter.tif")
+
+    gausFiltImage = ndimage.filters.gaussian_filter(boxcarImage,sigma,order=0)
     if output:
         readImage.saveImageToFile(gausFiltImage,"02gaussFilter.tif")
     
@@ -108,14 +121,6 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
     if output:
         readImage.saveImageToFile(img_max_filter,"04MaxFilter.tif")
     
-    median_img = ndimage.filters.median_filter(image, (21,21))
-    if False:
-        readImage.saveImageToFile(median_img,"05MedianFilter.tif")
-    (background_mean,background_std) = (median_img.mean(),median_img.std())
-#    print(background_mean,background_std)
-    
-    cutoff = readImage.otsuMethod(image)
-    cutoff = background_mean + signal_power * background_std
 
     imgMaxNoBack = (img_max_filter >= cutoff)
     if output:

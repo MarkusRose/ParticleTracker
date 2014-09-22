@@ -15,6 +15,7 @@ from scipy.misc import imsave
 '''First we have to read the image'''
 def readImage(imagepath):
     inImage = Image.open(imagepath)
+    print inImage
     bit_depth = 16
     if inImage.mode == 'L':
         bit_depth = 8
@@ -27,6 +28,8 @@ def readImage(imagepath):
     a = np.asarray(inImage.getdata())
 #    print(a.dtype)
     a = np.resize(a.astype(float),inImage.size)
+    print a.shape
+    print bit_depth
     return adjustRange(a,bit_depth)
 
 
@@ -39,12 +42,12 @@ def adjustRange(image,bit_depth):
     print(image.min())
     print
     '''
-    for i in range(len(image)):
-        for j in range(len(image[i])):
+    for i in xrange(len(image)):
+        for j in xrange(len(image[i])):
             if image[i,j] < 0:
-                #print(j.min())
+                #print(image.min())
                 image[i,j] = 65536 + image[i,j]
-                #print(j.min())
+                #print(image.min())
     '''
     print
     print(image.min())
@@ -125,7 +128,7 @@ def detectParticlePosition(inImage,outImage,cutoffMethod):
 
 
 if __name__=="__main__":
-    detectParticlePosition("tester.tif","outTest.tif",determineCutoff)
+    detectParticlePosition("/data/NEHADexperiments/2013-08-14/mito_DiD_Images/mito_DiD0000.tif","outTest.tif",determineCutoff)
     #detectParticlePosition("tester.tif","otsuTest.tif",otsuMethod)
 
 
