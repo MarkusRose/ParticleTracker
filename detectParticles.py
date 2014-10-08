@@ -58,7 +58,6 @@ def fitgaussian2d(data, background_mean, user_moments = None):
     #ravel is a special case for "unraveling" higher dimensional arrays into 1D arrays
     errorfunction = lambda p: np.ravel((gaussian2d(*p)(*np.indices(data.shape)) - data))
     p, cov, infodict, errmsg, success = optimize.leastsq(errorfunction, initial_params, full_output=1)
-
     return p
 
 def image_moments(data, mean_background):
@@ -98,10 +97,9 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
 
     median_img = ndimage.filters.median_filter(image, (21,21))
     if False:
-        readImage.saveImageToFile(median_img,"05MedianFilter.tif")
+        readImage.saveImageToFile(median_img,"05MedianFilter1.tif")
     (background_mean,background_std) = (median_img.mean(),median_img.std())
-#    print(background_mean,background_std)
-    cutoff = readImage.otsuMethod(image)
+    #cutoff = readImage.otsuMethod(image)
     cutoff = background_mean + signal_power * background_std
 
     boxcarImage = filters.boxcarFilter(image,boxsize=5,cutoff=cutoff)
@@ -121,7 +119,16 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
     if output:
         readImage.saveImageToFile(img_max_filter,"04MaxFilter.tif")
     
+    print("Cutoff is at: {:}".format(cutoff))
+    median_img = ndimage.filters.median_filter(gausFiltImage, (21,21))
+    if False:
+        readImage.saveImageToFile(median_img,"05MedianFilter2.tif")
+    (background_mean,background_std) = (median_img.mean(),median_img.std())
+    #cutoff = readImage.otsuMethod(image)
+    cutoff = background_mean + signal_power * background_std
 
+    print("Cutoff is at: {:}".format(cutoff))
+    print("Max of MaxFilter is at: {:}".format(img_max_filter.max()))
     imgMaxNoBack = (img_max_filter >= cutoff)
     if output:
         readImage.saveImageToFile(imgMaxNoBack,"05MaxBinary.tif")
@@ -172,7 +179,8 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
             pass
 
         
-        ''' #Check ROI 
+        '''
+        #Check ROI 
         print("row0 = ",row0)
         print("col0 = ",col0)
         print("row_min = ",row_min)
@@ -182,7 +190,7 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
         '''
 
         fitdata = fitgaussian2d(
-                    image[row_min:row_max, col_min:col_max],
+                    image[row_min:row_max+1, col_min:col_max+1],
                     background_mean)
         
         '''#Check fitdata
@@ -210,7 +218,7 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
             continue
         
         if (fitdata[4] > (sigma_thresh * sigma) or 
-			fitdata[4] < (sigma / sigma_thresh) or
+            fitdata[4] < (sigma / sigma_thresh) or
             fitdata[5] > (sigma_thresh * sigma) or
             fitdata[5] < (sigma / sigma_thresh)):
             #print("Fit too unlike theoretical psf")

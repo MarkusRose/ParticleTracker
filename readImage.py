@@ -15,7 +15,6 @@ from scipy.misc import imsave
 '''First we have to read the image'''
 def readImage(imagepath):
     inImage = Image.open(imagepath)
-    print inImage
     bit_depth = 16
     if inImage.mode == 'L':
         bit_depth = 8
@@ -25,11 +24,11 @@ def readImage(imagepath):
         print("Bit_depth unknown, set to 16bit")
         bit_depth = 16
 
+    print inImage.size
     a = np.asarray(inImage.getdata())
-#    print(a.dtype)
-    a = np.resize(a.astype(float),inImage.size)
     print a.shape
-    print bit_depth
+    a = np.resize(a.astype(float),(inImage.size[1],inImage.size[0]))
+    print a.shape
     return adjustRange(a,bit_depth)
 
 

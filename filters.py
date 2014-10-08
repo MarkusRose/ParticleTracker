@@ -9,13 +9,12 @@ def boxcarFilter(image,boxsize=3,cutoff=1.0):
     changed = np.zeros(image.shape)
     for i in xrange(len(image)):
         for j in xrange(len(image[i])):
-            #if image[i,j] > cutoff:
-            #    print("Pixel brighter than cutoff: " + str((i,j)))
             sum = 0
             counter = 0
-            if image[i,j] > cutoff:
-                changed[i,j] = image[i,j]
-                continue
+            #if image[i,j] > cutoff:
+            #    changed[i,j] = image[i,j]
+            #    print("Pixel brighter than cutoff: " + str((i,j)))
+            #    continue
             for k in xrange(boxsize):
                 ksaver = i+k-halfsize
                 if ksaver < 0 or ksaver >= len(image):

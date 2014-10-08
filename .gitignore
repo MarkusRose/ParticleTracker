@@ -15,3 +15,16 @@ Video/
 foundTracks.txt
 mol_parameters26.txt
 pysm/ctrack.py
+01sanityCheck.tif 
+02boxFilter.tif 
+02gaussFilter.tif 
+03localMax.tif 
+04MaxFilter.tif 
+05MaxBinary.tif 
+06mark-0.tif 
+blabla2.tif 
+blabla.tif 
+gaussfit-outTest.tif 
+localmax-outTest.tif 
+median-outTest.tif
+*.tif

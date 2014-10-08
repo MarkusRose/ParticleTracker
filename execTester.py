@@ -6,12 +6,13 @@ import markPosition
 import pysm
 import os
 import glob
+from matplotlib import pyplot as plt
 
 import numpy as np
 
-sigma = 1.0
+sigma = 1.4
 local_max_window = 3
-signal_power = 5
+signal_power = 6
 bit_depth = 16
 eccentricity_thresh = 1.5
 sigma_thresh = 3
@@ -62,44 +63,38 @@ def printPictures(tracks,numtrack):
         print ""
 
 
+
 if __name__=="__main__":
 
-    img = readImageList("/data/NEHADexperiments/2013-08-13/mito_DiD_nonreptureed_Liposomes")
+    img = readImageList("/data/NEHADexperiments/2013-08-14/mito_DID007_Images")
 
-    img = img[30:31]
-    image = readImage.readImage(img[0])
-    readImage.saveImageToFile(image,"blabla.tif")
-    markPosition.saveRGBImage(markPosition.convertRGB(image),"blabla2.tif")
 
-    #print img
-    print("\n==== Series of all location pictures ====")
-    for i in xrange(len(img)):
-        print("==== Predo image " + str(i) + " ====")
-        inimage = img[i]
-        particle_data = detectParticles.multiImageDetect([inimage],sigma,local_max_window,signal_power,bit_depth,eccentricity_thresh,sigma_thresh,True)
+    img = img[:500]
 
-        image = readImage.readImage(inimage)
-        markings = markPosition.markPositionsFromList(image,particle_data[0])
-        markPosition.superimpose(image,markings,"06mark-"+str(i)+".tif")
     '''
-   
     print("\n==== Make first images ====")
-    inimage = "images/tester.tif"#img[0]
+    inimage = img[0]
     particle_data = detectParticles.multiImageDetect([inimage],sigma,local_max_window,signal_power,bit_depth,eccentricity_thresh,sigma_thresh,True)
     image = readImage.readImage(inimage)
     markings = markPosition.markPositionsFromList(image,particle_data[0])
     markPosition.superimpose(image,markings,"06mark.tif")
-
     '''
-#    print('\n==== Start Localization and Detection ====')
-#    particle_data = detectParticles.multiImageDetect(img,sigma,local_max_window,signal_power,bit_depth,eccentricity_thresh,sigma_thresh,False)
-#
-#    if not dataCorrect(particle_data):
-#        sys.exit("Particle data not correct")
-#
-#    print('\n==== Start Tracking ====\n')
-#    tracks = ctrack.link_particles(particle_data,max_displacement)
+
+    print('\n==== Start Localization and Detection ====')
+    particle_data = detectParticles.multiImageDetect(img,sigma,local_max_window,signal_power,bit_depth,eccentricity_thresh,sigma_thresh,False)
+
+    if not dataCorrect(particle_data):
+        sys.exit("Particle data not correct")
+    print("\n==== Series of all location pictures ====")
+
+
+    for i in xrange(len(img)):
+        image = readImage.readImage(img[i])
+        markings = markPosition.markPositionsFromList(image,particle_data[i])
+        markPosition.superimpose(image,markings,"06mark-"+str(i)+".tif")
+   
+    print('\n==== Start Tracking ====\n')
+    tracks = ctrack.link_particles(particle_data,max_displacement)
     
-    #printPictures(tracks,4)
 
     print("\nDone!\n---------\n")
