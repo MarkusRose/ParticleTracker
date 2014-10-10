@@ -93,18 +93,18 @@ def gaussian2d(height, amplitude, center_x,
 def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,eccentricity_thresh,sigma_thresh,output):
     image = readImage.readImage(img)
     if output:
-        readImage.saveImageToFile(image,"01sanityCheck.tif")
+        readImage.saveImageToFile(image,"01sanityCheck.png")
 
     median_img = ndimage.filters.median_filter(image, (21,21))
     if False:
-        readImage.saveImageToFile(median_img,"05MedianFilter1.tif")
+        readImage.saveImageToFile(median_img,"05MedianFilter1.png")
     (background_mean,background_std) = (median_img.mean(),median_img.std())
     #cutoff = readImage.otsuMethod(image)
     cutoff = background_mean + signal_power * background_std
 
     boxcarImage = filters.boxcarFilter(image,boxsize=5,cutoff=cutoff)
     if output:
-        readImage.saveImageToFile(boxcarImage,"02boxFilter.tif")
+        readImage.saveImageToFile(boxcarImage,"02boxFilter.png")
 
     gausFiltImage = ndimage.filters.gaussian_filter(boxcarImage,sigma,order=0)
     if output:

@@ -69,7 +69,7 @@ if __name__=="__main__":
     img = readImageList("/data/NEHADexperiments/2013-08-14/mito_DID007_Images")
 
 
-    img = img[:500]
+    img = img[:10]
 
     '''
     print("\n==== Make first images ====")
