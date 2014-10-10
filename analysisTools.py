@@ -6,7 +6,7 @@
 import numpy as np
 
 
-def calcMSD(track):
+def calcMSD(track,fileident=""):
     delta = 1
     deltamax = track[len(track)-1][0] - track[0][0]
     print deltamax
@@ -45,12 +45,9 @@ def calcMSD(track):
 
     print(msd)
 
-    outfile = open("msd"+filename[3:7]+".txt",'w')
+    outfile = open("msd"+fileident+".txt",'w')
 
     for a in msd:
         outfile.write(str(a[0]) + ' ' + str(a[1]) + '\n')
     outfile.close()
 
-
-if __name__=="__main__":
-    sortPositionFile("out0004.txt")

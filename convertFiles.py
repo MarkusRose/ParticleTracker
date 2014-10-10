@@ -73,8 +73,6 @@ def sortPositionFile(filename):
     outfile.close()
 
 
-
-
 def convertParticles(infile):
     i = 0
     boo = True
