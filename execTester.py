@@ -12,10 +12,10 @@ from matplotlib import pyplot as plt
 import numpy as np
 
 sigma = 1.0
-local_max_window = 3
-signal_power = 6
+local_max_window = 4
+signal_power = 8
 bit_depth = 16
-eccentricity_thresh = 1.5
+eccentricity_thresh = 2
 sigma_thresh = 3
 max_displacement = 6
 
@@ -67,10 +67,10 @@ def printPictures(tracks,numtrack):
 
 if __name__=="__main__":
 
-    img = readImageList("/data/NEHADexperiments/2013-08-14/mito_DID006_Images")
+    img = readImageList("/data/NEHADexperiments/2013-08-14/mito_DID002_Images")
 
 
-    img = img[:10]
+    img = img[:500]
 
     '''
     print("\n==== Make first images ====")
@@ -87,16 +87,16 @@ if __name__=="__main__":
     if not dataCorrect(particle_data):
         sys.exit("Particle data not correct")
 
+    '''
     print("\n==== Series of all location pictures ====")
     for i in xrange(len(img)):
         image = readImage.readImage(img[i])
         markings = markPosition.markPositionsFromList(image,particle_data[i])
         markPosition.superimpose(image,markings,"06mark-"+str(i)+".tif")
+        '''
    
-    '''
     print('\n==== Start Tracking ====\n')
     tracks = ctrack.link_particles(particle_data,max_displacement)
-    '''
     
 
     print("\nDone!\n---------\n")

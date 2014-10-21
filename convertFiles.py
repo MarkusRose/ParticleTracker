@@ -123,7 +123,7 @@ def convertParticles(infile):
         if line.strip():
             if boo:
                 i += 1
-                outfile = open("out{:0004d}.txt".format(i),'w')
+                outfile = open("frame{:0004d}.txt".format(i),'w')
                 boo = False
             if not (particle < 0):
                 if not line[0] == "#":
@@ -142,7 +142,7 @@ def convertParticles(infile):
                 particle = -4
                 partnum = 0
                 outfile.close()
-                sortPositionFile("out{:0004d}.txt".format(i))
+                sortPositionFile("frame{:0004d}.txt".format(i))
             boo = True
 
     saveTN = open("SuggestedFrames.txt",'w')
@@ -159,7 +159,7 @@ def convertTrajectories(infile):
         if line.strip():
             if boo:
                 i += 1
-                outfile = open("out{:0004d}.txt".format(i),'w')
+                outfile = open("trajectory{:0004d}.txt".format(i),'w')
                 boo = False
             if not (frame < 0):
                 if not line[0] == "#":
@@ -173,7 +173,7 @@ def convertTrajectories(infile):
 
         else:
             if not boo:
-                if partpos >= 50:
+                if partpos >= 20:
                     liste.append(i)
                 frame = -2
                 partpos = 0
@@ -187,10 +187,10 @@ def convertTrajectories(infile):
 
 
 if __name__=="__main__":
-    #infile = open("foundTracks.txt",'r')
-    #convertTrajectories(infile)
-    #infile.close()
-    #infile = open("foundParticles.txt",'r')
-    #convertParticles(infile)
-    #infile.close()
+    infile = open("foundTracks.txt",'r')
+    convertTrajectories(infile)
+    infile.close()
+    infile = open("foundParticles.txt",'r')
+    convertParticles(infile)
+    infile.close()
     readDetectedParticles("foundParticles.txt")

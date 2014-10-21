@@ -5,6 +5,7 @@
 
 import numpy as np
 import cmath
+import convertFiles
 
 
 def calcMSD(track,fileident=""):
@@ -83,4 +84,5 @@ def calcSCF(track,fileident=""):
 
 
 if __name__=="__main__":
-    print "hello"
+    tracks = convertFiles.readTrajectoryFromFile("trajectory2286.txt")
+    calcMSD(tracks,"2286")
