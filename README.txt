@@ -10,6 +10,47 @@ README file for Particle-Searcher
 Packages
 ========
 
+ctrack
+------
+class ParticleTrack(object):
+-writeTrajectories(tracks):
+-link_particles(particle_data, max_displacement,
+-build_cost_matrix(
+-particles_1,
+-particles_2,
+-max_cost,
+-cost_matrix):
+-lap_assoc_matrix(
+-    max_cost,
+-    association_matrix, 
+-    cost_matrix):
+
+detectParticles
+---------------
+-writeDetectedParticles(particles):
+-multiImageDetect(img,
+                sigma,
+                local_max_window,
+                signal_power,
+                bit_depth,
+                eccentricity_thresh,
+                sigma_thresh,output=False):
+-fitgaussian2d(data, background_mean, user_moments = None):
+-image_moments(data, mean_background):
+-gaussian2d(height, amplitude, center_x, 
+-detectParticles(img,sigma,local_max_window,signal_power,
+                bit_depth,frame,eccentricity_thresh,sigma_thresh,output):
+
+readImage
+---------
+-readImage(imagepath)
+-adjustRange(image,bit_depth)
+-determineCutoff(image)
+-otsuMethod(image)
+-cutImage(image,cutoffMethod)
+-saveImageToFile(inArray,outName)
+-detectParticlePosition(inImage,outImage,cutoffMethod)
+
 markPosition
 ------------
 -treasure(size_x,size_y,thickness)

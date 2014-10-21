@@ -9,12 +9,13 @@ def writeDetectedParticles(particles):
     outfile = open("foundParticles.txt",'w')
     for i in range(len(particles)):
         outfile.write('\n#-Frame {:2.0f} -------------------------------------\n'.format(i+1))
-        outfile.write('# Number of particles: ' + str(len(particles[i][0])) + '\n')
-        outfile.write('# Cutoff value used: {:.1f} \n'.format(particles[i][1]))
+        outfile.write('#-Number-of-particles: ' + str(len(particles[i][0])) + '\n')
+        outfile.write('#-Cutoff-value-used: {:} \n'.format(particles[i][1]))
         outfile.write("# x       y        width_x      width_y   height  amplitude  sn  volume \n")
         for p in particles[i][0]:
-            outfile.write('{:.2f} {:.2f} {:.2f} {:.2f} {:.2f} {:.2f} {:.2f} {:.2f} \n'.format(p.x,p.y,p.width_x,p.width_y,p.height,p.amplitude,p.sn,p.volume))
+            outfile.write('{:} {:} {:} {:} {:} {:} {:} {:} \n'.format(p.x,p.y,p.width_x,p.width_y,p.height,p.amplitude,p.sn,p.volume))
     return
+
 
 def multiImageDetect(img,
                     sigma,
@@ -108,21 +109,21 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
 
     gausFiltImage = ndimage.filters.gaussian_filter(boxcarImage,sigma,order=0)
     if output:
-        readImage.saveImageToFile(gausFiltImage,"02gaussFilter.tif")
+        readImage.saveImageToFile(gausFiltImage,"02gaussFilter.png")
     
     localMaxImage = ndimage.filters.maximum_filter(gausFiltImage,size=local_max_window)
     if output:
-        readImage.saveImageToFile(localMaxImage,"03localMax.tif")
+        readImage.saveImageToFile(localMaxImage,"03localMax.png")
 
     img_max_filter = gausFiltImage.copy()
     img_max_filter[(gausFiltImage != localMaxImage)] = 0
     if output:
-        readImage.saveImageToFile(img_max_filter,"04MaxFilter.tif")
+        readImage.saveImageToFile(img_max_filter,"04MaxFilter.png")
     
-    print("Cutoff is at: {:}".format(cutoff))
+#    print("Cutoff is at: {:}".format(cutoff))
     median_img = ndimage.filters.median_filter(gausFiltImage, (21,21))
     if False:
-        readImage.saveImageToFile(median_img,"05MedianFilter2.tif")
+        readImage.saveImageToFile(median_img,"05MedianFilter2.png")
     (background_mean,background_std) = (median_img.mean(),median_img.std())
     #cutoff = readImage.otsuMethod(image)
     cutoff = background_mean + signal_power * background_std
@@ -131,7 +132,7 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
     print("Max of MaxFilter is at: {:}".format(img_max_filter.max()))
     imgMaxNoBack = (img_max_filter >= cutoff)
     if output:
-        readImage.saveImageToFile(imgMaxNoBack,"05MaxBinary.tif")
+        readImage.saveImageToFile(imgMaxNoBack,"05MaxBinary.png")
      #Check if maxima found
     if imgMaxNoBack.any() == True:
         print("JeaJeaJea")

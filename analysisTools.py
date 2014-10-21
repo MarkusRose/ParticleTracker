@@ -4,6 +4,7 @@
 
 
 import numpy as np
+import cmath
 
 
 def calcMSD(track,fileident=""):
@@ -51,3 +52,35 @@ def calcMSD(track,fileident=""):
         outfile.write(str(a[0]) + ' ' + str(a[1]) + '\n')
     outfile.close()
 
+
+def calcSCF(track,fileident=""):
+    #Parameters
+    L = 2
+    vels = []
+
+    v=0
+    for i in xrange(len(track)-1):
+        dx = track[i+1][1]-track[i][1]
+        dy = track[i+1][2]-track[i][2]
+        v = cmath.sqrt(dx*dx+dy*dy)/(track[i+1][0]-track[i][0])
+        vels.append(v)
+    vels.append(v)
+    if len(track) != len(vels):
+        print "Velocities don't match track."
+    
+    return
+
+    for j in xrange(L):
+        k = j
+        while k < (track[-1][0]-track[0][0]-L):
+            v = 0
+            for i in xrange(k,k+L,1):
+                dx = track[i+1][1]-track[i][1]
+                dy = track[i+1][2]-track[i][2]
+                v += cmath.sqrt(dx*dx + dy*dy)/(track[i+1][0]-track[i][0])
+            v /= L
+            k += L
+
+
+if __name__=="__main__":
+    print "hello"

@@ -3,6 +3,8 @@
 ======================================'''
 
 import numpy as np
+import detectParticles
+import pysm.new_cython
 
 
 #Read Trajectory from file
@@ -46,11 +48,49 @@ def readPositionsFromFile(filename):
     #print sorted(pos)
     return pos
 
+def readDetectedParticles(filename):
+    infile = open(filename,'r')
+    particle_data=[]
+    line = infile.readline()
+    while line:
+        particle_oneframe=[]
+        line = infile.readline()
+        frame = line.split()[1]
+        line = infile.readline()
+        partnum = float(line.split()[1])
+        line = infile.readline()
+        cutoff = float(line.split()[1])
+        line = infile.readline()
+        line = infile.readline()
+        while line and line.strip():
+            a = line.split()
+            b = []
+            for k in a:
+                b.append(float(k))
+            p = pysm.new_cython.TempParticle()        
+            p.frame = frame
+            p.x,p.y,p.width_x,p.width_y,p.height,p.amplitude,p.sn,p.volume = b
+            particle_oneframe.append(p)
+            line = infile.readline()
+        if len(particle_oneframe) != partnum:
+            print "We have a problem"
+            break
+        particle_data.append([particle_oneframe,cutoff])
 
+    infile.close()
 
+    detectParticles.writeDetectedParticles(particle_data)
+    pd = []
+    for fr in particle_data:
+        pd.append(fr[0])
+#    print pd
+    return pd
+            
 def sortPositionFile(filename):
     pos = readPositionsFromFile(filename)
     posnew = sorted(pos, key=lambda x: x[1])
+    #print pos
+    #print posnew
     
     outfile = open(filename,'r')
     line = ""
@@ -109,7 +149,6 @@ def convertParticles(infile):
     saveTN.write("Use the following tracks: \n" + str(liste))
     saveTN.close()
 
-
 def convertTrajectories(infile):
     i = 0
     boo = True
@@ -148,9 +187,10 @@ def convertTrajectories(infile):
 
 
 if __name__=="__main__":
-    infile = open("foundTracks.txt",'r')
-    convertTrajectories(infile)
-    infile.close()
-    infile = open("foundParticles.txt",'r')
-    convertParticles(infile)
-    infile.close()
+    #infile = open("foundTracks.txt",'r')
+    #convertTrajectories(infile)
+    #infile.close()
+    #infile = open("foundParticles.txt",'r')
+    #convertParticles(infile)
+    #infile.close()
+    readDetectedParticles("foundParticles.txt")
