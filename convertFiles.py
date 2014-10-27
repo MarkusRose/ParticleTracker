@@ -4,6 +4,7 @@
 
 import numpy as np
 import detectParticles
+import analysisTools
 import pysm.new_cython
 
 
@@ -79,13 +80,14 @@ def readDetectedParticles(filename):
 
     infile.close()
 
-    detectParticles.writeDetectedParticles(particle_data)
+#    detectParticles.writeDetectedParticles(particle_data)
     pd = []
     for fr in particle_data:
         pd.append(fr[0])
 #    print pd
     return pd
-            
+
+
 def sortPositionFile(filename):
     pos = readPositionsFromFile(filename)
     posnew = sorted(pos, key=lambda x: x[1])
@@ -184,13 +186,35 @@ def convertTrajectories(infile):
     saveTN.write("Use the following tracks: \n" + str(liste))
     saveTN.close()
 
+    for t in liste:
+        tracks = readTrajectoryFromFile("trajectory{:0004d}.txt".format(t))
+        analysisTools.calcMSD(tracks,"{:0004d}".format(t))
+
+def convImageJTrack(filename):
+    infile = open(filename,'r')
+    infile.readline()
+    traject = []
+
+    for line in infile:
+        x = int(float(line.split()[4])/0.16 - 0.5)
+        y = int(float(line.split()[5])/0.16 - 0.5)
+        t = int(float(line.split()[6])/0.16)
+        traject.append([t,x,y])
+
+    return traject
+
+
+
 
 
 if __name__=="__main__":
+    '''
     infile = open("foundTracks.txt",'r')
     convertTrajectories(infile)
     infile.close()
     infile = open("foundParticles.txt",'r')
     convertParticles(infile)
     infile.close()
-    readDetectedParticles("foundParticles.txt")
+    '''
+    #readDetectedParticles("foundParticles.txt")
+    print convImageJTrack("/data/AnalysisTracks/2014-10-26_Mito-Lipid_Tracks/Mito_DiD001-2-HandTracks/VisTrack01.xls")

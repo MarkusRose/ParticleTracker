@@ -5,15 +5,13 @@ import filters
 from scipy import ndimage, optimize
 
 
-def writeDetectedParticles(particles):
-    outfile = open("foundParticles.txt",'w')
-    for i in range(len(particles)):
-        outfile.write('\n#-Frame {:2.0f} -------------------------------------\n'.format(i+1))
-        outfile.write('#-Number-of-particles: ' + str(len(particles[i][0])) + '\n')
-        outfile.write('#-Cutoff-value-used: {:} \n'.format(particles[i][1]))
-        outfile.write("# x       y        width_x      width_y   height  amplitude  sn  volume \n")
-        for p in particles[i][0]:
-            outfile.write('{:} {:} {:} {:} {:} {:} {:} {:} \n'.format(p.x,p.y,p.width_x,p.width_y,p.height,p.amplitude,p.sn,p.volume))
+def writeDetectedParticles(particles,frame,outfile):
+    outfile.write('\n#-Frame {:2.0f} -------------------------------------\n'.format(frame))
+    outfile.write('#-Number-of-particles: ' + str(len(particles[0])) + '\n')
+    outfile.write('#-Cutoff-value-used: {:} \n'.format(particles[1]))
+    outfile.write("# x       y        width_x      width_y   height  amplitude  sn  volume \n")
+    for p in particles[0]:
+        outfile.write('{:} {:} {:} {:} {:} {:} {:} {:} \n'.format(p.x,p.y,p.width_x,p.width_y,p.height,p.amplitude,p.sn,p.volume))
     return
 
 
@@ -26,6 +24,7 @@ def multiImageDetect(img,
                     sigma_thresh,output=False):
     particle_data = []
     frame = 0
+    outfile = open("foundParticles.txt",'w')
     for image in img:
         frame += 1
         print("\n==== Doing image no " + str(frame) + " ====")
@@ -40,7 +39,8 @@ def multiImageDetect(img,
                 sigma_thresh,output)
 
         particle_data.append(particles)
-    writeDetectedParticles(particle_data)
+        writeDetectedParticles(particles,frame,outfile)
+    outfile.close()
     pd = []
     for fr in particle_data:
         pd.append(fr[0])
@@ -134,10 +134,8 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
     if output:
         readImage.saveImageToFile(imgMaxNoBack,"05MaxBinary.png")
      #Check if maxima found
-    if imgMaxNoBack.any() == True:
-        print("JeaJeaJea")
-    else:
-        print("NoNoNo")
+    if imgMaxNoBack.any() == False:
+        print("Error: No max pixels detected.")
 
 #    gaussian_fit = pysm.new_cython.fit_gaussians_2d(image,sigma,
 #            imgMaxNoBack,
@@ -149,7 +147,11 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
 #    else:
 #        print("OhOh!!!")
     particle_list = []
-    template_size = signal_power * np.ceil(sigma) - 1
+
+#TODO: Played around with signal_power:
+    #template_size = signal_power * np.ceil(sigma) - 1
+    template_size = 10 * np.ceil(sigma) - 1
+
     psf_range = np.floor(template_size/2)
 
     num_rows = image.shape[0]
@@ -160,6 +162,12 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
 
     print('Cutoff is at ' + str(cutoff))
     print("Found local Maxima: "+str(len(local_max_pixels[0])))
+
+    nunocon = 0
+    nunoexc = 0
+    nusigma = 0
+    nupart = 0
+    nuedge = 0
 
     for i in xrange(len(local_max_pixels[0])):
         row0 = int(local_max_pixels[0][i])
@@ -174,6 +182,7 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
         if (row_min < 0 or row_max >= num_rows or
                 col_min < 0 or col_max >= num_cols):
             #print("Oh, too close to frame boarder to fit a gaussian.")
+            nuedge += 1
             continue
         else:
             #print("So where is the point?")
@@ -209,6 +218,7 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
         if fitdata[0] <= 0 or fitdata[1] <=0:
             #print("Fit did not converge")
             #Fit did not converge
+            nunocon += 1
             continue
         
         if (np.abs(fitdata[5]/fitdata[4]) >= eccentricity_thresh or 
@@ -216,6 +226,7 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
             
             #print("Fit too eccentric")
             #Fit too eccentric
+            nunoexc += 1
             continue
         
         if (fitdata[4] > (sigma_thresh * sigma) or 
@@ -232,6 +243,7 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
             #elif fitdata[5] < (sigma / sigma_thresh):   
             #    print("spot y too small")
             #Fit too unlike theoretical psf
+            nusigma += 1
             continue
 
         #Create a new Particle
@@ -265,9 +277,21 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
         p.sn = (p.amplitude + p.height) / p.height
         
         particle_list.append(p)
+        nupart += 1
 
 
+    sumparts = nunocon+nunoexc+nusigma+nuedge+nupart
+    if not sumparts != len(local_max_pixels[0]):
+        print("Not converged:  {:5d}".format(nunocon))
+        print("Too excentric:  {:5d}".format(nunoexc))
+        print("Wrong Sigma:    {:5d}".format(nusigma))
+        print("close to Edge:  {:5d}".format(nuedge))
+        print("Appended Parts: {:5d}".format(nupart))
+        print("                +++++") 
+        print("Sum:            {:5d}".format(sumparts))
+        print "Error: number of maxPixels not equal to processed positions"
     print("Number of Particles found: " + str(len(particle_list)))
+
     '''
     mean = 0
 

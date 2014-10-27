@@ -67,36 +67,45 @@ def printPictures(tracks,numtrack):
 
 if __name__=="__main__":
 
-    img = readImageList("/data/NEHADexperiments/2013-08-14/mito_DID002_Images")
+    img = readImageList("/data/AnalysisTracks/2014-10-26_Mito-Lipid_Tracks/Mito_DiD001-2")
 
 
-    img = img[:500]
+    #img = img[:20]
 
-    '''
     print("\n==== Make first images ====")
     inimage = img[0]
     particle_data = detectParticles.multiImageDetect([inimage],sigma,local_max_window,signal_power,bit_depth,eccentricity_thresh,sigma_thresh,True)
     image = readImage.readImage(inimage)
     markings = markPosition.markPositionsFromList(image,particle_data[0])
     markPosition.superimpose(image,markings,"06mark.tif")
-    '''
 
+    '''
     print('\n==== Start Localization and Detection ====')
+    print("==== Series of all location pictures ====")
     particle_data = detectParticles.multiImageDetect(img,sigma,local_max_window,signal_power,bit_depth,eccentricity_thresh,sigma_thresh,False)
 
     if not dataCorrect(particle_data):
         sys.exit("Particle data not correct")
 
-    '''
-    print("\n==== Series of all location pictures ====")
     for i in xrange(len(img)):
         image = readImage.readImage(img[i])
         markings = markPosition.markPositionsFromList(image,particle_data[i])
-        markPosition.superimpose(image,markings,"06mark-"+str(i)+".tif")
-        '''
+        markPosition.superimpose(image,markings,"06mark-{:0004d}".format(i)+".png")
+
+    print("\n==== Series of all location pictures read from file ====")
+    particle_data = convertFiles.readDetectedParticles("foundParticles.txt")
+    particle_data = particle_data[:1]
+    for i in xrange(len(particle_data)):
+        image = readImage.readImage(img[i])
+        markings = markPosition.markPositionsFromList(image,particle_data[i])
+        markPosition.superimpose(image,markings,"06mark-{:0004d}".format(i)+".png")
+    '''
+
    
+    '''
     print('\n==== Start Tracking ====\n')
     tracks = ctrack.link_particles(particle_data,max_displacement)
     
+    '''
 
     print("\nDone!\n---------\n")

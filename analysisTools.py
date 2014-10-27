@@ -84,5 +84,5 @@ def calcSCF(track,fileident=""):
 
 
 if __name__=="__main__":
-    tracks = convertFiles.readTrajectoryFromFile("trajectory2286.txt")
-    calcMSD(tracks,"2286")
+    tracks = convertFiles.convImageJTrack("/data/AnalysisTracks/2014-10-26_Mito-Lipid_Tracks/Mito_DiD001-2-HandTracks/VisTrack01.xls")
+    calcMSD(tracks)

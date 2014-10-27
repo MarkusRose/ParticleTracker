@@ -118,9 +118,9 @@ def connectPositions(image,posList):
         
 
 def convertRGB(image):
-    print("Image max is {:}".format(image.max()))
-    image = image/image.max() * ((2**8) - 1)
-    print("Image max is {:}".format(image.max()))
+    #print("Image max is {:}".format(image.max()))
+    image = image/(image.max()) * ((2**8) - 1)
+    #print("Image max is {:}".format(image.max()))
     image = image.astype(np.uint8)
 
     data = np.zeros((image.shape[0],image.shape[1],3))
