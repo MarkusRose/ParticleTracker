@@ -91,11 +91,7 @@ def gaussian2d(height, amplitude, center_x,
     return (lambda x,y: height + 
             amplitude*np.exp(-(((center_x-x)/width_x)**2+((center_y-y)/width_y)**2)/2))
 
-def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,eccentricity_thresh,sigma_thresh,output):
-    image = readImage.readImage(img)
-    if output:
-        readImage.saveImageToFile(image,"01sanityCheck.png")
-
+def filterImage(image,sigma,local_max_window,signal_power,output):
     median_img = ndimage.filters.median_filter(image, (21,21))
     if False:
         readImage.saveImageToFile(median_img,"05MedianFilter1.png")
@@ -137,6 +133,21 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
     if imgMaxNoBack.any() == False:
         print("Error: No max pixels detected.")
 
+    local_max_pixels = np.nonzero(imgMaxNoBack)
+    
+    print('Cutoff is at ' + str(cutoff))
+    print("Found local Maxima: "+str(len(local_max_pixels[0])))
+
+    return (local_max_pixels,cutoff,background_mean)
+
+
+def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,eccentricity_thresh,sigma_thresh,output):
+    image = readImage.readImage(img)
+    if output:
+        readImage.saveImageToFile(image,"01sanityCheck.png")
+
+
+    local_max_pixels,cutoff,background_mean = filterImage(image,sigma,local_max_window,signal_power,output)
 #    gaussian_fit = pysm.new_cython.fit_gaussians_2d(image,sigma,
 #            imgMaxNoBack,
 #            background_mean,background_std,frame=0,template_size=None,
@@ -157,11 +168,8 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
     num_rows = image.shape[0]
     num_cols = image.shape[1]
 
-    local_max_pixels = np.nonzero(imgMaxNoBack)
     #print np.transpose(local_max_pixels)
 
-    print('Cutoff is at ' + str(cutoff))
-    print("Found local Maxima: "+str(len(local_max_pixels[0])))
 
     nunocon = 0
     nunoexc = 0
