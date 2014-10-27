@@ -47,6 +47,8 @@ def multiImageDetect(img,
 #    print pd
     return pd
 
+
+
 def fitgaussian2d(data, background_mean, user_moments = None):
     """Returns (height, amplitude, x, y, width_x, width_y) as a numpy array
     found by least squares fitting of gaussian variables:"""
@@ -60,6 +62,8 @@ def fitgaussian2d(data, background_mean, user_moments = None):
     errorfunction = lambda p: np.ravel((gaussian2d(*p)(*np.indices(data.shape)) - data))
     p, cov, infodict, errmsg, success = optimize.leastsq(errorfunction, initial_params, full_output=1)
     return p
+
+
 
 def image_moments(data, mean_background):
     total = data.sum()
@@ -79,6 +83,8 @@ def image_moments(data, mean_background):
     
     return (height, amplitude, x, y, width_x, width_y)
 
+
+
 def gaussian2d(height, amplitude, center_x, 
                center_y, width_x, width_y):
     """Return 2d gaussian lamda(x,y) function"""
@@ -90,6 +96,8 @@ def gaussian2d(height, amplitude, center_x,
     
     return (lambda x,y: height + 
             amplitude*np.exp(-(((center_x-x)/width_x)**2+((center_y-y)/width_y)**2)/2))
+
+
 
 def filterImage(image,sigma,local_max_window,signal_power,output):
     median_img = ndimage.filters.median_filter(image, (21,21))
@@ -141,35 +149,80 @@ def filterImage(image,sigma,local_max_window,signal_power,output):
     return (local_max_pixels,cutoff,background_mean)
 
 
-def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,eccentricity_thresh,sigma_thresh,output):
-    image = readImage.readImage(img)
-    if output:
-        readImage.saveImageToFile(image,"01sanityCheck.png")
 
-
-    local_max_pixels,cutoff,background_mean = filterImage(image,sigma,local_max_window,signal_power,output)
-#    gaussian_fit = pysm.new_cython.fit_gaussians_2d(image,sigma,
-#            imgMaxNoBack,
-#            background_mean,background_std,frame=0,template_size=None,
-#            bit_depth=16,eccentricity_thresh=1.5,sigma_thresh=2)
-    
-#    if np.array_equal(img_max_filter,pysmMaxImage):
-#        print("Jippiiiee")
-#    else:
-#        print("OhOh!!!")
-    particle_list = []
-
-#TODO: Played around with signal_power:
-    #template_size = signal_power * np.ceil(sigma) - 1
-    template_size = 10 * np.ceil(sigma) - 1
+def determineFittingROI(imageshape,lmpx,lmpy,signal_power,sigma):
+    #TODO: Played around with signal_power:
+    template_size = signal_power * np.ceil(sigma) - 1
+    #template_size = 10 * np.ceil(sigma) - 1
 
     psf_range = np.floor(template_size/2)
 
-    num_rows = image.shape[0]
-    num_cols = image.shape[1]
+    num_rows = imageshape[0]
+    num_cols = imageshape[1]
 
     #print np.transpose(local_max_pixels)
+    row0 = int(lmpx)
+    col0 = int(lmpy)
+    #print(row0,' ',col0)
 
+    row_min = row0 - psf_range
+    row_max = row0 + psf_range
+    col_min = col0 - psf_range
+    col_max = col0 + psf_range
+
+    if (row_min < 0 or row_max >= num_rows or
+            col_min < 0 or col_max >= num_cols):
+        #print("Oh, too close to frame boarder to fit a gaussian.")
+        return False
+    else:
+        #print("So where is the point?")
+        return (row_min,row_max,col_min,col_max)
+
+
+
+def checkFit(fitdata,sigma,sigma_thresh,eccentricity_thresh,nunocon,nunoexc,nusigma):
+    ##############
+    #FIT CHECKING
+    ##############
+    if fitdata[0] <= 0 or fitdata[1] <=0:
+        #print("Fit did not converge")
+        #Fit did not converge
+        nunocon += 1
+        return False, nunocon,nunoexc,nusigma
+    
+    if (np.abs(fitdata[5]/fitdata[4]) >= eccentricity_thresh or 
+        np.abs(fitdata[4]/fitdata[5]) >= eccentricity_thresh):
+        
+        #print("Fit too eccentric")
+        #Fit too eccentric
+        nunoexc += 1
+        return False, nunocon,nunoexc,nusigma
+    
+    if (fitdata[4] > (sigma_thresh * sigma) or 
+        fitdata[4] < (sigma / sigma_thresh) or
+        fitdata[5] > (sigma_thresh * sigma) or
+        fitdata[5] < (sigma / sigma_thresh)):
+        #print("Fit too unlike theoretical psf")
+        #if fitdata[4] > (sigma_thresh * sigma) :
+        #    print("spot x too large")
+        #elif fitdata[4] < (sigma / sigma_thresh):
+        #    print("spot x too small")
+        #elif fitdata[5] > (sigma_thresh * sigma):
+        #    print("spot y too large")
+        #elif fitdata[5] < (sigma / sigma_thresh):   
+        #    print("spot y too small")
+        #Fit too unlike theoretical psf
+        nusigma += 1
+        return False, nunocon,nunoexc,nusigma
+
+    return True,nunocon,nunoexc,nusigma
+
+
+
+
+def findParticleAndAdd(image,frame,local_max_pixels,signal_power,sigma,background_mean,sigma_thresh,eccentricity_thresh,bit_depth):
+    
+    particle_list = []
 
     nunocon = 0
     nunoexc = 0
@@ -178,80 +231,22 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
     nuedge = 0
 
     for i in xrange(len(local_max_pixels[0])):
-        row0 = int(local_max_pixels[0][i])
-        col0 = int(local_max_pixels[1][i])
-        #print(row0,' ',col0)
-
-        row_min = row0 - psf_range
-        row_max = row0 + psf_range
-        col_min = col0 - psf_range
-        col_max = col0 + psf_range
-
-        if (row_min < 0 or row_max >= num_rows or
-                col_min < 0 or col_max >= num_cols):
-            #print("Oh, too close to frame boarder to fit a gaussian.")
+        
+        isIt = determineFittingROI(image.shape,
+                local_max_pixels[0][i],local_max_pixels[1][i],signal_power,sigma)
+        if isIt:
+            row_min,row_max,col_min,col_max = isIt
+        else:
             nuedge += 1
             continue
-        else:
-            #print("So where is the point?")
-            pass
-
-        
-        '''
-        #Check ROI 
-        print("row0 = ",row0)
-        print("col0 = ",col0)
-        print("row_min = ",row_min)
-        print("row_max = ",row_max)
-        print("col_min = ",col_min)
-        print("col_max = ",col_max)
-        '''
 
         fitdata = fitgaussian2d(
                     image[row_min:row_max+1, col_min:col_max+1],
                     background_mean)
-        
-        '''#Check fitdata
-        print("Background: ", str(fitdata[0]))
-        print("Amplitude: ", str(fitdata[1]))
-        print("X: ", str(fitdata[2]))
-        print("Y: ", str(fitdata[3]))
-        print("Width_X: ", str(fitdata[4]))
-        print("Width_Y: ", str(fitdata[5]))
-        '''
 
-        ##############
-        #FIT CHECKING
-        ##############
-        if fitdata[0] <= 0 or fitdata[1] <=0:
-            #print("Fit did not converge")
-            #Fit did not converge
-            nunocon += 1
-            continue
-        
-        if (np.abs(fitdata[5]/fitdata[4]) >= eccentricity_thresh or 
-            np.abs(fitdata[4]/fitdata[5]) >= eccentricity_thresh):
-            
-            #print("Fit too eccentric")
-            #Fit too eccentric
-            nunoexc += 1
-            continue
-        
-        if (fitdata[4] > (sigma_thresh * sigma) or 
-            fitdata[4] < (sigma / sigma_thresh) or
-            fitdata[5] > (sigma_thresh * sigma) or
-            fitdata[5] < (sigma / sigma_thresh)):
-            #print("Fit too unlike theoretical psf")
-            #if fitdata[4] > (sigma_thresh * sigma) :
-            #    print("spot x too large")
-            #elif fitdata[4] < (sigma / sigma_thresh):
-            #    print("spot x too small")
-            #elif fitdata[5] > (sigma_thresh * sigma):
-            #    print("spot y too large")
-            #elif fitdata[5] < (sigma / sigma_thresh):   
-            #    print("spot y too small")
-            #Fit too unlike theoretical psf
-            nusigma += 1
+        checkedfit = checkFit(fitdata,sigma,sigma_thresh,eccentricity_thresh,nunocon,nunoexc,nusigma)
+        if not checkedfit[0]:
+            nunocon,nunoexc,nusigma = checkedfit[1:]
             continue
 
         #Create a new Particle
@@ -286,45 +281,63 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
         
         particle_list.append(p)
         nupart += 1
+    return particle_list,nupart,nunocon,nunoexc,nusigma,nuedge
 
 
-    sumparts = nunocon+nunoexc+nusigma+nuedge+nupart
-    if not sumparts != len(local_max_pixels[0]):
+
+
+def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,eccentricity_thresh,sigma_thresh,output):
+    #Read Image
+    image = readImage.readImage(img)
+    if output:
+        readImage.saveImageToFile(image,"01sanityCheck.png")
+
+
+    #Filter Image and get initial particle positions
+    local_max_pixels,cutoff,background_mean = filterImage(image,sigma,local_max_window,signal_power,output)
+
+    #Fit Gauss to Image and add to Particle list if ok
+    particle_list,nupart,nunocon,nunoexc,nusigma,nuedge = findParticleAndAdd(image,frame,local_max_pixels,signal_power,sigma,background_mean,sigma_thresh,eccentricity_thresh,bit_depth)
+
+    #Check, that all possible positions were considered.
+    sumparts = nunocon+nunoexc+nusigma+int(nuedge)+nupart
+    if sumparts != len(local_max_pixels[0]):
         print("Not converged:  {:5d}".format(nunocon))
         print("Too excentric:  {:5d}".format(nunoexc))
         print("Wrong Sigma:    {:5d}".format(nusigma))
-        print("close to Edge:  {:5d}".format(nuedge))
+        print("close to Edge:  {:5d}".format(int(nuedge)))
+        print("Appended Parts: {:5d}".format(nupart))
+        print("                +++++") 
+        print("Sum:            {:5d}".format(sumparts))
+        print("Error: number of maxPixels not equal to processed positions\n")
+    print("Number of Particles found: " + str(len(particle_list)))
+
+    return [particle_list,cutoff]
+
+
+def detectImageJTrackParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,eccentricity_thresh,sigma_thresh,output):
+    #Read Image
+    image = readImage.readImage(img)
+    if output:
+        readImage.saveImageToFile(image,"01sanityCheck.png")
+
+
+    #Filter Image and get initial particle positions
+    local_max_pixels,cutoff,background_mean = filterImage(image,sigma,local_max_window,signal_power,output)
+
+    particle_list,nupart,nunocon,nunoexc,nusigma,nuedge = findParticleAndAdd(image,frame,local_max_pixels,signal_power,sigma,background_mean,sigma_thresh,eccentricity_thresh,bit_depth)
+
+    sumparts = nunocon+nunoexc+nusigma+int(nuedge)+nupart
+    if sumparts != len(local_max_pixels[0]):
+        print("Not converged:  {:5d}".format(nunocon))
+        print("Too excentric:  {:5d}".format(nunoexc))
+        print("Wrong Sigma:    {:5d}".format(nusigma))
+        print("close to Edge:  {:5d}".format(int(nuedge)))
         print("Appended Parts: {:5d}".format(nupart))
         print("                +++++") 
         print("Sum:            {:5d}".format(sumparts))
         print "Error: number of maxPixels not equal to processed positions"
     print("Number of Particles found: " + str(len(particle_list)))
 
-    '''
-    mean = 0
-
-    for p in particle_list:
-        mean += p.height + p.amplitude
-    mean /= len(particle_list)
-
-    stdev = 0
-
-    for p in particle_list:
-        stdev += (mean - (p.height + p.amplitude))**2
-    stdev = np.sqrt(stdev)
-    stdev /= len(particle_list) + 1
-
-    for p in particle_list[:]:
-        if (p.height+p.amplitude) < (mean-stdev):
-            particle_list.remove(p)
-
-    print("mean: " + str(mean))
-    print("stdev: " + str(stdev))
-    print("Number of Particles remaining: " + str(len(particle_list)))
-    '''
-
-            
-
     return [particle_list,cutoff]
-
 
