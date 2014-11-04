@@ -25,7 +25,11 @@ def multiImageDetect(img,
     particle_data = []
     frame = 0
     outfile = open("foundParticles.txt",'w')
-    for image in img:
+    for i in img:
+        #Read Image
+        image = readImage.readImage(i)
+        if output:
+            readImage.saveImageToFile(image,"01sanityCheck.png")
         frame += 1
         print("\n==== Doing image no " + str(frame) + " ====")
         particles = detectParticles(
@@ -185,15 +189,16 @@ def checkFit(fitdata,sigma,sigma_thresh,eccentricity_thresh,nunocon,nunoexc,nusi
     #FIT CHECKING
     ##############
     if fitdata[0] <= 0 or fitdata[1] <=0:
-        #print("Fit did not converge")
+        print("Fit did not converge")
         #Fit did not converge
         nunocon += 1
         return False, nunocon,nunoexc,nusigma
     
+    '''
     if (np.abs(fitdata[5]/fitdata[4]) >= eccentricity_thresh or 
         np.abs(fitdata[4]/fitdata[5]) >= eccentricity_thresh):
         
-        #print("Fit too eccentric")
+        print("Fit too eccentric")
         #Fit too eccentric
         nunoexc += 1
         return False, nunocon,nunoexc,nusigma
@@ -202,21 +207,57 @@ def checkFit(fitdata,sigma,sigma_thresh,eccentricity_thresh,nunocon,nunoexc,nusi
         fitdata[4] < (sigma / sigma_thresh) or
         fitdata[5] > (sigma_thresh * sigma) or
         fitdata[5] < (sigma / sigma_thresh)):
-        #print("Fit too unlike theoretical psf")
-        #if fitdata[4] > (sigma_thresh * sigma) :
-        #    print("spot x too large")
-        #elif fitdata[4] < (sigma / sigma_thresh):
-        #    print("spot x too small")
-        #elif fitdata[5] > (sigma_thresh * sigma):
-        #    print("spot y too large")
-        #elif fitdata[5] < (sigma / sigma_thresh):   
-        #    print("spot y too small")
+        print("Fit too unlike theoretical psf")
+        if fitdata[4] > (sigma_thresh * sigma) :
+            print("spot x too large")
+        elif fitdata[4] < (sigma / sigma_thresh):
+            print("spot x too small")
+        elif fitdata[5] > (sigma_thresh * sigma):
+            print("spot y too large")
+        elif fitdata[5] < (sigma / sigma_thresh):   
+            print("spot y too small")
         #Fit too unlike theoretical psf
         nusigma += 1
         return False, nunocon,nunoexc,nusigma
+    '''
 
     return True,nunocon,nunoexc,nusigma
+    
 
+
+def addParticleToList(particle_list,frame,row_min,row_max,col_min,col_max,fitdata,bit_depth):
+        #Create a new Particle
+        #TODO:        
+        #p = cparticle.CParticle()
+        p = pysm.new_cython.TempParticle()        
+        
+        #TODO: Implement Particle ID
+        p.frame = frame
+        p.position = np.array([row_min, row_max, col_min, col_max])
+        
+        p.height = fitdata[0]
+        p.amplitude = fitdata[1]
+        
+        #TODO: FIX THIS BUG (switching of x and y)
+        p.y = fitdata[2] + row_min + 1
+        p.x = fitdata[3] + col_min + 1
+        p.width_x = np.abs(fitdata[4])
+        p.width_y = np.abs(fitdata[5])
+        p.volume = (2 * np.pi * p.amplitude * p.width_x * p.width_y)
+        
+        # normalized volume for intensity moment descrimination in
+        # linking step
+        p.norm_volume = \
+        	(2 * np.pi * (p.amplitude / (2**bit_depth - 1)) * 
+			 p.width_x * p.width_y)
+        
+        # calculate signal to noise
+        # (for our purposes a simple calc of amplitude of signal minus 
+        # the background over the intensity of the background)
+        p.sn = (p.amplitude + p.height) / p.height
+        
+        particle_list.append(p)
+        return
 
 
 
@@ -249,37 +290,7 @@ def findParticleAndAdd(image,frame,local_max_pixels,signal_power,sigma,backgroun
             nunocon,nunoexc,nusigma = checkedfit[1:]
             continue
 
-        #Create a new Particle
-        #TODO:        
-        #p = cparticle.CParticle()
-        p = pysm.new_cython.TempParticle()        
-        
-        #TODO: Implement Particle ID
-        p.frame = frame
-        p.position = np.array([row_min, row_max, col_min, col_max])
-        
-        p.height = fitdata[0]
-        p.amplitude = fitdata[1]
-        
-        #TODO: FIX THIS BUG (switching of x and y)
-        p.y = fitdata[2] + row_min + 1
-        p.x = fitdata[3] + col_min + 1
-        p.width_x = np.abs(fitdata[4])
-        p.width_y = np.abs(fitdata[5])
-        p.volume = (2 * np.pi * p.amplitude * p.width_x * p.width_y)
-        
-        # normalized volume for intensity moment descrimination in
-        # linking step
-        p.norm_volume = \
-        	(2 * np.pi * (p.amplitude / (2**bit_depth - 1)) * 
-			 p.width_x * p.width_y)
-        
-        # calculate signal to noise
-        # (for our purposes a simple calc of amplitude of signal minus 
-        # the background over the intensity of the background)
-        p.sn = (p.amplitude + p.height) / p.height
-        
-        particle_list.append(p)
+        addParticleToList(particle_list,frame,row_min,row_max,col_min,col_max,fitdata,bit_depth)
         nupart += 1
     return particle_list,nupart,nunocon,nunoexc,nusigma,nuedge
 
@@ -287,17 +298,13 @@ def findParticleAndAdd(image,frame,local_max_pixels,signal_power,sigma,backgroun
 
 
 def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,eccentricity_thresh,sigma_thresh,output):
-    #Read Image
-    image = readImage.readImage(img)
-    if output:
-        readImage.saveImageToFile(image,"01sanityCheck.png")
 
 
     #Filter Image and get initial particle positions
-    local_max_pixels,cutoff,background_mean = filterImage(image,sigma,local_max_window,signal_power,output)
+    local_max_pixels,cutoff,background_mean = filterImage(img,sigma,local_max_window,signal_power,output)
 
     #Fit Gauss to Image and add to Particle list if ok
-    particle_list,nupart,nunocon,nunoexc,nusigma,nuedge = findParticleAndAdd(image,frame,local_max_pixels,signal_power,sigma,background_mean,sigma_thresh,eccentricity_thresh,bit_depth)
+    particle_list,nupart,nunocon,nunoexc,nusigma,nuedge = findParticleAndAdd(img,frame,local_max_pixels,signal_power,sigma,background_mean,sigma_thresh,eccentricity_thresh,bit_depth)
 
     #Check, that all possible positions were considered.
     sumparts = nunocon+nunoexc+nusigma+int(nuedge)+nupart
@@ -315,29 +322,31 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
     return [particle_list,cutoff]
 
 
-def detectImageJTrackParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,eccentricity_thresh,sigma_thresh,output):
-    #Read Image
-    image = readImage.readImage(img)
-    if output:
-        readImage.saveImageToFile(image,"01sanityCheck.png")
+def giveInitialFitting(img,tracks,signal_power,sigma,sigma_thresh,eccentricity_thresh,bit_depth,oname):
+    partlist = []
+    for part in tracks:
+        image = readImage.readImage(img[part[0]-1])
+        median_img = ndimage.filters.median_filter(image, (21,21))
+        (background_mean,background_std) = (median_img.mean(),median_img.std())
+        isIt = determineFittingROI(image.shape,part[1],part[2],signal_power,sigma)
+        if isIt:
+            rmin,rmax,cmin,cmax = isIt
+        else:
+            print("Missed frame {:}".format(part[0]))
+            continue
 
+        fitdata = fitgaussian2d(image[rmin:rmax,cmin:cmax],background_mean)
+        
+        checkedfit = checkFit(fitdata,sigma,sigma_thresh,eccentricity_thresh,0,0,0)
+        if not checkedfit[0]:
+            print("Fit does not fit!")
+            continue
+        
+        addParticleToList(partlist,part[0],rmin,rmax,cmin,cmax,fitdata,bit_depth)
 
-    #Filter Image and get initial particle positions
-    local_max_pixels,cutoff,background_mean = filterImage(image,sigma,local_max_window,signal_power,output)
-
-    particle_list,nupart,nunocon,nunoexc,nusigma,nuedge = findParticleAndAdd(image,frame,local_max_pixels,signal_power,sigma,background_mean,sigma_thresh,eccentricity_thresh,bit_depth)
-
-    sumparts = nunocon+nunoexc+nusigma+int(nuedge)+nupart
-    if sumparts != len(local_max_pixels[0]):
-        print("Not converged:  {:5d}".format(nunocon))
-        print("Too excentric:  {:5d}".format(nunoexc))
-        print("Wrong Sigma:    {:5d}".format(nusigma))
-        print("close to Edge:  {:5d}".format(int(nuedge)))
-        print("Appended Parts: {:5d}".format(nupart))
-        print("                +++++") 
-        print("Sum:            {:5d}".format(sumparts))
-        print "Error: number of maxPixels not equal to processed positions"
-    print("Number of Particles found: " + str(len(particle_list)))
-
-    return [particle_list,cutoff]
-
+    outfile = open(oname,'w')
+    outfile.write("# frame x y \n")
+    for p in partlist:
+        outfile.write("{:} {:} {:}\n".format(p.frame,p.x,p.y))
+    outfile.close()
+    return
