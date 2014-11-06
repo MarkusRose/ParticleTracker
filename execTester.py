@@ -19,6 +19,7 @@ bit_depth = 16
 eccentricity_thresh = 2
 sigma_thresh = 3
 max_displacement = 6
+addUp = 3
 
 def readImageList(path):
     if not os.path.isdir(path):
@@ -66,9 +67,9 @@ def printPictures(tracks,numtrack):
 
 def makeFirstImage(img):
     print("\n==== Make first images ====")
-    inimage = img[0]
-    particle_data = detectParticles.multiImageDetect([inimage],sigma,local_max_window,signal_power,bit_depth,eccentricity_thresh,sigma_thresh,True)
-    image = readImage.readImage(inimage)
+    inimage = img[0:addUp]
+    particle_data = detectParticles.multiImageDetect(inimage,sigma,local_max_window,signal_power,bit_depth,eccentricity_thresh,sigma_thresh,addUp,True)
+    image = readImage.readImage(inimage[0])
     markings = markPosition.markPositionsFromList(image,particle_data[0])
     markPosition.superimpose(image,markings,"06mark.tif")
     return particle_data
@@ -76,13 +77,13 @@ def makeFirstImage(img):
 def makeDetectionsAndMark(img):
     print('\n==== Start Localization and Detection ====')
     print("==== Series of all location pictures ====")
-    particle_data = detectParticles.multiImageDetect(img,sigma,local_max_window,signal_power,bit_depth,eccentricity_thresh,sigma_thresh,False)
+    particle_data = detectParticles.multiImageDetect(img,sigma,local_max_window,signal_power,bit_depth,eccentricity_thresh,sigma_thresh,addUp,False)
 
     if not dataCorrect(particle_data):
         sys.exit("Particle data not correct")
 
-    for i in xrange(len(img)):
-        image = readImage.readImage(img[i])
+    for i in xrange(len(img)/addUp):
+        image = readImage.readImage(img[i*addUp])
         markings = markPosition.markPositionsFromList(image,particle_data[i])
         markPosition.superimpose(image,markings,"06mark-{:0004d}".format(i)+".png")
     return
@@ -103,11 +104,12 @@ def makeTracks(particle_data):
     return
 
 if __name__=="__main__":
-    '''
+    
 
-    img = readImageList("/data/AnalysisTracks/2014-10-26_Mito-Lipid_Tracks/Mito_DiD001-2")
+    img = readImageList("../Data/Mito_DiD001-2")
     #img = img[:20]
 
+    '''
     image = readImage.readImage(img[0])
     addedImages = []
     a = np.zeros(image.shape)
@@ -119,12 +121,13 @@ if __name__=="__main__":
             readImage.saveImageToFile(a,"AddedImages/addedImg{:0004}.tif".format((i+1)/3))
             a = np.zeros(image.shape)
 
-    '''
+    
     img = readImageList("AddedImages")
+    '''
 
-    #makeFirstImage(img)
+    makeFirstImage(img)
 
-    particle_data = makeDetectionsAndMark(img)
+    #particle_data = makeDetectionsAndMark(img)
 
     #particle_data = makeDetectionFromFile()
 
@@ -138,7 +141,7 @@ if __name__=="__main__":
     print(tracks[0][1],tracks[0][2])
     print(image[tracks[0][1],tracks[0][2]])
     '''
-    oname = "/data/AnalysisTracks/2014-10-26_Mito-Lipid_Tracks/Mito_DiD001-2-HandTracks/newTrack02.txt"
+    #oname = "/data/AnalysisTracks/2014-10-26_Mito-Lipid_Tracks/Mito_DiD001-2-HandTracks/newTrack02.txt"
     #detectParticles.giveInitialFitting(img,tracks,signal_power,sigma,sigma_thresh,eccentricity_thresh,bit_depth,oname)
     
     print("\nDone!\n---------\n")

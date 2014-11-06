@@ -21,19 +21,30 @@ def multiImageDetect(img,
                     signal_power,
                     bit_depth,
                     eccentricity_thresh,
-                    sigma_thresh,output=False):
+                    sigma_thresh,numAdder,output=False):
     particle_data = []
     frame = 0
     outfile = open("foundParticles.txt",'w')
     for i in img:
         #Read Image
         image = readImage.readImage(i)
-        if output:
-            readImage.saveImageToFile(image,"01sanityCheck.png")
+        
         frame += 1
+
+        #Adding up images
+        if frame == 1:
+            a = np.zeros(image.shape)
+
+        if frame % numAdder != 0:
+            a += image
+            continue
+        a += image
+        if output:
+            readImage.saveImageToFile(a,"01sanityCheck.png")
+
         print("\n==== Doing image no " + str(frame) + " ====")
         particles = detectParticles(
-                image,
+                a,
                 sigma,
                 local_max_window,
                 signal_power,
@@ -41,7 +52,7 @@ def multiImageDetect(img,
                 frame,
                 eccentricity_thresh,
                 sigma_thresh,output)
-
+        a = np.zeros(image.shape)
         particle_data.append(particles)
         writeDetectedParticles(particles,frame,outfile)
     outfile.close()
