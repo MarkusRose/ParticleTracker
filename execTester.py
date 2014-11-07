@@ -22,6 +22,7 @@ max_displacement = 6
 addUp = 3
 
 def readImageList(path):
+    print path
     if not os.path.isdir(path):
         print "No path named " + path
         raise ValueError, "No path named " + path
@@ -103,11 +104,59 @@ def makeTracks(particle_data):
     tracks = ctrack.link_particles(particle_data,max_displacement)
     return
 
+def readConfig(filename):
+    global sigma 
+    global local_max_window 
+    global signal_power 
+    global bit_depth 
+    global eccentricity_thresh 
+    global sigma_thresh 
+    global max_displacement 
+    global addUp
+
+    innumber = 9
+
+    a = []
+    infile = open(filename,'r')
+    for i in xrange(2):
+        infile.readline()
+    counter = 0
+    for line in infile:
+        counter += 1
+        if counter == 1 and line[0] != "#":
+            counter -= 1
+            continue
+        if counter == 2:
+            counter = 0
+            a.append(line.split()[0])
+
+    print a
+
+    if len(a) < innumber:
+        sys.exit("Input file missing {:} entries!".format(innumber-len(a)))
+    elif len(a) > innumber:
+        sys.exit("Input file has {:} too many entries!".format(len(a)-innumber))
+    else:
+        imagedir = a[0]
+        sigma  = float(a[1])
+        local_max_window  = float(a[8])
+        signal_power  = float(a[2])
+        bit_depth  = float(a[3])
+        eccentricity_thresh  = float(a[7])
+        sigma_thresh  = float(a[6])
+        max_displacement  = float(a[4])
+        addUp = int(a[5])
+
+    return imagedir
+
+
 if __name__=="__main__":
     
 
-    img = readImageList("../Data/Mito_DiD001-2")
-    #img = img[:20]
+    img = readImageList(readConfig("setup.txt"))
+    
+    img = img[:20]
+
 
     '''
     image = readImage.readImage(img[0])
@@ -131,9 +180,9 @@ if __name__=="__main__":
 
     #particle_data = makeDetectionFromFile()
 
-    makeTracks(particle_data)
+    #makeTracks(particle_data)
     
-    tracks = convertFiles.convImageJTrack("/data/AnalysisTracks/2014-10-26_Mito-Lipid_Tracks/Mito_DiD001-2-HandTracks/VisTrack01.xls")
+    #tracks = convertFiles.convImageJTrack("/data/AnalysisTracks/2014-10-26_Mito-Lipid_Tracks/Mito_DiD001-2-HandTracks/VisTrack01.xls")
 
     '''
     image = readImage.readImage(img[tracks[0][0]-1])

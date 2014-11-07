@@ -1,0 +1,29 @@
+#This is the setup file for ParticleSearcher
+#The following values can be adjusted
+
+#Folder with input images:
+../Data/Mito_DiD001-2
+
+#Sigma:
+1.0
+
+#Signal Power:
+8
+
+#Image Bit depth:
+16
+
+#Maximum displacement:
+6
+
+#Number of Images to add:
+3
+
+#Sigma Threshold:
+3
+
+#Eccentricity Threshold:
+2
+
+#Local_Max_Window:
+4
