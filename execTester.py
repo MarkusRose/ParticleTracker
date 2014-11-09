@@ -34,7 +34,7 @@ def dataCorrect(particle_data):
     frame_count = 0
     output = True
     for frame in particle_data:
-        frame_count += 1
+        frame_count += addUp
         for particle in frame:
             if particle.frame != frame_count:
                 output = False
@@ -87,7 +87,7 @@ def makeDetectionsAndMark(img):
         image = readImage.readImage(img[i*addUp])
         markings = markPosition.markPositionsFromList(image,particle_data[i])
         markPosition.superimpose(image,markings,"06mark-{:0004d}".format(i)+".png")
-    return
+    return particle_data
 
 def makeDetectionFromFile():
     print("\n==== Series of all location pictures read from file ====")
@@ -101,7 +101,7 @@ def makeDetectionFromFile():
 
 def makeTracks(particle_data):
     print('\n==== Start Tracking ====\n')
-    tracks = ctrack.link_particles(particle_data,max_displacement)
+    tracks = ctrack.link_particles(particle_data,max_displacement,min_track_len=0)
     return
 
 def readConfig(filename):
@@ -155,7 +155,7 @@ if __name__=="__main__":
 
     img = readImageList(readConfig("setup.txt"))
     
-    img = img[:20]
+    img = img[51:88]
 
 
     '''
@@ -174,13 +174,13 @@ if __name__=="__main__":
     img = readImageList("AddedImages")
     '''
 
-    makeFirstImage(img)
+    #makeFirstImage(img)
 
     #particle_data = makeDetectionsAndMark(img)
 
-    #particle_data = makeDetectionFromFile()
+    particle_data = makeDetectionFromFile()
 
-    #makeTracks(particle_data)
+    makeTracks(particle_data)
     
     #tracks = convertFiles.convImageJTrack("/data/AnalysisTracks/2014-10-26_Mito-Lipid_Tracks/Mito_DiD001-2-HandTracks/VisTrack01.xls")
 

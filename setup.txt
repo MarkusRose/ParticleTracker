@@ -8,13 +8,13 @@
 1.0
 
 #Signal Power:
-8
+20
 
 #Image Bit depth:
 16
 
 #Maximum displacement:
-6
+20
 
 #Number of Images to add:
 3

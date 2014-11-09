@@ -200,7 +200,7 @@ def checkFit(fitdata,sigma,sigma_thresh,eccentricity_thresh,nunocon,nunoexc,nusi
     #FIT CHECKING
     ##############
     if fitdata[0] <= 0 or fitdata[1] <=0:
-        print("Fit did not converge")
+        #print("Fit did not converge")
         #Fit did not converge
         nunocon += 1
         return False, nunocon,nunoexc,nusigma

@@ -94,7 +94,7 @@ def writeTrajectories(tracks):
         outfile.write('\n\n# -Track {:2.0f} -------------------------------------\n'.format(track_num))
         outfile.write("# x      y    width_x   width_y  height  amplitude     sn     volume \n")
         for particle in track.track:
-            print particle['x']
+            #print particle['x']
             if np.isnan(particle['x']):
                 outfile.write("# ")
             for name in particle.dtype.names:
@@ -333,6 +333,7 @@ def link_particles(particle_data, max_displacement,
                 
                 trajectories.append(particle_track)   
     
+    print("Done Linking")
     writeTrajectories(trajectories)
     return trajectories
                         
