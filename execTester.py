@@ -149,27 +149,46 @@ def readConfig(filename):
 
     return imagedir
 
+def compareInitNoInit(image,data,out):
+
+    initPos = convertFiles.convImageJTrack(data)
+    markInit = markPosition.markPositionsSimpleList(image.shape,initPos)
+    
+    partdata = detectParticles.giveInitialFitting(image,initPos,signal_power,sigma,sigma_thresh,eccentricity_thresh,bit_depth,"out.txt")
+    markWithInit = markPosition.markPositionsFromList(image.shape,partdata)
+
+    partdata = detectParticles.detectParticles(image,sigma,local_max_window,signal_power,bit_depth,0,eccentricity_thresh,sigma_thresh,True)
+    markNoInit = markPosition.markPositionsFromList(image.shape,partdata[0])
+
+    ofile = open("simNoInit.txt",'w')
+    detectParticles.writeDetectedParticles(partdata,1,ofile)
+
+
+    outar = markPosition.autoScale(markPosition.convertRGBGrey(image))
+    outar = markPosition.imposeWithColor(outar,markNoInit,'R')
+    outar = markPosition.imposeWithColor(outar,markWithInit,'G')
+    outar = markPosition.imposeWithColor(outar,markInit,'B')
+    markPosition.saveRGBImage(outar,out)
 
 if __name__=="__main__":
     
 
-    img = readImageList(readConfig("setup.txt"))
+    #img = readImageList(readConfig("setup.txt"))
     
-    img = img[51:52]
+    #img = img[51:52]
+    readConfig("setup.txt")
 
-
-    #makeFirstImage(img)
-
-    particle_data = makeDetectionsAndMark(img)
-    saver = particle_data[0]
-    image = readImage.readImage(img[0])
-    markings = markPosition.markPositionsFromList(image.shape,saver)
-    outar4 = markPosition.convertRGBMonochrome(markings,"R")
-    outar = markPosition.autoScale(markPosition.convertRGBGrey(image))
-    outar = markPosition.imposeWithColor(outar,markings)
-    markPosition.saveRGBImage(outar,"tester.tif")
-    readImage.saveImageToFile(markPosition.convertGrayscale(outar),"maaa.tif")
-
+    image = readImage.readImage("simData.tif")
+    signal_power = 25
+    compareInitNoInit(image,"simResults.txt","simOut.tif")
+    image = readImage.readImage("singleData1.tif")
+    markPosition.saveRGBImage(markPosition.autoScale(image),"singleOData1scaled.tif")
+    signal_power = 18
+    #compareInitNoInit(image,"singleResults1.txt","singleOut.tif")
+    image += readImage.readImage("singleData2.tif")
+    image += readImage.readImage("singleData3.tif")
+    markPosition.saveRGBImage(markPosition.autoScale(image),"addedOData1scaled.tif")
+    #compareInitNoInit(image,"singleResults1.txt","addedOut.tif")
 
 
 

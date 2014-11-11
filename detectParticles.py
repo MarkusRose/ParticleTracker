@@ -119,8 +119,10 @@ def filterImage(image,sigma,local_max_window,signal_power,output):
     if False:
         readImage.saveImageToFile(median_img,"05MedianFilter1.png")
     (background_mean,background_std) = (median_img.mean(),median_img.std())
+    print background_mean, background_std
     #cutoff = readImage.otsuMethod(image)
     cutoff = background_mean + signal_power * background_std
+    print cutoff
 
     boxcarImage = filters.boxcarFilter(image,boxsize=5,cutoff=cutoff)
     if output:
@@ -143,9 +145,13 @@ def filterImage(image,sigma,local_max_window,signal_power,output):
     median_img = ndimage.filters.median_filter(gausFiltImage, (21,21))
     if False:
         readImage.saveImageToFile(median_img,"05MedianFilter2.png")
-    (background_mean,background_std) = (median_img.mean(),median_img.std())
+    background_mean = median_img.mean()
+    #cutoff = readImage.otsuMethod(image)
+            #background_std) = (median_img.mean(),median_img.std())
     #cutoff = readImage.otsuMethod(image)
     cutoff = background_mean + signal_power * background_std
+    print background_mean, background_std
+    print cutoff
 
     print("Cutoff is at: {:}".format(cutoff))
     print("Max of MaxFilter is at: {:}".format(img_max_filter.max()))
@@ -310,6 +316,7 @@ def findParticleAndAdd(image,frame,local_max_pixels,signal_power,sigma,backgroun
 
 def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,eccentricity_thresh,sigma_thresh,output):
 
+    print "start with no initial pos"
 
     #Filter Image and get initial particle positions
     local_max_pixels,cutoff,background_mean = filterImage(img,sigma,local_max_window,signal_power,output)
@@ -329,14 +336,16 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
         print("Sum:            {:5d}".format(sumparts))
         print("Error: number of maxPixels not equal to processed positions\n")
     print("Number of Particles found: " + str(len(particle_list)))
+    print "end with no initial pos"
 
     return [particle_list,cutoff]
 
 
-def giveInitialFitting(img,tracks,signal_power,sigma,sigma_thresh,eccentricity_thresh,bit_depth,oname):
+def giveInitialFitting(image,tracks,signal_power,sigma,sigma_thresh,eccentricity_thresh,bit_depth,oname):
+    print "start with initial pos"
     partlist = []
     for part in tracks:
-        image = readImage.readImage(img[part[0]-1])
+        #image = readImage.readImage(img[part[0]-1])
         median_img = ndimage.filters.median_filter(image, (21,21))
         (background_mean,background_std) = (median_img.mean(),median_img.std())
         isIt = determineFittingROI(image.shape,part[1],part[2],signal_power,sigma)
@@ -353,11 +362,12 @@ def giveInitialFitting(img,tracks,signal_power,sigma,sigma_thresh,eccentricity_t
             print("Fit does not fit!")
             continue
         
-        addParticleToList(partlist,part[0],rmin,rmax,cmin,cmax,fitdata,bit_depth)
+        addParticleToList(partlist,(part[0]/0.16),rmin,rmax,cmin,cmax,fitdata,bit_depth)
 
     outfile = open(oname,'w')
     outfile.write("# frame x y \n")
     for p in partlist:
         outfile.write("{:} {:} {:}\n".format(p.frame,p.x,p.y))
     outfile.close()
-    return
+    print "end with initial pos"
+    return partlist

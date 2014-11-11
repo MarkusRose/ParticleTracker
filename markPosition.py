@@ -176,6 +176,12 @@ def markPositionsFromList(imshape,posList):
         placeWidget(markings,i.y,i.x)
     return markings
 
+def markPositionsSimpleList(imshape,posList):
+    markings = np.zeros(imshape)
+    for i in xrange(len(posList)):
+        placeWidget(markings,posList[i][1],posList[i][2])
+    return markings
+
 def connectPositions(imshape,posList):
     markings = np.zeros(imshape)
     for i in xrange(len(posList)-1):

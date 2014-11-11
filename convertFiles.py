@@ -197,8 +197,8 @@ def convImageJTrack(filename):
 
     for line in infile:
         x = int(float(line.split()[4])/0.16 - 0.5)
-        y = int(float(line.split()[5])/0.16 - 0.5)
-        t = int(float(line.split()[6])/0.16)
+        y = int(float(line.split()[3])/0.16 - 0.5)
+        t = int(float(line.split()[5])/0.16)
         traject.append([t,x,y])
 
     return traject
