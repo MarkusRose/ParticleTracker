@@ -2,7 +2,7 @@
 #The following values can be adjusted
 
 #Folder with input images:
-../Data/Mito_DiD001-2
+/data/AnalysisTracks/2014-10-26_Mito-Lipid_Tracks/Mito_DiD001-2
 
 #Sigma:
 1.0
@@ -17,7 +17,7 @@
 20
 
 #Number of Images to add:
-3
+1
 
 #Sigma Threshold:
 3

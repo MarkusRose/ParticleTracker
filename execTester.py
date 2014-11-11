@@ -60,8 +60,8 @@ def printPictures(tracks,numtrack):
         image = readImage.readImage(img[i-1])
         position.x= tracks[numtrack-1].track[i]['x']
         position.y= tracks[numtrack-1].track[i]['y']
-        markings = markPosition.markPositionsFromList(image,[position])
-        markedlines = markPosition.connectPositions(image,tracks[numtrack-1].track[1:i+1])
+        markings = markPosition.markPositionsFromList(image.shape,[position])
+        markedlines = markPosition.connectPositions(image.shape,tracks[numtrack-1].track[1:i+1])
         markPosition.justsuper(image,markings,markedlines,"marked"+str(i)+".tif")
         #markPosition.superimpose(image,markings,"marked"+str(i)+".tif")
         print ""
@@ -71,7 +71,7 @@ def makeFirstImage(img):
     inimage = img[0:addUp]
     particle_data = detectParticles.multiImageDetect(inimage,sigma,local_max_window,signal_power,bit_depth,eccentricity_thresh,sigma_thresh,addUp,True)
     image = readImage.readImage(inimage[0])
-    markings = markPosition.markPositionsFromList(image,particle_data[0])
+    markings = markPosition.markPositionsFromList(image.shape,particle_data[0])
     markPosition.superimpose(image,markings,"06mark.tif")
     return particle_data
 
@@ -85,7 +85,7 @@ def makeDetectionsAndMark(img):
 
     for i in xrange(len(img)/addUp):
         image = readImage.readImage(img[i*addUp])
-        markings = markPosition.markPositionsFromList(image,particle_data[i])
+        markings = markPosition.markPositionsFromList(image.shape,particle_data[i])
         markPosition.superimpose(image,markings,"06mark-{:0004d}".format(i)+".png")
     return particle_data
 
@@ -95,7 +95,7 @@ def makeDetectionFromFile():
     pd = particle_data[:1]
     for i in xrange(len(pd)):
         image = readImage.readImage(img[i])
-        markings = markPosition.markPositionsFromList(image,particle_data[i])
+        markings = markPosition.markPositionsFromList(image.shape,particle_data[i])
         markPosition.superimpose(image,markings,"06mark-{:0004d}".format(i)+".png")
     return particle_data
 
@@ -155,32 +155,27 @@ if __name__=="__main__":
 
     img = readImageList(readConfig("setup.txt"))
     
-    img = img[51:88]
+    img = img[51:52]
 
-
-    '''
-    image = readImage.readImage(img[0])
-    addedImages = []
-    a = np.zeros(image.shape)
-    numImg = 3
-    for i in xrange(len(img)):
-        image = readImage.readImage(img[i])
-        a += image
-        if (i+1) % numImg == 0:
-            readImage.saveImageToFile(a,"AddedImages/addedImg{:0004}.tif".format((i+1)/3))
-            a = np.zeros(image.shape)
-
-    
-    img = readImageList("AddedImages")
-    '''
 
     #makeFirstImage(img)
 
-    #particle_data = makeDetectionsAndMark(img)
+    particle_data = makeDetectionsAndMark(img)
+    saver = particle_data[0]
+    image = readImage.readImage(img[0])
+    markings = markPosition.markPositionsFromList(image.shape,saver)
+    outar4 = markPosition.convertRGBMonochrome(markings,"R")
+    outar = markPosition.autoScale(markPosition.convertRGBGrey(image))
+    outar = markPosition.imposeWithColor(outar,markings)
+    markPosition.saveRGBImage(outar,"tester.tif")
+    readImage.saveImageToFile(markPosition.convertGrayscale(outar),"maaa.tif")
 
-    particle_data = makeDetectionFromFile()
 
-    makeTracks(particle_data)
+
+
+    #particle_data = makeDetectionFromFile()
+
+    #makeTracks(particle_data)
     
     #tracks = convertFiles.convImageJTrack("/data/AnalysisTracks/2014-10-26_Mito-Lipid_Tracks/Mito_DiD001-2-HandTracks/VisTrack01.xls")
 

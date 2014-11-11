@@ -28,3 +28,9 @@ gaussfit-outTest.tif
 localmax-outTest.tif 
 median-outTest.tif
 *.tif
+SuggestedFrames.txt
+SuggestedTrajectories.txt
+fit.log
+msd.txt
+newTracks
+pyplotter.py
