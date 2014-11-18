@@ -2,6 +2,7 @@ import numpy as np
 import pysm.new_cython
 import readImage
 import filters
+import markPosition
 from scipy import ndimage, optimize
 
 
@@ -14,6 +15,25 @@ def writeDetectedParticles(particles,frame,outfile):
         outfile.write('{:} {:} {:} {:} {:} {:} {:} {:} \n'.format(p.x,p.y,p.width_x,p.width_y,p.height,p.amplitude,p.sn,p.volume))
     return
 
+def outMarkedImages(image,partdata,out):
+
+    markNoInit = markPosition.markPositionsFromList(image.shape,partdata[0])
+    markFromNoInit = markPosition.markPositionsSimpleList(image.shape,readLocalMax("foundLocalMaxima.txt"))
+    boxMarkings = markPosition.drawBox(image.shape,readBox("localBoxes.txt"))
+    
+    '''
+    ofile = open("simNoInit.txt",'w')
+    writeDetectedParticles(partdata,1,ofile)
+    '''
+
+    outar = markPosition.autoScale(markPosition.convertRGBGrey(image))
+    #outar = markPosition.imposeWithColor(outar,markInit,'B')
+    #outar = markPosition.imposeWithColor(outar,markFromNoInit,'G')
+    outar = markPosition.imposeWithColor(outar,markNoInit,'R')
+    outar = markPosition.imposeWithColor(outar,boxMarkings,'G')
+
+    markPosition.saveRGBImage(outar,out)
+    return
 
 def multiImageDetect(img,
                     sigma,
@@ -52,6 +72,7 @@ def multiImageDetect(img,
                 frame,
                 eccentricity_thresh,
                 sigma_thresh,output)
+        outMarkedImages(a,particles,"out{:0004d}.tif".format(frame))
         a = np.zeros(image.shape)
         particle_data.append(particles)
         writeDetectedParticles(particles,frame,outfile)
@@ -167,7 +188,45 @@ def filterImage(image,sigma,local_max_window,signal_power,output):
     print('Cutoff is at ' + str(cutoff))
     print("Found local Maxima: "+str(len(local_max_pixels[0])))
 
+    outf = open("foundLocalMaxima.txt",'w')
+    for i in xrange(len(local_max_pixels[0])):
+        outf.write("1 {:} {:}\n".format(local_max_pixels[0][i],local_max_pixels[1][i]))
+    outf.close()
+
     return (local_max_pixels,cutoff,background_mean)
+
+def readLocalMax(inf):
+    local_max = []
+    infile = open(inf,'r')
+    for line in infile:
+        (a,x,y) = line.split()
+        local_max.append([0,int(x),int(y)])
+    infile.close()
+    return local_max
+
+
+def setFittingROI(imageshape,lmpx,lmpy,boxsize=9):
+
+    num_rows = imageshape[0]
+    num_cols = imageshape[1]
+
+    #print np.transpose(local_max_pixels)
+    row0 = int(lmpx)
+    col0 = int(lmpy)
+    #print(row0,' ',col0)
+
+    row_min = row0 - boxsize/2
+    row_max = row0 + boxsize/2
+    col_min = col0 - boxsize/2
+    col_max = col0 + boxsize/2
+
+    if (row_min < 0 or row_max >= num_rows or
+            col_min < 0 or col_max >= num_cols):
+        print("Oh, too close to frame boarder to fit a gaussian.")
+        return False
+    else:
+        #print("So where is the point?")
+        return (row_min,row_max,col_min,col_max)
 
 
 
@@ -206,12 +265,11 @@ def checkFit(fitdata,sigma,sigma_thresh,eccentricity_thresh,nunocon,nunoexc,nusi
     #FIT CHECKING
     ##############
     if fitdata[0] <= 0 or fitdata[1] <=0:
-        #print("Fit did not converge")
+        print("Fit did not converge")
         #Fit did not converge
         nunocon += 1
         return False, nunocon,nunoexc,nusigma
-    
-    '''
+
     if (np.abs(fitdata[5]/fitdata[4]) >= eccentricity_thresh or 
         np.abs(fitdata[4]/fitdata[5]) >= eccentricity_thresh):
         
@@ -236,7 +294,6 @@ def checkFit(fitdata,sigma,sigma_thresh,eccentricity_thresh,nunocon,nunoexc,nusi
         #Fit too unlike theoretical psf
         nusigma += 1
         return False, nunocon,nunoexc,nusigma
-    '''
 
     return True,nunocon,nunoexc,nusigma
     
@@ -288,15 +345,18 @@ def findParticleAndAdd(image,frame,local_max_pixels,signal_power,sigma,backgroun
     nupart = 0
     nuedge = 0
 
+    outf = open("localBoxes.txt",'w')
     for i in xrange(len(local_max_pixels[0])):
         
-        isIt = determineFittingROI(image.shape,
-                local_max_pixels[0][i],local_max_pixels[1][i],signal_power,sigma)
+        #isIt = determineFittingROI(image.shape,local_max_pixels[0][i],local_max_pixels[1][i],signal_power,sigma)
+        isIt = setFittingROI(image.shape,
+                local_max_pixels[0][i],local_max_pixels[1][i])
         if isIt:
             row_min,row_max,col_min,col_max = isIt
         else:
             nuedge += 1
             continue
+        outf.write("{:} {:} {:} {:}\n".format(row_min,row_max,col_min,col_max))
 
         fitdata = fitgaussian2d(
                     image[row_min:row_max+1, col_min:col_max+1],
@@ -309,8 +369,18 @@ def findParticleAndAdd(image,frame,local_max_pixels,signal_power,sigma,backgroun
 
         addParticleToList(particle_list,frame,row_min,row_max,col_min,col_max,fitdata,bit_depth)
         nupart += 1
+    outf.close()
     return particle_list,nupart,nunocon,nunoexc,nusigma,nuedge
 
+
+def readBox(inf):
+    infile = open(inf,'r')
+    boxList = []
+    for line in infile:
+        (xmin,xmax,ymin,ymax) = line.split()
+        boxList.append([float(xmin),float(xmax),float(ymin),float(ymax)])
+    infile.close
+    return boxList
 
 
 

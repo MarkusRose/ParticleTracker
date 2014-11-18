@@ -2,28 +2,28 @@
 #The following values can be adjusted
 
 #Folder with input images:
-/data/AnalysisTracks/2014-10-26_Mito-Lipid_Tracks/Mito_DiD001-2
+/data/NEHADexperiments/2013-08-14/mito_DID007_Images
 
 #Sigma:
 1.0
 
 #Signal Power:
-20
+5
 
 #Image Bit depth:
 16
 
 #Maximum displacement:
-20
+16
 
 #Number of Images to add:
 1
 
 #Sigma Threshold:
-3
+5
 
 #Eccentricity Threshold:
-2
+5
 
 #Local_Max_Window:
 4

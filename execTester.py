@@ -1,15 +1,16 @@
 import detectParticles
 import readImage
 import ctrack
-import sys
 import markPosition
+import convertFiles
+
 import pysm
+import sys
 import os
 import glob
-import convertFiles
+import shutil
 from scipy import ndimage
 from matplotlib import pyplot as plt
-
 import numpy as np
 
 sigma = 1.0
@@ -19,7 +20,7 @@ bit_depth = 16
 eccentricity_thresh = 2
 sigma_thresh = 3
 max_displacement = 6
-addUp = 3
+addUp = 1
 
 def readImageList(path):
     print path
@@ -70,9 +71,6 @@ def makeFirstImage(img):
     print("\n==== Make first images ====")
     inimage = img[0:addUp]
     particle_data = detectParticles.multiImageDetect(inimage,sigma,local_max_window,signal_power,bit_depth,eccentricity_thresh,sigma_thresh,addUp,True)
-    image = readImage.readImage(inimage[0])
-    markings = markPosition.markPositionsFromList(image.shape,particle_data[0])
-    markPosition.superimpose(image,markings,"06mark.tif")
     return particle_data
 
 def makeDetectionsAndMark(img):
@@ -83,12 +81,9 @@ def makeDetectionsAndMark(img):
     if not dataCorrect(particle_data):
         sys.exit("Particle data not correct")
 
-    for i in xrange(len(img)/addUp):
-        image = readImage.readImage(img[i*addUp])
-        markings = markPosition.markPositionsFromList(image.shape,particle_data[i])
-        markPosition.superimpose(image,markings,"06mark-{:0004d}".format(i)+".png")
     return particle_data
 
+#TODO: repair for new marking functions:
 def makeDetectionFromFile():
     print("\n==== Series of all location pictures read from file ====")
     particle_data = convertFiles.readDetectedParticles("foundParticles.txt")
@@ -102,7 +97,7 @@ def makeDetectionFromFile():
 def makeTracks(particle_data):
     print('\n==== Start Tracking ====\n')
     tracks = ctrack.link_particles(particle_data,max_displacement,min_track_len=0)
-    return
+    return tracks
 
 def readConfig(filename):
     global sigma 
@@ -159,36 +154,42 @@ def compareInitNoInit(image,data,out):
 
     partdata = detectParticles.detectParticles(image,sigma,local_max_window,signal_power,bit_depth,0,eccentricity_thresh,sigma_thresh,True)
     markNoInit = markPosition.markPositionsFromList(image.shape,partdata[0])
+    markFromNoInit = markPosition.markPositionsSimpleList(image.shape,readLocalMax("foundLocalMaxima.txt"))
+    boxMarkings = markPosition.drawBox(image.shape,readBox("localBoxes.txt"))
+    
 
     ofile = open("simNoInit.txt",'w')
     detectParticles.writeDetectedParticles(partdata,1,ofile)
 
 
     outar = markPosition.autoScale(markPosition.convertRGBGrey(image))
+    #outar = markPosition.imposeWithColor(outar,markInit,'B')
+    #outar = markPosition.imposeWithColor(outar,markFromNoInit,'G')
     outar = markPosition.imposeWithColor(outar,markNoInit,'R')
-    outar = markPosition.imposeWithColor(outar,markWithInit,'G')
-    outar = markPosition.imposeWithColor(outar,markInit,'B')
+    outar = markPosition.imposeWithColor(outar,boxMarkings,'G')
+
     markPosition.saveRGBImage(outar,out)
+    return
 
-if __name__=="__main__":
-    
 
-    #img = readImageList(readConfig("setup.txt"))
-    
-    #img = img[51:52]
+def lotsOfTrials():
+
     readConfig("setup.txt")
 
     image = readImage.readImage("simData.tif")
-    signal_power = 25
+    signal_power = 14
     compareInitNoInit(image,"simResults.txt","simOut.tif")
+
+
+
     image = readImage.readImage("singleData1.tif")
     markPosition.saveRGBImage(markPosition.autoScale(image),"singleOData1scaled.tif")
-    signal_power = 18
-    #compareInitNoInit(image,"singleResults1.txt","singleOut.tif")
+    signal_power = 5
+    compareInitNoInit(image,"singleResults1.txt","singleOut.tif")
     image += readImage.readImage("singleData2.tif")
     image += readImage.readImage("singleData3.tif")
     markPosition.saveRGBImage(markPosition.autoScale(image),"addedOData1scaled.tif")
-    #compareInitNoInit(image,"singleResults1.txt","addedOut.tif")
+    compareInitNoInit(image,"singleResults1.txt","addedOut.tif")
 
 
 
@@ -208,3 +209,34 @@ if __name__=="__main__":
     #detectParticles.giveInitialFitting(img,tracks,signal_power,sigma,sigma_thresh,eccentricity_thresh,bit_depth,oname)
     
     print("\nDone!\n---------\n")
+    return
+    
+
+def main():
+    path = "./NehadData"
+    if not os.path.isdir(path):
+        os.mkdir(path)
+        shutil.copyfile("setup.txt",path+"/setup.txt")
+    else:
+        option = raw_input("Careful! Path exists! Do you want to continue? [y,N] ")
+        if not (option == "y" or option == "Y" or option == "Yes" or option == "yes" or option == "YES"):
+            sys.exit("Data exists already. Quitting now.")
+    os.chdir(path)
+    if not os.path.isfile("setup.txt"):
+        print "copying new setup.txt"
+        shutil.copyfile("../setup.txt","setup.txt")
+    img = readImageList(readConfig("setup.txt"))
+    #img = img[51:60]
+
+    #makeFirstImage(img)
+    pd = makeDetectionsAndMark(img)
+    tr = makeTracks(pd)
+    print tr
+    image = readImage.readImage(img[0])
+    m = markPosition.connectPositions(image.shape,tr[0].track)
+    markPosition.saveRGBImage(markPosition.convertRGBMonochrome(m,'B'),"tester.tif")
+
+    return
+
+if __name__=="__main__":
+    main()

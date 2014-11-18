@@ -1,4 +1,5 @@
 import numpy as np
+import math
 from scipy.misc import imsave
 from PIL import Image
 
@@ -128,6 +129,25 @@ def imposeWithColor(data,mark,color='R'):
                     data[i,j] = [0,mark[i,j],0]
     return data
 
+def addWithColor(data,mark,color='R'):
+    for i in range(len(data)):
+        for j in range(len(data[i])):
+            if mark[i,j] != 0:
+                if color == 'B':
+                    data[i,j,2] += mark[i,j]
+                    if data[i,j,2] > 1:
+                        data[i,j,2] = 1
+                elif color == 'R':
+                    data[i,j,0] += mark[i,j]
+                    if data[i,j,0] > 1:
+                        data[i,j,0] = 1
+                else:
+                    data[i,j,1] += mark[i,j]
+                    if data[i,j,1] > 1:
+                        data[i,j,1] = 1
+    return data
+
+
 
 ############################
 # Image Scaling Functions 
@@ -182,10 +202,21 @@ def markPositionsSimpleList(imshape,posList):
         placeWidget(markings,posList[i][1],posList[i][2])
     return markings
 
+def drawBox(imshape,boxList):
+    markings = np.zeros(imshape)
+    for i in boxList:
+        markings = placeLine(markings,i[0],i[2],i[1],i[2])
+        markings = placeLine(markings,i[0],i[3],i[1],i[3])
+        markings = placeLine(markings,i[0],i[2],i[0],i[3])
+        markings = placeLine(markings,i[1],i[2],i[1],i[3])
+    return markings
+
 def connectPositions(imshape,posList):
     markings = np.zeros(imshape)
     for i in xrange(len(posList)-1):
         #print(str((posList[i]['x'], posList[i]['y'])) + " -> " + str((posList[i+1]['x'],posList[i+1]['y'])))
+        if math.isnan(posList[i]['y']) or math.isnan(posList[i]['x']) or math.isnan(posList[i+1]['x']) or math.isnan(posList[i+1]['y']):
+            continue
         markings = placeLine(markings,posList[i]['y'],posList[i]['x'],posList[i+1]['y'],posList[i+1]['x'])
     return markings
 
