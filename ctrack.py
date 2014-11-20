@@ -11,48 +11,12 @@ Created on Feb 8, 2010
 #module imports
 import os
 import time
+import pysm.new_cython
 from scipy import io
 
 import numpy as np
 #cimport numpy as np
 
-#cdef class ParticleTrack:
-#    """SM Particle Track Data Structure"""
-#    cdef public np.uint32_t track_id
-#    cdef public np.ndarray[np.uint32_t, ndim=1] id
-#    cdef public np.ndarray[np.uint32_t, ndim=1] frame
-#    cdef public np.ndarray[np.float64_t, ndim=1] sn
-#    cdef public np.ndarray[np.float64_t, ndim=1] x
-#    cdef public np.ndarray[np.float64_t, ndim=1] y
-#    cdef public np.ndarray[np.float64_t, ndim=1] width_x
-#    cdef public np.ndarray[np.float64_t, ndim=1] width_y
-#    cdef public np.ndarray[np.float64_t, ndim=1] height
-#    cdef public np.ndarray[np.float64_t, ndim=1] amplitude
-#    cdef public np.ndarray[np.float64_t, ndim=1] volume
-
-#class ParticleTrack(object):
-#    def __init__(self, id, num_elements):
-#        self.track_id = id
-#        self.particle_id = \
-#            np.empty(num_elements, dtype=np.uint32).fill(np.nan)
-#        self.frame = \
-#            np.empty(num_elements, dtype=np.unit32).fill(np.nan)
-#        self.sn = \
-#            np.empty(num_elements, dytpe=np.uint32).fill(np.nan)
-#        self.x = \
-#            np.empty(num_elements, dtype=np.float64).fill(np.nan)
-#        self.y = \
-#            np.empty(num_elements, dtype=np.float64).fill(np.nan)
-#        self.width_x = \
-#            np.empty(num_elements, dtype=np.float64).fill(np.nan)
-#        self.width_y = \
-#            np.empty(num_elements, dtype=np.float64).fill(np.nan)
-#        self.height = \
-#            np.empty(num_elements, dtype=np.float64).fill(np.nan)
-#        self.amplitude = \
-#            np.empty(num_elements, dtype=np.float64).fill(np.nan)
-#        self.volume = \
-#            np.empty(num_elements, dtype=np.float64).fill(np.nan)
 
 class ParticleTrack(object):
     
@@ -92,13 +56,13 @@ def writeTrajectories(tracks):
     for track in tracks:
         track_num += 1
         outfile.write('\n\n# -Track {:2.0f} -------------------------------------\n'.format(track_num))
-        outfile.write("# x      y    width_x   width_y  height  amplitude     sn     volume \n")
+        outfile.write("# frame    x      y    width_x   width_y  height  amplitude     sn     volume \n")
         for particle in track.track:
             #print particle['x']
             if np.isnan(particle['x']):
                 outfile.write("# ")
             for name in particle.dtype.names:
-                if name == 'particle_id' or name == 'frame' or name == 'sn':
+                if name == 'particle_id' or name == 'sn':
                     continue
                 outfile.write("{:3.4f} ".format(particle[name]))
             outfile.write("{:3.4f} ".format(particle['sn']))
@@ -107,6 +71,95 @@ def writeTrajectories(tracks):
     print("Done writing Tracks")
     print("Number of Tracks found: {:}".format(len(tracks)))
     return
+
+def makeParticle(frame,x,y,width_x,width_y,height,amplitude):
+        #Create a new Particle
+        #TODO:        
+        #p = cparticle.CParticle()
+        p = pysm.new_cython.TempParticle()        
+        
+        #TODO: Implement Particle ID
+        p.frame = frame
+        
+        p.height = height 
+        p.amplitude = amplitude
+        
+        #TODO: FIX THIS BUG (switching of x and y)
+        p.y = y
+        p.x = x
+        p.width_x = width_x
+        p.width_y = width_y
+        p.volume = (2 * np.pi * p.amplitude * p.width_x * p.width_y)
+        
+        # normalized volume for intensity moment descrimination in
+        # linking step
+        #p.norm_volume = (2 * np.pi * p.amplitude * p.width_x * p.width_y)
+        
+        # calculate signal to noise
+        # (for our purposes a simple calc of amplitude of signal minus 
+        # the background over the intensity of the background)
+        if p.height != 0:
+            p.sn = (p.amplitude + p.height) / p.height
+
+        return p
+
+
+def readTrajectoriesFromFile(filename):
+    infile = open(filename,'r')
+    boo = True
+    frame = -2
+
+    for line in infile:
+        if line.strip():
+            if boo:
+                boo = False
+            frame += 1
+        else:
+            if not boo:
+                num_frames = frame
+                break
+    infile.close()
+    
+    infile = open(filename,'r')
+    tracks = []
+    tracknum = 0
+    liste = []
+    boo = True
+    frame = -2
+    partpos = 0
+    
+    for line in infile:
+        if line.strip():
+            if boo:
+                tracknum += 1
+                particle_track = ParticleTrack(id=1, num_elements=num_frames)
+                boo = False
+            if not (frame < 0):
+                if not line[0] == "#":
+                    f,x,y,width_x,width_y,height,amplitude,z,z = line.split()
+                    particle = makeParticle(round(float(f)),float(x),float(y),float(width_x),float(width_y),float(height),float(amplitude))
+                    particle_track.insert_particle(particle, particle.frame)
+                    partpos += 1
+            frame += 1
+        else:
+            if not boo:
+                tracks.append(particle_track)
+                if partpos >= 20:
+                    liste.append(tracknum)
+                frame = -2
+                partpos = 0
+                boo = True
+    if len(particle_track.track) != 0:
+        tracks.append(particle_track)
+
+    infile.close()
+
+    saveTN = open("SuggestedTrajectories.txt",'w')
+    saveTN.write("Use the following tracks: \n" + str(liste))
+    saveTN.close()
+
+    return tracks,liste
+
 
 def link_particles(particle_data, max_displacement,
                    link_range=2, 
@@ -491,3 +544,41 @@ def lap_assoc_matrix(
             association_matrix[prevS_x, prev_j] = 0
     
     return association_matrix
+
+#cdef class ParticleTrack:
+#    """SM Particle Track Data Structure"""
+#    cdef public np.uint32_t track_id
+#    cdef public np.ndarray[np.uint32_t, ndim=1] id
+#    cdef public np.ndarray[np.uint32_t, ndim=1] frame
+#    cdef public np.ndarray[np.float64_t, ndim=1] sn
+#    cdef public np.ndarray[np.float64_t, ndim=1] x
+#    cdef public np.ndarray[np.float64_t, ndim=1] y
+#    cdef public np.ndarray[np.float64_t, ndim=1] width_x
+#    cdef public np.ndarray[np.float64_t, ndim=1] width_y
+#    cdef public np.ndarray[np.float64_t, ndim=1] height
+#    cdef public np.ndarray[np.float64_t, ndim=1] amplitude
+#    cdef public np.ndarray[np.float64_t, ndim=1] volume
+
+#class ParticleTrack(object):
+#    def __init__(self, id, num_elements):
+#        self.track_id = id
+#        self.particle_id = \
+#            np.empty(num_elements, dtype=np.uint32).fill(np.nan)
+#        self.frame = \
+#            np.empty(num_elements, dtype=np.unit32).fill(np.nan)
+#        self.sn = \
+#            np.empty(num_elements, dytpe=np.uint32).fill(np.nan)
+#        self.x = \
+#            np.empty(num_elements, dtype=np.float64).fill(np.nan)
+#        self.y = \
+#            np.empty(num_elements, dtype=np.float64).fill(np.nan)
+#        self.width_x = \
+#            np.empty(num_elements, dtype=np.float64).fill(np.nan)
+#        self.width_y = \
+#            np.empty(num_elements, dtype=np.float64).fill(np.nan)
+#        self.height = \
+#            np.empty(num_elements, dtype=np.float64).fill(np.nan)
+#        self.amplitude = \
+#            np.empty(num_elements, dtype=np.float64).fill(np.nan)
+#        self.volume = \
+#            np.empty(num_elements, dtype=np.float64).fill(np.nan)

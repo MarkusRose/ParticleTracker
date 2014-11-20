@@ -215,9 +215,16 @@ def connectPositions(imshape,posList):
     markings = np.zeros(imshape)
     for i in xrange(len(posList)-1):
         #print(str((posList[i]['x'], posList[i]['y'])) + " -> " + str((posList[i+1]['x'],posList[i+1]['y'])))
-        if math.isnan(posList[i]['y']) or math.isnan(posList[i]['x']) or math.isnan(posList[i+1]['x']) or math.isnan(posList[i+1]['y']):
+        k = 1
+        if math.isnan(posList[i]['y']) or math.isnan(posList[i]['x']): 
             continue
-        markings = placeLine(markings,posList[i]['y'],posList[i]['x'],posList[i+1]['y'],posList[i+1]['x'])
+        while math.isnan(posList[i+k]['x']) or math.isnan(posList[i+k]['y']):
+            k += 1
+            if k+i > len(posList)-1:
+                break
+        if k+i > len(posList)-1:
+            continue
+        markings = placeLine(markings,posList[i]['y'],posList[i]['x'],posList[i+k]['y'],posList[i+k]['x'])
     return markings
 
 def superimpose(image,markings,name):

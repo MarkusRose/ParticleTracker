@@ -3,6 +3,7 @@ import readImage
 import ctrack
 import markPosition
 import convertFiles
+import analysisTools
 
 import pysm
 import sys
@@ -213,30 +214,41 @@ def lotsOfTrials():
     
 
 def main():
-    path = "./NehadData"
+    path = "./Nehad"
     if not os.path.isdir(path):
         os.mkdir(path)
-        shutil.copyfile("setup.txt",path+"/setup.txt")
     else:
         option = raw_input("Careful! Path exists! Do you want to continue? [y,N] ")
         if not (option == "y" or option == "Y" or option == "Yes" or option == "yes" or option == "YES"):
             sys.exit("Data exists already. Quitting now.")
+    print "copying new setup.txt"
+    shutil.copyfile("setup.txt",path+"/setup.txt")
     os.chdir(path)
-    if not os.path.isfile("setup.txt"):
-        print "copying new setup.txt"
-        shutil.copyfile("../setup.txt","setup.txt")
     img = readImageList(readConfig("setup.txt"))
-    #img = img[51:60]
+#    img = img[:40]
+    for i in img:
+        print i
 
     #makeFirstImage(img)
-    pd = makeDetectionsAndMark(img)
-    tr = makeTracks(pd)
-    print tr
+    #pd = makeDetectionsAndMark(img)
+    #tr = makeTracks(pd)
+
+    '''
     image = readImage.readImage(img[0])
     m = markPosition.connectPositions(image.shape,tr[0].track)
     markPosition.saveRGBImage(markPosition.convertRGBMonochrome(m,'B'),"tester.tif")
+    '''
+
+    tr,liste = ctrack.readTrajectoriesFromFile("foundTracks.txt")
+    for t in liste:
+        m = markPosition.connectPositions((512,512),tr[t-1].track)
+        markPosition.saveRGBImage(markPosition.convertRGBMonochrome(m,'B'),"tr{:0004d}.tif".format(t))
 
     return
 
 if __name__=="__main__":
-    main()
+    #main()
+    tr,liste = ctrack.readTrajectoriesFromFile("Nehad/foundTracks.txt")
+    tra = analysisTools.appendTrajectories(tr,liste)
+    analysisTools.calcMSD(tra,"combined")
+

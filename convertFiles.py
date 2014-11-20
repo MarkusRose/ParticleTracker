@@ -6,6 +6,7 @@ import numpy as np
 import detectParticles
 import analysisTools
 import pysm.new_cython
+import markPosition
 
 
 #Read Trajectory from file
@@ -19,7 +20,7 @@ def readTrajectoryFromFile(filename):
 
     while line:
         [frame,x,y] = line.split()[:3]
-        track.append([float(frame),float(x),float(y)])
+        track.append({"frame":float(frame),"x":float(x),"y":float(y)})
         line = infile.readline()
 
     #print track
@@ -152,6 +153,7 @@ def convertParticles(infile):
     saveTN.close()
 
 def convertTrajectories(infile):
+    print("Hello There")
     i = 0
     boo = True
     frame = -2
@@ -174,13 +176,15 @@ def convertTrajectories(infile):
             frame += 1
 
         else:
+            print "else"
             if not boo:
                 if partpos >= 20:
                     liste.append(i)
+                print frame
                 frame = -2
                 partpos = 0
                 outfile.close()
-            boo = True
+                boo = True
 
     saveTN = open("SuggestedTrajectories.txt",'w')
     saveTN.write("Use the following tracks: \n" + str(liste))
@@ -188,7 +192,10 @@ def convertTrajectories(infile):
 
     for t in liste:
         tracks = readTrajectoryFromFile("trajectory{:0004d}.txt".format(t))
+        m = markPosition.connectPositions((512,512),tracks)
+        markPosition.saveRGBImage(markPosition.convertRGBMonochrome(m,'B'),"tr{:0004d}.tif".format(t))
         analysisTools.calcMSD(tracks,"{:0004d}".format(t))
+
 
 def convImageJTrack(filename):
     infile = open(filename,'r')

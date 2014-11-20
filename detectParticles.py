@@ -270,6 +270,7 @@ def checkFit(fitdata,sigma,sigma_thresh,eccentricity_thresh,nunocon,nunoexc,nusi
         nunocon += 1
         return False, nunocon,nunoexc,nusigma
 
+    '''
     if (np.abs(fitdata[5]/fitdata[4]) >= eccentricity_thresh or 
         np.abs(fitdata[4]/fitdata[5]) >= eccentricity_thresh):
         
@@ -277,7 +278,6 @@ def checkFit(fitdata,sigma,sigma_thresh,eccentricity_thresh,nunocon,nunoexc,nusi
         #Fit too eccentric
         nunoexc += 1
         return False, nunocon,nunoexc,nusigma
-    
     if (fitdata[4] > (sigma_thresh * sigma) or 
         fitdata[4] < (sigma / sigma_thresh) or
         fitdata[5] > (sigma_thresh * sigma) or
@@ -294,12 +294,13 @@ def checkFit(fitdata,sigma,sigma_thresh,eccentricity_thresh,nunocon,nunoexc,nusi
         #Fit too unlike theoretical psf
         nusigma += 1
         return False, nunocon,nunoexc,nusigma
+    '''
 
     return True,nunocon,nunoexc,nusigma
     
 
 
-def addParticleToList(particle_list,frame,row_min,row_max,col_min,col_max,fitdata,bit_depth):
+def addParticleToList(particle_list,frame,row_min,row_max,col_min,col_max,fitdata):
         #Create a new Particle
         #TODO:        
         #p = cparticle.CParticle()
@@ -321,15 +322,12 @@ def addParticleToList(particle_list,frame,row_min,row_max,col_min,col_max,fitdat
         
         # normalized volume for intensity moment descrimination in
         # linking step
-        p.norm_volume = \
-        	(2 * np.pi * (p.amplitude / (2**bit_depth - 1)) * 
-			 p.width_x * p.width_y)
+        p.norm_volume = (2 * np.pi * p.amplitude * p.width_x * p.width_y)
         
         # calculate signal to noise
         # (for our purposes a simple calc of amplitude of signal minus 
         # the background over the intensity of the background)
         p.sn = (p.amplitude + p.height) / p.height
-        
         particle_list.append(p)
         return
 
@@ -367,7 +365,7 @@ def findParticleAndAdd(image,frame,local_max_pixels,signal_power,sigma,backgroun
             nunocon,nunoexc,nusigma = checkedfit[1:]
             continue
 
-        addParticleToList(particle_list,frame,row_min,row_max,col_min,col_max,fitdata,bit_depth)
+        addParticleToList(particle_list,frame,row_min,row_max,col_min,col_max,fitdata)
         nupart += 1
     outf.close()
     return particle_list,nupart,nunocon,nunoexc,nusigma,nuedge
@@ -432,7 +430,7 @@ def giveInitialFitting(image,tracks,signal_power,sigma,sigma_thresh,eccentricity
             print("Fit does not fit!")
             continue
         
-        addParticleToList(partlist,(part[0]/0.16),rmin,rmax,cmin,cmax,fitdata,bit_depth)
+        addParticleToList(partlist,(part[0]/0.16),rmin,rmax,cmin,cmax,fitdata)
 
     outfile = open(oname,'w')
     outfile.write("# frame x y \n")
