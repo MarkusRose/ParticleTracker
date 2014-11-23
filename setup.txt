@@ -8,7 +8,7 @@
 1.0
 
 #Signal Power:
-6
+5
 
 #Image Bit depth:
 16
@@ -20,10 +20,10 @@
 1
 
 #Sigma Threshold:
-5
+4
 
 #Eccentricity Threshold:
-5
+6
 
 #Local_Max_Window:
 4

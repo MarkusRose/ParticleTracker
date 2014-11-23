@@ -205,7 +205,7 @@ def readLocalMax(inf):
     return local_max
 
 
-def setFittingROI(imageshape,lmpx,lmpy,boxsize=9):
+def setFittingROI(imageshape,lmpx,lmpy,boxsize=7):
 
     num_rows = imageshape[0]
     num_cols = imageshape[1]
@@ -225,8 +225,8 @@ def setFittingROI(imageshape,lmpx,lmpy,boxsize=9):
         print("Oh, too close to frame boarder to fit a gaussian.")
         return False
     else:
-        #print("So where is the point?")
         return (row_min,row_max,col_min,col_max)
+        
 
 
 
@@ -270,7 +270,6 @@ def checkFit(fitdata,sigma,sigma_thresh,eccentricity_thresh,nunocon,nunoexc,nusi
         nunocon += 1
         return False, nunocon,nunoexc,nusigma
 
-    '''
     if (np.abs(fitdata[5]/fitdata[4]) >= eccentricity_thresh or 
         np.abs(fitdata[4]/fitdata[5]) >= eccentricity_thresh):
         
@@ -278,6 +277,8 @@ def checkFit(fitdata,sigma,sigma_thresh,eccentricity_thresh,nunocon,nunoexc,nusi
         #Fit too eccentric
         nunoexc += 1
         return False, nunocon,nunoexc,nusigma
+
+    '''
     if (fitdata[4] > (sigma_thresh * sigma) or 
         fitdata[4] < (sigma / sigma_thresh) or
         fitdata[5] > (sigma_thresh * sigma) or
@@ -295,6 +296,12 @@ def checkFit(fitdata,sigma,sigma_thresh,eccentricity_thresh,nunocon,nunoexc,nusi
         nusigma += 1
         return False, nunocon,nunoexc,nusigma
     '''
+    if ((fitdata[4]**2+fitdata[5]**2) > (sigma_thresh * sigma)**2 or 
+        (fitdata[4]**2+fitdata[5]**2) < (sigma / sigma_thresh)**2):
+        print("Fit too unlike theoretical psf")
+        #Fit too unlike theoretical psf
+        nusigma += 1
+        return False, nunocon,nunoexc,nusigma
 
     return True,nunocon,nunoexc,nusigma
     
@@ -347,11 +354,11 @@ def findParticleAndAdd(image,frame,local_max_pixels,signal_power,sigma,backgroun
     for i in xrange(len(local_max_pixels[0])):
         
         #isIt = determineFittingROI(image.shape,local_max_pixels[0][i],local_max_pixels[1][i],signal_power,sigma)
-        isIt = setFittingROI(image.shape,
-                local_max_pixels[0][i],local_max_pixels[1][i])
+        isIt = setFittingROI(image.shape,local_max_pixels[0][i],local_max_pixels[1][i],9)
         if isIt:
             row_min,row_max,col_min,col_max = isIt
         else:
+            print "ohoh"
             nuedge += 1
             continue
         outf.write("{:} {:} {:} {:}\n".format(row_min,row_max,col_min,col_max))

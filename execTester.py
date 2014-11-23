@@ -214,7 +214,7 @@ def lotsOfTrials():
     
 
 def main():
-    path = "./Nehad"
+    path = "./Nehad1"
     if not os.path.isdir(path):
         os.mkdir(path)
     else:
@@ -229,9 +229,9 @@ def main():
     for i in img:
         print i
 
-    #makeFirstImage(img)
-    #pd = makeDetectionsAndMark(img)
-    #tr = makeTracks(pd)
+    makeFirstImage(img)
+    pd = makeDetectionsAndMark(img)
+    tr = makeTracks(pd)
 
     '''
     image = readImage.readImage(img[0])
@@ -244,11 +244,12 @@ def main():
         m = markPosition.connectPositions((512,512),tr[t-1].track)
         markPosition.saveRGBImage(markPosition.convertRGBMonochrome(m,'B'),"tr{:0004d}.tif".format(t))
 
+
     return
 
 if __name__=="__main__":
     #main()
-    tr,liste = ctrack.readTrajectoriesFromFile("Nehad/foundTracks.txt")
+    tr,liste = ctrack.readTrajectoriesFromFile("foundTracks.txt")
     tra = analysisTools.appendTrajectories(tr,liste)
     analysisTools.calcMSD(tra,"combined")
 
