@@ -35,17 +35,34 @@ def addTwoTracks(trackA,trackB):
         
 
 def appendTrajectories(tracks,liste):
-    outtrack = []
+    outtrack = [[0,0,0]]
+    lengths = []
     c1 = True
+    #print liste
     for i in liste:
-        tA = sortOutTrack(tracks[i].track)
-        if c1:
-            c1 = False
-            outtrack = list(tA)
-            continue
+        tA = sortOutTrack(tracks[i-1].track)
+        lengths.append(len(tA))
+        #if c1:
+        #    c1 = False
+        #    outtrack = addTwoTracks(outtrack,tA)
+        #    continue
         outtrack = addTwoTracks(outtrack,tA)
-    print len(outtrack)
-    print outtrack[-1][0]
+    #print len(outtrack)
+    #print outtrack[-1][0]
+    outfile = open("combinedTrack.txt",'w')
+    outfile.write("# Combined Track of all Suggested tracks\n# Frame X Y\n")
+    k = 0
+    trn = 0
+    for i in outtrack:
+        outfile.write("{:} {:} {:}\n".format(i[0],i[1],i[2]))
+        k += 1
+        if k == lengths[trn]:
+            outfile.write("\n\n")
+            outfile.write("{:} {:} {:}\n".format(i[0],i[1],i[2]))
+            #print "mennooo", k, trn
+            k = 1
+            trn += 1
+    outfile.close()
     return outtrack
 
 

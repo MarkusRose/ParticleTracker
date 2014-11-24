@@ -196,6 +196,8 @@ def convertTrajectories(infile):
         markPosition.saveRGBImage(markPosition.convertRGBMonochrome(m,'B'),"tr{:0004d}.tif".format(t))
         analysisTools.calcMSD(tracks,"{:0004d}".format(t))
 
+    return
+
 
 def convImageJTrack(filename):
     infile = open(filename,'r')

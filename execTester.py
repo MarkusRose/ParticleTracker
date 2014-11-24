@@ -251,5 +251,5 @@ if __name__=="__main__":
     #main()
     tr,liste = ctrack.readTrajectoriesFromFile("foundTracks.txt")
     tra = analysisTools.appendTrajectories(tr,liste)
-    analysisTools.calcMSD(tra,"combined")
+    #analysisTools.calcMSD(tra,"combined")
 

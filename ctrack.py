@@ -151,6 +151,8 @@ def readTrajectoriesFromFile(filename):
                 boo = True
     if len(particle_track.track) != 0:
         tracks.append(particle_track)
+        if partpos >= 20:
+            liste.append(tracknum)
 
     infile.close()
 
