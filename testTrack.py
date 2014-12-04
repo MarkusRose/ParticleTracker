@@ -1,0 +1,50 @@
+import numpy as np
+from PIL import Image
+
+import ctrack
+import detectParticles
+import markPosition
+import execTester
+
+# Determine image properties
+size = 512
+omega = np.pi*2/100
+R = 20
+numframes = 1000
+x, y = size/2,size/2
+
+def main():
+    frames = np.array(range(numframes))
+    xpos = R * np.cos(omega * frames)
+    ypos = R * np.sin(omega * frames)
+
+    print xpos, ypos
+    particle_data = []
+    track = ctrack.ParticleTrack(id=1,num_elements=numframes)
+    trajectories = []
+    outf = open("circle.txt", 'w')
+    outf.write("#frame, xpos, ypos \n")
+    for i in xrange(len(frames)):
+        particle = ctrack.makeParticle(frames[i],x+xpos[i],y+ypos[i],1,1,0,1)
+        particle_data.append([particle])
+        track.insert_particle(particle,particle.frame)
+        detectParticles.writeDetectedParticles([[particle],0],frames[i],outf)
+    trajectories.append(track)
+    outf.close()
+
+    ctrack.writeTrajectories(trajectories,filename="circletrack.txt")
+
+    for i in trajectories:
+        m = markPosition.connectPositions((size,size),i.track)
+        markPosition.saveRGBImage(markPosition.convertRGBMonochrome(m,'B'),"cirle{:01d}.tif".format(1))
+
+
+    tr = execTester.makeTracks(particle_data)
+    tr,liste = ctrack.readTrajectoriesFromFile("foundTracks.txt")
+    for t in liste:
+        print "doing track {:}".format(t)
+        m = markPosition.connectPositions((512,512),tr[t-1].track)
+        markPosition.saveRGBImage(markPosition.convertRGBMonochrome(m,'B'),"tr{:0004d}.tif".format(t))
+
+if __name__=="__main__":
+    main()

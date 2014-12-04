@@ -69,8 +69,8 @@ def appendTrajectories(tracks,liste):
 def calcMSD(track,fileident=""):
     delta = 1
     deltamax = track[len(track)-1][0] - track[0][0]
-    print len(track)
-    print deltamax
+    #print len(track)
+    #print deltamax
 
     msd = []
     if deltamax > 300:
@@ -100,13 +100,13 @@ def calcMSD(track,fileident=""):
             sum += ( dx*dx + dy*dy )
 
         if numofdata != 0:
-            print(str(delta)+' '+str(numofdata))
+            #print(str(delta)+' '+str(numofdata))
             sum /= numofdata
             msd.append([delta,sum])
         
         delta += 1
 
-    print(msd)
+    #print(msd)
 
     outfile = open("msd"+fileident+".txt",'w')
 

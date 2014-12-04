@@ -2,19 +2,19 @@
 #The following values can be adjusted
 
 #Folder with input images:
-/data/NEHADexperiments/2013-08-14/mito_DID007_Images
+/home/markus/Desktop/testImages
 
 #Sigma:
 1.0
 
 #Signal Power:
-5
+8
 
 #Image Bit depth:
 16
 
 #Maximum displacement:
-16
+9
 
 #Number of Images to add:
 1

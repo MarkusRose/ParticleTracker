@@ -214,7 +214,7 @@ def lotsOfTrials():
     
 
 def main():
-    path = "./Nehad1"
+    path = "./Nehad09"
     if not os.path.isdir(path):
         os.mkdir(path)
     else:
@@ -229,8 +229,9 @@ def main():
     for i in img:
         print i
 
-    makeFirstImage(img)
-    pd = makeDetectionsAndMark(img)
+    #makeFirstImage(img)
+    #pd = makeDetectionsAndMark(img)
+    pd = convertFiles.readDetectedParticles("../Nehad16/foundParticles.txt")
     tr = makeTracks(pd)
 
     '''
@@ -239,17 +240,28 @@ def main():
     markPosition.saveRGBImage(markPosition.convertRGBMonochrome(m,'B'),"tester.tif")
     '''
 
+    print("Reading Tracks again, making pictures and imaging.")
+
     tr,liste = ctrack.readTrajectoriesFromFile("foundTracks.txt")
     for t in liste:
+        print "doing track {:}".format(t)
         m = markPosition.connectPositions((512,512),tr[t-1].track)
         markPosition.saveRGBImage(markPosition.convertRGBMonochrome(m,'B'),"tr{:0004d}.tif".format(t))
+    print("\nAppending trajectories to mega-trajectory")
+    tra = analysisTools.appendTrajectories(tr,liste)
 
+    print("\nCalculating MSD for comined Tracks")
+    analysisTools.calcMSD(tra,"combined")
 
     return
 
 if __name__=="__main__":
+    img = readImageList(readConfig("setup.txt"))
+    img = img[:1]
+    makeFirstImage(img)
     #main()
-    tr,liste = ctrack.readTrajectoriesFromFile("foundTracks.txt")
-    tra = analysisTools.appendTrajectories(tr,liste)
+    #os.chdir("./Nehad06")
+    #tr,liste = ctrack.readTrajectoriesFromFile("foundTracks.txt")
+    #tra = analysisTools.appendTrajectories(tr,liste)
     #analysisTools.calcMSD(tra,"combined")
 

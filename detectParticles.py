@@ -205,7 +205,7 @@ def readLocalMax(inf):
     return local_max
 
 
-def setFittingROI(imageshape,lmpx,lmpy,boxsize=7):
+def setFittingROI(imageshape,lmpx,lmpy,boxsize=5):
 
     num_rows = imageshape[0]
     num_cols = imageshape[1]
@@ -222,7 +222,7 @@ def setFittingROI(imageshape,lmpx,lmpy,boxsize=7):
 
     if (row_min < 0 or row_max >= num_rows or
             col_min < 0 or col_max >= num_cols):
-        print("Oh, too close to frame boarder to fit a gaussian.")
+        #print("Oh, too close to frame boarder to fit a gaussian.")
         return False
     else:
         return (row_min,row_max,col_min,col_max)
@@ -265,7 +265,7 @@ def checkFit(fitdata,sigma,sigma_thresh,eccentricity_thresh,nunocon,nunoexc,nusi
     #FIT CHECKING
     ##############
     if fitdata[0] <= 0 or fitdata[1] <=0:
-        print("Fit did not converge")
+        #print("Fit did not converge")
         #Fit did not converge
         nunocon += 1
         return False, nunocon,nunoexc,nusigma
@@ -273,7 +273,7 @@ def checkFit(fitdata,sigma,sigma_thresh,eccentricity_thresh,nunocon,nunoexc,nusi
     if (np.abs(fitdata[5]/fitdata[4]) >= eccentricity_thresh or 
         np.abs(fitdata[4]/fitdata[5]) >= eccentricity_thresh):
         
-        print("Fit too eccentric")
+        #print("Fit too eccentric")
         #Fit too eccentric
         nunoexc += 1
         return False, nunocon,nunoexc,nusigma
@@ -298,7 +298,7 @@ def checkFit(fitdata,sigma,sigma_thresh,eccentricity_thresh,nunocon,nunoexc,nusi
     '''
     if ((fitdata[4]**2+fitdata[5]**2) > (sigma_thresh * sigma)**2 or 
         (fitdata[4]**2+fitdata[5]**2) < (sigma / sigma_thresh)**2):
-        print("Fit too unlike theoretical psf")
+        #print("Fit too unlike theoretical psf")
         #Fit too unlike theoretical psf
         nusigma += 1
         return False, nunocon,nunoexc,nusigma
@@ -354,7 +354,7 @@ def findParticleAndAdd(image,frame,local_max_pixels,signal_power,sigma,backgroun
     for i in xrange(len(local_max_pixels[0])):
         
         #isIt = determineFittingROI(image.shape,local_max_pixels[0][i],local_max_pixels[1][i],signal_power,sigma)
-        isIt = setFittingROI(image.shape,local_max_pixels[0][i],local_max_pixels[1][i],9)
+        isIt = setFittingROI(image.shape,local_max_pixels[0][i],local_max_pixels[1][i],5)
         if isIt:
             row_min,row_max,col_min,col_max = isIt
         else:

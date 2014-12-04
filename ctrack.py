@@ -50,8 +50,8 @@ class ParticleTrack(object):
                 pass
         return    
     
-def writeTrajectories(tracks):
-    outfile = open("foundTracks.txt",'w')
+def writeTrajectories(tracks,filename="foundTracks.txt"):
+    outfile = open(filename,'w')
     track_num = 0
     for track in tracks:
         track_num += 1
@@ -68,6 +68,7 @@ def writeTrajectories(tracks):
             outfile.write("{:3.4f} ".format(particle['sn']))
             outfile.write("\n")
 
+    outfile.close()
     print("Done writing Tracks")
     print("Number of Tracks found: {:}".format(len(tracks)))
     return
@@ -108,8 +109,10 @@ def readTrajectoriesFromFile(filename):
     infile = open(filename,'r')
     boo = True
     frame = -2
+    num_frames = 0
 
     for line in infile:
+        print line
         if line.strip():
             if boo:
                 boo = False
@@ -119,6 +122,9 @@ def readTrajectoriesFromFile(filename):
                 num_frames = frame
                 break
     infile.close()
+
+    if num_frames == 0:
+        num_frames = frame
     
     infile = open(filename,'r')
     tracks = []
@@ -144,7 +150,7 @@ def readTrajectoriesFromFile(filename):
         else:
             if not boo:
                 tracks.append(particle_track)
-                if partpos >= 20:
+                if partpos >= 6:
                     liste.append(tracknum)
                 frame = -2
                 partpos = 0
