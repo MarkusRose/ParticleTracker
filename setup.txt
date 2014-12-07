@@ -2,22 +2,23 @@
 #The following values can be adjusted
 
 #Folder with input images:
-/home/markus/Desktop/testImages
+#/data/NEHADexperiments/2013-08-14/mito_DID007_Images
+/home/markus/LittleHelpers/SearchForMyParticle/SmallMito
 
 #Sigma:
 1.0
 
 #Signal Power:
-8
+5
 
 #Image Bit depth:
 16
 
 #Maximum displacement:
-9
+3
 
 #Number of Images to add:
-1
+3
 
 #Sigma Threshold:
 4

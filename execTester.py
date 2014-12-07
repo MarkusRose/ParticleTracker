@@ -20,7 +20,7 @@ signal_power = 8
 bit_depth = 16
 eccentricity_thresh = 2
 sigma_thresh = 3
-max_displacement = 6
+max_displacement = 10
 addUp = 1
 
 def readImageList(path):
@@ -122,7 +122,10 @@ def readConfig(filename):
         if counter == 1 and line[0] != "#":
             counter -= 1
             continue
-        if counter == 2:
+        if counter == 2 and line[0] == "#":
+            counter -= 1
+            continue
+        elif counter == 2:
             counter = 0
             a.append(line.split()[0])
 
@@ -212,9 +215,8 @@ def lotsOfTrials():
     print("\nDone!\n---------\n")
     return
     
+def chPath(path):
 
-def main():
-    path = "./Nehad09"
     if not os.path.isdir(path):
         os.mkdir(path)
     else:
@@ -224,21 +226,23 @@ def main():
     print "copying new setup.txt"
     shutil.copyfile("setup.txt",path+"/setup.txt")
     os.chdir(path)
+
+def main():
+    chPath("./Tses")
+
     img = readImageList(readConfig("setup.txt"))
-#    img = img[:40]
+    img = sorted(img)
     for i in img:
         print i
 
     #makeFirstImage(img)
-    #pd = makeDetectionsAndMark(img)
-    pd = convertFiles.readDetectedParticles("../Nehad16/foundParticles.txt")
+    pd = makeDetectionsAndMark(img)
+    #pd = convertFiles.readDetectedParticles("../Nehad16/foundParticles.txt")
     tr = makeTracks(pd)
 
-    '''
     image = readImage.readImage(img[0])
     m = markPosition.connectPositions(image.shape,tr[0].track)
     markPosition.saveRGBImage(markPosition.convertRGBMonochrome(m,'B'),"tester.tif")
-    '''
 
     print("Reading Tracks again, making pictures and imaging.")
 
@@ -256,10 +260,12 @@ def main():
     return
 
 if __name__=="__main__":
-    img = readImageList(readConfig("setup.txt"))
-    img = img[:1]
-    makeFirstImage(img)
-    #main()
+    #img = readImageList(readConfig("setup.txt"))
+    #img = img[:1]
+    #for i in img:
+    #    print i
+    #makeFirstImage(img)
+    main()
     #os.chdir("./Nehad06")
     #tr,liste = ctrack.readTrajectoriesFromFile("foundTracks.txt")
     #tra = analysisTools.appendTrajectories(tr,liste)

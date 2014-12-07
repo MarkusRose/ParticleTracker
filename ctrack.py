@@ -133,6 +133,8 @@ def readTrajectoriesFromFile(filename):
     boo = True
     frame = -2
     partpos = 0
+
+    particle_track = ParticleTrack(id=1,num_elements=0)
     
     for line in infile:
         if line.strip():

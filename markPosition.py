@@ -65,7 +65,7 @@ def drawLine(one_x,one_y,two_x,two_y):
 def placeImage(bild,img,x,y):
     for i in xrange(len(img)):
         for j in xrange(len(img[i])):
-            if img[i,j] != 0:
+            if img[i,j] != 0 and x+i < bild.shape[0] and y+j < bild.shape[1]:
                 bild[x+i,y+j] = img[i,j]
     return bild
         

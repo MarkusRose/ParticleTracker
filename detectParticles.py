@@ -205,7 +205,7 @@ def readLocalMax(inf):
     return local_max
 
 
-def setFittingROI(imageshape,lmpx,lmpy,boxsize=5):
+def setFittingROI(imageshape,lmpx,lmpy,boxsize=7):
 
     num_rows = imageshape[0]
     num_cols = imageshape[1]
