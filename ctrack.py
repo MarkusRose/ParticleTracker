@@ -105,7 +105,7 @@ def makeParticle(frame,x,y,width_x,width_y,height,amplitude):
         return p
 
 
-def readTrajectoriesFromFile(filename):
+def readTrajectoriesFromFile(filename,minTrackLen):
     infile = open(filename,'r')
     boo = True
     frame = -2
@@ -152,14 +152,14 @@ def readTrajectoriesFromFile(filename):
         else:
             if not boo:
                 tracks.append(particle_track)
-                if partpos >= 3:
+                if partpos >= minTrackLen:
                     liste.append(tracknum)
                 frame = -2
                 partpos = 0
                 boo = True
     if len(particle_track.track) != 0:
         tracks.append(particle_track)
-        if partpos >= 3:
+        if partpos >= minTrackLen:
             liste.append(tracknum)
 
     infile.close()

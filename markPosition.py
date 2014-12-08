@@ -9,6 +9,7 @@ from PIL import Image
 ##############################
 
 def treasure(size_x,size_y,thickness):
+    #Draw a treasure cross
     a = np.zeros((size_x,size_y))
     i,j = 0,0
 
@@ -19,10 +20,20 @@ def treasure(size_x,size_y,thickness):
                 a[i,j] = 1
     return a
 
-def placeWidget(image,pos_x,pos_y):
+def circle(radius=6,thickness=0):
+    #draw a circular marking
+    a = np.zeros((2*radius+1,2*radius+1))
+    for i in xrange(len(a)):
+        for j in xrange(len(a[i])):
+            if (i-radius)**2+(j-radius)**2 <= (radius+thickness)**2 and (i-radius)**2+(j-radius)**2>=(radius-1)**2:
+                a[i,j] = 1
+    return a
+
+
+def placeWidget(image,pos_x,pos_y,widget=treasure(7,7,0)):
     #posImage = np.zeros(image.shape)
     #print(image.shape)
-    widget = treasure(7,7,0)
+    #widget = treasure(7,7,0)
     center = int(widget.shape[0]/2)
 
     for i in xrange(len(widget)):
@@ -33,6 +44,12 @@ def placeWidget(image,pos_x,pos_y):
                     image[pos_x - center + i,pos_y - center + j] = widget[i,j]
 
     return image
+
+def placeMarking(shape,pos_x,pos_y,widget=treasure(7,7,0)):
+    a = np.zeros(shape)
+    a = placeWidget(a,pos_x,pos_y,widget=widget)
+    return a
+    
 
 def drawLine(one_x,one_y,two_x,two_y):
     image = np.zeros((int(abs(two_x - one_x))+1,int(abs(two_y - one_y))+1))
@@ -125,8 +142,12 @@ def imposeWithColor(data,mark,color='R'):
                     data[i,j] = [0,0,mark[i,j]]
                 elif color == 'R':
                     data[i,j] = [mark[i,j],0,0]
-                else:
+                elif color == 'G':
                     data[i,j] = [0,mark[i,j],0]
+                elif color == 'Y':
+                    data[i,j] = [mark[i,j],mark[i,j],0]
+                else:
+                    sys.exit("Color unkown!")
     return data
 
 def addWithColor(data,mark,color='R'):
@@ -164,7 +185,7 @@ def scale(image,ma,mi):
 
     if ma > 1:
         ma = 1
-    print image.max(), image.min()
+    #print image.max(), image.min()
     image = (image - image.min()) * (ma-mi)/(image.max()-image.min()) + mi
     return image
 
@@ -250,14 +271,17 @@ def superconnected(image,markings,name):
 # Helpers
 ############################
 
-def makeRegularImage():
+def makeRegularImage(widget=treasure(7,7,0)):
     image = np.zeros((512,512))
     for i in xrange(512):
         for j in xrange(512):
             if i%30 ==0 and j%30 == 0:
-                placeWidget(image,i,j)
+                placeWidget(image,i,j,widget)
     imsave('helloX.tif',image)
     return image
+
+if __name__=="__main__":
+    makeRegularImage(widget=circle())
 
 #def drawLine(one_x,one_y,two_x,two_y):
 #    image = np.zeros((int(abs(two_x - one_x))+1,int(abs(two_y - one_y))+1))

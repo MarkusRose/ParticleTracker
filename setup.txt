@@ -18,7 +18,7 @@
 3
 
 #Number of Images to add:
-3
+1
 
 #Sigma Threshold:
 4
@@ -28,3 +28,6 @@
 
 #Local_Max_Window:
 4
+
+#Minimum track length
+1

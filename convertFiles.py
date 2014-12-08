@@ -152,7 +152,7 @@ def convertParticles(infile):
     saveTN.write("Use the following tracks: \n" + str(liste))
     saveTN.close()
 
-def convertTrajectories(infile):
+def convertTrajectories(infile,minTrackLen):
     print("Hello There")
     i = 0
     boo = True
@@ -178,7 +178,7 @@ def convertTrajectories(infile):
         else:
             print "else"
             if not boo:
-                if partpos >= 20:
+                if partpos >= minTrackLen:
                     liste.append(i)
                 print frame
                 frame = -2

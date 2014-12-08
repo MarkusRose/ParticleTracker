@@ -22,6 +22,7 @@ eccentricity_thresh = 2
 sigma_thresh = 3
 max_displacement = 10
 addUp = 1
+minTrackLen = 1
 
 def readImageList(path):
     print path
@@ -110,8 +111,9 @@ def readConfig(filename):
     global sigma_thresh 
     global max_displacement 
     global addUp
+    global minTrackLen
 
-    innumber = 9
+    innumber = 10
 
     a = []
     infile = open(filename,'r')
@@ -146,6 +148,7 @@ def readConfig(filename):
         sigma_thresh  = float(a[6])
         max_displacement  = float(a[4])
         addUp = int(a[5])
+        minTrackLen = int(a[9])
 
     return imagedir
 
@@ -228,6 +231,33 @@ def chPath(path):
     shutil.copyfile("setup.txt",path+"/setup.txt")
     os.chdir(path)
 
+    return
+
+
+def compileMultiTracks(img,tr):
+    image = markPosition.autoScale(readImage.readImage(img[0]))
+    posmark = np.zeros(image.shape)
+    for i in xrange(len(img)-addUp):
+        # read image i
+        image = markPosition.autoScale(readImage.readImage(img[i]))
+        data = markPosition.convertRGBGrey(image)
+        mark = np.zeros(image.shape)
+        for j in tr:
+            # Make markings of track j for frame i and add to trackmarks
+            # make markings for particle positions in frame i
+            if not np.isnan(j.track[i]['x']):
+                print j.track[i]['frame'], i
+                mark += markPosition.placeMarking(image.shape,j.track[i]['y'],j.track[i]['x'],markPosition.circle(radius=3))
+                posmark += markPosition.connectPositions(image.shape,j.track[:i+1])
+        # add trackmarks for frame i to image i
+        data = markPosition.imposeWithColor(data,posmark,'B')
+        # add particle position markings to image i
+        data = markPosition.imposeWithColor(data,mark,'Y')
+        # saveImage
+        markPosition.saveRGBImage(data,"frame{:0004d}.tif".format(i))
+    return
+
+
 def main():
     chPath("./Tses")
 
@@ -247,7 +277,7 @@ def main():
 
     print("Reading Tracks again, making pictures and imaging.")
 
-    tr,liste = ctrack.readTrajectoriesFromFile("foundTracks.txt")
+    tr,liste = ctrack.readTrajectoriesFromFile("foundTracks.txt",minTrackLen)
     m = np.zeros(image.shape)
     for t in liste:
         print "doing track {:}".format(t)
@@ -259,16 +289,6 @@ def main():
     print("\nCalculating MSD for comined Tracks")
     analysisTools.calcMSD(tra,"combined")
 
-    for i in img:
-        #read image i
-        for j in tr:
-            #Make markings of track j for frame i and add to trackmarks
-            pass
-        #add trackmarks for frame i to image i
-        #make markings for particle positions in frame i
-        #add particle position markings to image i
-
-
     return
 
 if __name__=="__main__":
@@ -278,7 +298,6 @@ if __name__=="__main__":
     #    print i
     #makeFirstImage(img)
     main()
-
 
     #os.chdir("./Nehad06")
     #tr,liste = ctrack.readTrajectoriesFromFile("foundTracks.txt")
