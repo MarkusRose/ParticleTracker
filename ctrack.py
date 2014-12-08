@@ -152,14 +152,14 @@ def readTrajectoriesFromFile(filename):
         else:
             if not boo:
                 tracks.append(particle_track)
-                if partpos >= 6:
+                if partpos >= 3:
                     liste.append(tracknum)
                 frame = -2
                 partpos = 0
                 boo = True
     if len(particle_track.track) != 0:
         tracks.append(particle_track)
-        if partpos >= 20:
+        if partpos >= 3:
             liste.append(tracknum)
 
     infile.close()
@@ -520,7 +520,7 @@ def lap_assoc_matrix(
                             break
                     
                     #look along the y-axis including
-                    #the dummy particles
+                    #the ummy particles
                     for k in range(num_particles_next + 1):
                         if association_matrix[i, k] == 1:
                             y = k

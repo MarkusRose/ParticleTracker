@@ -3,6 +3,7 @@ import pysm.new_cython
 import readImage
 import filters
 import markPosition
+import sys
 from scipy import ndimage, optimize
 
 
@@ -45,22 +46,39 @@ def multiImageDetect(img,
     particle_data = []
     frame = 0
     outfile = open("foundParticles.txt",'w')
-    for i in img:
-        #Read Image
-        image = readImage.readImage(i)
-        
-        frame += 1
+    for i in xrange(len(img)):
 
-        #Adding up images
+        #Read image
+        image = readImage.readImage(img[i])
+
+        frame += 1
+        '''
+        #Good: (but not working) Adding up images
         if frame == 1:
             a = np.zeros(image.shape)
-
-        if frame % numAdder != 0:
-            a += image
-            continue
         a += image
+
+        if frame > numAdder:
+            #remove last image
+            b = readImage.readImage(img[i-numAdder])
+            a -= b
+            ch = a != (image + readImage.readImage(img[i-1]) + readImage.readImage(img[i-2]))
+            if ch.all():
+                sys.exit("Oh man, what's going on in frame {:}?".format(frame))
+                    
+        else:
+            continue
+        '''
+        #Computationally expensive Adding up images
+        if frame <= numAdder:
+            continue
+        else:
+            a = np.zeros(image.shape)
+            for j in xrange(numAdder):
+                a += readImage.readImage(img[i-j])
+
         if output:
-            readImage.saveImageToFile(a,"01sanityCheck.png")
+            readImage.saveImageToFile(a,"01sanityCheck{:0004d}.png".format(frame))
 
         print("\n==== Doing image no " + str(frame) + " ====")
         particles = detectParticles(
@@ -358,7 +376,7 @@ def findParticleAndAdd(image,frame,local_max_pixels,signal_power,sigma,backgroun
         if isIt:
             row_min,row_max,col_min,col_max = isIt
         else:
-            print "ohoh"
+            #print "ohoh"
             nuedge += 1
             continue
         outf.write("{:} {:} {:} {:}\n".format(row_min,row_max,col_min,col_max))

@@ -36,9 +36,10 @@ def dataCorrect(particle_data):
     frame_count = 0
     output = True
     for frame in particle_data:
-        frame_count += addUp
+        frame_count += 1
         for particle in frame:
-            if particle.frame != frame_count:
+            print particle.frame, addUp, frame_count
+            if particle.frame != frame_count+addUp:
                 output = False
                 print ("nope, particle aint in right frame.")
                 break
@@ -237,7 +238,7 @@ def main():
 
     #makeFirstImage(img)
     pd = makeDetectionsAndMark(img)
-    #pd = convertFiles.readDetectedParticles("../Nehad16/foundParticles.txt")
+    #pd = convertFiles.readDetectedParticles("../Tses/foundParticles.txt")
     tr = makeTracks(pd)
 
     image = readImage.readImage(img[0])
@@ -247,15 +248,26 @@ def main():
     print("Reading Tracks again, making pictures and imaging.")
 
     tr,liste = ctrack.readTrajectoriesFromFile("foundTracks.txt")
+    m = np.zeros(image.shape)
     for t in liste:
         print "doing track {:}".format(t)
-        m = markPosition.connectPositions((512,512),tr[t-1].track)
-        markPosition.saveRGBImage(markPosition.convertRGBMonochrome(m,'B'),"tr{:0004d}.tif".format(t))
+        m += markPosition.connectPositions(image.shape,tr[t-1].track)
+    markPosition.saveRGBImage(markPosition.convertRGBMonochrome(m,'B'),"tr{:0004d}.tif".format(t))
     print("\nAppending trajectories to mega-trajectory")
     tra = analysisTools.appendTrajectories(tr,liste)
 
     print("\nCalculating MSD for comined Tracks")
     analysisTools.calcMSD(tra,"combined")
+
+    for i in img:
+        #read image i
+        for j in tr:
+            #Make markings of track j for frame i and add to trackmarks
+            pass
+        #add trackmarks for frame i to image i
+        #make markings for particle positions in frame i
+        #add particle position markings to image i
+
 
     return
 
@@ -266,6 +278,8 @@ if __name__=="__main__":
     #    print i
     #makeFirstImage(img)
     main()
+
+
     #os.chdir("./Nehad06")
     #tr,liste = ctrack.readTrajectoriesFromFile("foundTracks.txt")
     #tra = analysisTools.appendTrajectories(tr,liste)

@@ -9,7 +9,7 @@
 1.0
 
 #Signal Power:
-5
+4
 
 #Image Bit depth:
 16
