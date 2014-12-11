@@ -3,13 +3,13 @@
 
 #Folder with input images:
 #/data/NEHADexperiments/2013-08-14/mito_DID007_Images
-/home/markus/LittleHelpers/SearchForMyParticle/SmallMito
+/home/markus/LittleHelpers/SearchForMyParticle/KalmanFilter
 
 #Sigma:
 1.0
 
 #Signal Power:
-4
+3
 
 #Image Bit depth:
 16

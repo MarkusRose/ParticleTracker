@@ -4,6 +4,7 @@ import readImage
 import filters
 import markPosition
 import sys
+import convertFiles
 from scipy import ndimage, optimize
 
 
@@ -42,16 +43,20 @@ def multiImageDetect(img,
                     signal_power,
                     bit_depth,
                     eccentricity_thresh,
-                    sigma_thresh,numAdder,output=False):
+                    sigma_thresh,numAdder,local_max=None,output=False):
     particle_data = []
     frame = 0
     outfile = open("foundParticles.txt",'w')
+    if not (local_max is None):
+        local_max_pixels = convertFiles.giveLocalMaxValues(convertFiles.convImageJTrack(local_max),len(img))
+        
     for i in xrange(len(img)):
 
         #Read image
         image = readImage.readImage(img[i])
 
         frame += 1
+        #TODO: computationally better adding up of frames
         '''
         #Good: (but not working) Adding up images
         if frame == 1:
@@ -70,7 +75,7 @@ def multiImageDetect(img,
             continue
         '''
         #Computationally expensive Adding up images
-        if frame <= numAdder:
+        if frame < numAdder:
             continue
         else:
             a = np.zeros(image.shape)
@@ -81,15 +86,30 @@ def multiImageDetect(img,
             readImage.saveImageToFile(a,"01sanityCheck{:0004d}.png".format(frame))
 
         print("\n==== Doing image no " + str(frame) + " ====")
-        particles = detectParticles(
-                a,
-                sigma,
-                local_max_window,
-                signal_power,
-                bit_depth,
-                frame,
-                eccentricity_thresh,
-                sigma_thresh,output)
+        if local_max is None:
+            particles = detectParticles(
+                    a,
+                    sigma,
+                    local_max_window,
+                    signal_power,
+                    bit_depth,
+                    frame,
+                    eccentricity_thresh,
+                    sigma_thresh,
+                    output=output)
+        else:
+            particles = detectParticles(
+                    a,
+                    sigma,
+                    local_max_window,
+                    signal_power,
+                    bit_depth,
+                    frame,
+                    eccentricity_thresh,
+                    sigma_thresh,
+                    local_max_pixels=local_max_pixels[i],
+                    output=output)
+
         outMarkedImages(a,particles,"out{:0004d}.tif".format(frame))
         a = np.zeros(image.shape)
         particle_data.append(particles)
@@ -206,10 +226,6 @@ def filterImage(image,sigma,local_max_window,signal_power,output):
     print('Cutoff is at ' + str(cutoff))
     print("Found local Maxima: "+str(len(local_max_pixels[0])))
 
-    outf = open("foundLocalMaxima.txt",'w')
-    for i in xrange(len(local_max_pixels[0])):
-        outf.write("1 {:} {:}\n".format(local_max_pixels[0][i],local_max_pixels[1][i]))
-    outf.close()
 
     return (local_max_pixels,cutoff,background_mean)
 
@@ -372,7 +388,7 @@ def findParticleAndAdd(image,frame,local_max_pixels,signal_power,sigma,backgroun
     for i in xrange(len(local_max_pixels[0])):
         
         #isIt = determineFittingROI(image.shape,local_max_pixels[0][i],local_max_pixels[1][i],signal_power,sigma)
-        isIt = setFittingROI(image.shape,local_max_pixels[0][i],local_max_pixels[1][i],5)
+        isIt = setFittingROI(image.shape,local_max_pixels[0][i],local_max_pixels[1][i],7)
         if isIt:
             row_min,row_max,col_min,col_max = isIt
         else:
@@ -407,12 +423,23 @@ def readBox(inf):
 
 
 
-def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,eccentricity_thresh,sigma_thresh,output):
+def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,eccentricity_thresh,sigma_thresh,local_max_pixels=None,output=False):
 
-    print "start with no initial pos"
+    #Check if initial positions are given
+    if (local_max_pixels is None):
+        #Filter Image and get initial particle positions
+        local_max_pixels,cutoff,background_mean = filterImage(img,sigma,local_max_window,signal_power,output)
+    else:
+        cutoff = 0
 
-    #Filter Image and get initial particle positions
-    local_max_pixels,cutoff,background_mean = filterImage(img,sigma,local_max_window,signal_power,output)
+    outf = open("foundLocalMaxima.txt",'w')
+    for i in xrange(len(local_max_pixels[0])):
+        outf.write("1 {:} {:}\n".format(local_max_pixels[0][i],local_max_pixels[1][i]))
+    outf.close()
+
+    # Get Background and STD (has to be redone)
+    median_img = ndimage.filters.median_filter(img, (21,21))
+    (background_mean,background_std) = (median_img.mean(),median_img.std())
 
     #Fit Gauss to Image and add to Particle list if ok
     particle_list,nupart,nunocon,nunoexc,nusigma,nuedge = findParticleAndAdd(img,frame,local_max_pixels,signal_power,sigma,background_mean,sigma_thresh,eccentricity_thresh,bit_depth)
@@ -429,38 +456,6 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
         print("Sum:            {:5d}".format(sumparts))
         print("Error: number of maxPixels not equal to processed positions\n")
     print("Number of Particles found: " + str(len(particle_list)))
-    print "end with no initial pos"
 
     return [particle_list,cutoff]
 
-
-def giveInitialFitting(image,tracks,signal_power,sigma,sigma_thresh,eccentricity_thresh,bit_depth,oname):
-    print "start with initial pos"
-    partlist = []
-    for part in tracks:
-        #image = readImage.readImage(img[part[0]-1])
-        median_img = ndimage.filters.median_filter(image, (21,21))
-        (background_mean,background_std) = (median_img.mean(),median_img.std())
-        isIt = determineFittingROI(image.shape,part[1],part[2],signal_power,sigma)
-        if isIt:
-            rmin,rmax,cmin,cmax = isIt
-        else:
-            print("Missed frame {:}".format(part[0]))
-            continue
-
-        fitdata = fitgaussian2d(image[rmin:rmax,cmin:cmax],background_mean)
-        
-        checkedfit = checkFit(fitdata,sigma,sigma_thresh,eccentricity_thresh,0,0,0)
-        if not checkedfit[0]:
-            print("Fit does not fit!")
-            continue
-        
-        addParticleToList(partlist,(part[0]/0.16),rmin,rmax,cmin,cmax,fitdata)
-
-    outfile = open(oname,'w')
-    outfile.write("# frame x y \n")
-    for p in partlist:
-        outfile.write("{:} {:} {:}\n".format(p.frame,p.x,p.y))
-    outfile.close()
-    print "end with initial pos"
-    return partlist

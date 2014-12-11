@@ -14,6 +14,9 @@ from scipy import ndimage
 from matplotlib import pyplot as plt
 import numpy as np
 
+#==============================
+# Global Variables
+#==============================
 sigma = 1.0
 local_max_window = 4
 signal_power = 8
@@ -24,8 +27,24 @@ max_displacement = 10
 addUp = 1
 minTrackLen = 1
 
+    
+#==============================
+# Main Functions
+#==============================
+def chPath(path):
+
+    if not os.path.isdir(path):
+        os.mkdir(path)
+    else:
+        option = raw_input("Careful! '"+path+"' exists! Do you want to continue? [y,N] ")
+        if not (option == "y" or option == "Y" or option == "Yes" or option == "yes" or option == "YES"):
+            sys.exit("Data exists already. Quitting now.")
+    shutil.copyfile("setup.txt",path+"/setup.txt")
+    os.chdir(path)
+
+    return
+
 def readImageList(path):
-    print path
     if not os.path.isdir(path):
         print "No path named " + path
         raise ValueError, "No path named " + path
@@ -39,47 +58,23 @@ def dataCorrect(particle_data):
     for frame in particle_data:
         frame_count += 1
         for particle in frame:
-            print particle.frame, addUp, frame_count
-            if particle.frame != frame_count+addUp:
+            #print particle.frame, addUp, frame_count
+            if particle.frame != frame_count+addUp-1:
                 output = False
                 print ("nope, particle aint in right frame.")
                 break
         if not output:
             break
     return output 
-        
 
-def testTracks(tracks):        
-    print("Done creating tracks")
-    print('ChooChoo! Track 29: \n' + str(tracks[29].track))
-    print("Boy, you can give me a schein")
-    for name in tracks[29].track.dtype.names:
-        print(name + ": " + str(tracks[29].track[name]))
-    return   
-
-def printPictures(tracks,numtrack):
-    position = pysm.new_cython.TempParticle()
-    for i in xrange(1,40):
-        print("# {:} =====================".format(i))
-        image = readImage.readImage(img[i-1])
-        position.x= tracks[numtrack-1].track[i]['x']
-        position.y= tracks[numtrack-1].track[i]['y']
-        markings = markPosition.markPositionsFromList(image.shape,[position])
-        markedlines = markPosition.connectPositions(image.shape,tracks[numtrack-1].track[1:i+1])
-        markPosition.justsuper(image,markings,markedlines,"marked"+str(i)+".tif")
-        #markPosition.superimpose(image,markings,"marked"+str(i)+".tif")
-        print ""
-
-def makeFirstImage(img):
-    print("\n==== Make first images ====")
+def makeFirstImage(img,lm=None):
     inimage = img[0:addUp]
-    particle_data = detectParticles.multiImageDetect(inimage,sigma,local_max_window,signal_power,bit_depth,eccentricity_thresh,sigma_thresh,addUp,True)
+    particle_data = detectParticles.multiImageDetect(inimage,sigma,local_max_window,signal_power,bit_depth,eccentricity_thresh,sigma_thresh,addUp,local_max=lm,output=True)
     return particle_data
 
-def makeDetectionsAndMark(img):
+def makeDetectionsAndMark(img,local_max=None):
     print('\n==== Start Localization and Detection ====')
-    print("==== Series of all location pictures ====")
-    particle_data = detectParticles.multiImageDetect(img,sigma,local_max_window,signal_power,bit_depth,eccentricity_thresh,sigma_thresh,addUp,False)
+    particle_data = detectParticles.multiImageDetect(img,sigma,local_max_window,signal_power,bit_depth,eccentricity_thresh,sigma_thresh,addUp,local_max=local_max,output=False)
 
     if not dataCorrect(particle_data):
         sys.exit("Particle data not correct")
@@ -114,7 +109,6 @@ def readConfig(filename):
     global minTrackLen
 
     innumber = 10
-
     a = []
     infile = open(filename,'r')
     for i in xrange(2):
@@ -131,9 +125,7 @@ def readConfig(filename):
         elif counter == 2:
             counter = 0
             a.append(line.split()[0])
-
-    print a
-
+    #print a
     if len(a) < innumber:
         sys.exit("Input file missing {:} entries!".format(innumber-len(a)))
     elif len(a) > innumber:
@@ -151,88 +143,6 @@ def readConfig(filename):
         minTrackLen = int(a[9])
 
     return imagedir
-
-def compareInitNoInit(image,data,out):
-
-    initPos = convertFiles.convImageJTrack(data)
-    markInit = markPosition.markPositionsSimpleList(image.shape,initPos)
-    
-    partdata = detectParticles.giveInitialFitting(image,initPos,signal_power,sigma,sigma_thresh,eccentricity_thresh,bit_depth,"out.txt")
-    markWithInit = markPosition.markPositionsFromList(image.shape,partdata)
-
-    partdata = detectParticles.detectParticles(image,sigma,local_max_window,signal_power,bit_depth,0,eccentricity_thresh,sigma_thresh,True)
-    markNoInit = markPosition.markPositionsFromList(image.shape,partdata[0])
-    markFromNoInit = markPosition.markPositionsSimpleList(image.shape,readLocalMax("foundLocalMaxima.txt"))
-    boxMarkings = markPosition.drawBox(image.shape,readBox("localBoxes.txt"))
-    
-
-    ofile = open("simNoInit.txt",'w')
-    detectParticles.writeDetectedParticles(partdata,1,ofile)
-
-
-    outar = markPosition.autoScale(markPosition.convertRGBGrey(image))
-    #outar = markPosition.imposeWithColor(outar,markInit,'B')
-    #outar = markPosition.imposeWithColor(outar,markFromNoInit,'G')
-    outar = markPosition.imposeWithColor(outar,markNoInit,'R')
-    outar = markPosition.imposeWithColor(outar,boxMarkings,'G')
-
-    markPosition.saveRGBImage(outar,out)
-    return
-
-
-def lotsOfTrials():
-
-    readConfig("setup.txt")
-
-    image = readImage.readImage("simData.tif")
-    signal_power = 14
-    compareInitNoInit(image,"simResults.txt","simOut.tif")
-
-
-
-    image = readImage.readImage("singleData1.tif")
-    markPosition.saveRGBImage(markPosition.autoScale(image),"singleOData1scaled.tif")
-    signal_power = 5
-    compareInitNoInit(image,"singleResults1.txt","singleOut.tif")
-    image += readImage.readImage("singleData2.tif")
-    image += readImage.readImage("singleData3.tif")
-    markPosition.saveRGBImage(markPosition.autoScale(image),"addedOData1scaled.tif")
-    compareInitNoInit(image,"singleResults1.txt","addedOut.tif")
-
-
-
-    #particle_data = makeDetectionFromFile()
-
-    #makeTracks(particle_data)
-    
-    #tracks = convertFiles.convImageJTrack("/data/AnalysisTracks/2014-10-26_Mito-Lipid_Tracks/Mito_DiD001-2-HandTracks/VisTrack01.xls")
-
-    '''
-    image = readImage.readImage(img[tracks[0][0]-1])
-    print(tracks[0][0])
-    print(tracks[0][1],tracks[0][2])
-    print(image[tracks[0][1],tracks[0][2]])
-    '''
-    #oname = "/data/AnalysisTracks/2014-10-26_Mito-Lipid_Tracks/Mito_DiD001-2-HandTracks/newTrack02.txt"
-    #detectParticles.giveInitialFitting(img,tracks,signal_power,sigma,sigma_thresh,eccentricity_thresh,bit_depth,oname)
-    
-    print("\nDone!\n---------\n")
-    return
-    
-def chPath(path):
-
-    if not os.path.isdir(path):
-        os.mkdir(path)
-    else:
-        option = raw_input("Careful! Path exists! Do you want to continue? [y,N] ")
-        if not (option == "y" or option == "Y" or option == "Yes" or option == "yes" or option == "YES"):
-            sys.exit("Data exists already. Quitting now.")
-    print "copying new setup.txt"
-    shutil.copyfile("setup.txt",path+"/setup.txt")
-    os.chdir(path)
-
-    return
-
 
 def compileMultiTracks(img,tr):
     image = markPosition.autoScale(readImage.readImage(img[0]))
@@ -257,50 +167,57 @@ def compileMultiTracks(img,tr):
         markPosition.saveRGBImage(data,"frame{:0004d}.tif".format(i))
     return
 
+def drawAllFoundTracks(img,tr):
+    image = readImage.readImage(img[0])
+    m = np.zeros(image.shape)
+    for t in xrange(len(tr)):
+        print "doing track {:}".format(t)
+        m += markPosition.connectPositions(image.shape,tr[t].track)
+    markPosition.saveRGBImage(markPosition.convertRGBMonochrome(m,'B'),"tr{:0004d}.tif".format(t))
+    return
 
+#==============================
+# Main
+#==============================
 def main():
-    chPath("./Tses")
+    print("=================================\n"
+            +"Welcome! Starting the Program.\n"
+            +"=================================\n")
+    print("Switching path and copying setup file.")
+    chPath("Tester")
 
+    # Read in setup file and sort
     img = readImageList(readConfig("setup.txt"))
     img = sorted(img)
-    for i in img:
-        print i
+    img = img[:31]
 
+    #print("Editing first image")
     #makeFirstImage(img)
-    pd = makeDetectionsAndMark(img)
+    print("Detection and Localization starting")
+    pd = makeDetectionsAndMark(img,"../SmallMito/Handmade Tracks/track01.txt")
+    #print("Read particle data from file")
     #pd = convertFiles.readDetectedParticles("../Tses/foundParticles.txt")
+    print("Start of Linking and tracking process.")
     tr = makeTracks(pd)
+    print("Done! Got all the data from images.\n"+
+            "--------------------------------------------------")
+    
+    print("Start analysis")
+    print("Read found Tracks")
+    #tr,liste = ctrack.readTrajectoriesFromFile("foundTracks.txt",minTrackLen)
+    #TODO:Create images of positions
+    print("Mark tracks in images")
+    compileMultiTracks(img,tr)
+    print("Create images of single tracks")
+    drawAllFoundTracks(img,tr)
 
-    image = readImage.readImage(img[0])
-    m = markPosition.connectPositions(image.shape,tr[0].track)
-    markPosition.saveRGBImage(markPosition.convertRGBMonochrome(m,'B'),"tester.tif")
-
-    print("Reading Tracks again, making pictures and imaging.")
-
-    tr,liste = ctrack.readTrajectoriesFromFile("foundTracks.txt",minTrackLen)
-    m = np.zeros(image.shape)
-    for t in liste:
-        print "doing track {:}".format(t)
-        m += markPosition.connectPositions(image.shape,tr[t-1].track)
-    markPosition.saveRGBImage(markPosition.convertRGBMonochrome(m,'B'),"tr{:0004d}.tif".format(t))
-    print("\nAppending trajectories to mega-trajectory")
-    tra = analysisTools.appendTrajectories(tr,liste)
-
-    print("\nCalculating MSD for comined Tracks")
-    analysisTools.calcMSD(tra,"combined")
+    #print("\nAppending trajectories to mega-trajectory")
+    #tra = analysisTools.appendTrajectories(tr,liste)
+    #print("\nCalculating MSD for comined Tracks")
+    #analysisTools.calcMSD(tra,"combined")
 
     return
 
 if __name__=="__main__":
-    #img = readImageList(readConfig("setup.txt"))
-    #img = img[:1]
-    #for i in img:
-    #    print i
-    #makeFirstImage(img)
     main()
-
-    #os.chdir("./Nehad06")
-    #tr,liste = ctrack.readTrajectoriesFromFile("foundTracks.txt")
-    #tra = analysisTools.appendTrajectories(tr,liste)
-    #analysisTools.calcMSD(tra,"combined")
 

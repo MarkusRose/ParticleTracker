@@ -207,23 +207,35 @@ def convImageJTrack(filename):
     for line in infile:
         x = int(float(line.split()[4])/0.16 - 0.5)
         y = int(float(line.split()[3])/0.16 - 0.5)
-        t = int(float(line.split()[5])/0.16)
+        t = int(float(line.split()[5]))
         traject.append([t,x,y])
 
     return traject
+
+
+def giveLocalMaxValues(track,length):
+    local_max = []
+    counter = 0
+    for i in track:
+        counter += 1
+        while i[0] > counter:
+            counter += 1 
+            local_max.append((np.ndarray((0),dtype=int),np.ndarray((0),dtype=int)))
+        if i[0] < counter:
+            raise Exception("The time jumped over the frame! Not possible for giveLocalMaxValues from ImageJ")
+        local_max.append((np.array([i[1]]),np.array([i[2]])))
+
+    while counter < length:
+        counter += 1
+        local_max.append((np.ndarray((0),dtype=int),np.ndarray((0),dtype=int)))
+
+    return local_max
+        
 
 
 
 
 
 if __name__=="__main__":
-    '''
-    infile = open("foundTracks.txt",'r')
-    convertTrajectories(infile)
-    infile.close()
-    infile = open("foundParticles.txt",'r')
-    convertParticles(infile)
-    infile.close()
-    '''
-    #readDetectedParticles("foundParticles.txt")
-    print convImageJTrack("/data/AnalysisTracks/2014-10-26_Mito-Lipid_Tracks/Mito_DiD001-2-HandTracks/VisTrack01.xls")
+    loc = giveLocalMaxValues(convImageJTrack("track02.txt"),221)
+    
