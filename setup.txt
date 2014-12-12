@@ -3,19 +3,19 @@
 
 #Folder with input images:
 #/data/NEHADexperiments/2013-08-14/mito_DID007_Images
-/home/markus/LittleHelpers/SearchForMyParticle/KalmanFilter
+/home/markus/LittleHelpers/SearchForMyParticle/SmallMito
 
 #Sigma:
 1.0
 
 #Signal Power:
-3
+2
 
 #Image Bit depth:
 16
 
 #Maximum displacement:
-3
+4
 
 #Number of Images to add:
 1
@@ -27,7 +27,7 @@
 6
 
 #Local_Max_Window:
-4
+2
 
 #Minimum track length
 1

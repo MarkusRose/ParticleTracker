@@ -213,6 +213,7 @@ def convImageJTrack(filename):
     return traject
 
 
+
 def giveLocalMaxValues(track,length):
     local_max = []
     counter = 0

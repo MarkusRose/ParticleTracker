@@ -11,6 +11,7 @@ Created on Feb 8, 2010
 #module imports
 import os
 import time
+import sys
 import pysm.new_cython
 from scipy import io
 
@@ -112,7 +113,7 @@ def readTrajectoriesFromFile(filename,minTrackLen):
     num_frames = 0
 
     for line in infile:
-        print line
+        #print line
         if line.strip():
             if boo:
                 boo = False
@@ -182,7 +183,7 @@ def link_particles(particle_data, max_displacement,
     
     num_frames = len(particle_data)
     max_cost = max_displacement**2
-    print("Number of frames: " + str(num_frames))
+    #print("Number of frames: " + str(num_frames))
     
     if len(particle_data) < 2:
         raise Exception("Number of frames must be larger than 2")
@@ -203,9 +204,18 @@ def link_particles(particle_data, max_displacement,
 
     #print particle_data[0][16].next.shape
     ''' Begin Tracking process'''
+    count = 0
+    print('_'*52)
+    sys.stdout.write("[")
+    sys.stdout.flush()
     for frame in range(num_frames - link_range):
         #TODO: DEBUG
-        print ("Image %s Processing" % (frame+1))
+        #print ("Image %s Processing" % (frame+1))
+        aaa = int(frame * 50/(num_frames - link_range))
+        if aaa > count:
+            sys.stdout.write("#"*(aaa-count))
+            sys.stdout.flush()
+            count += aaa-count
         
         cur_link_range = link_range
         num_particles = len(particle_data[frame])
@@ -267,7 +277,7 @@ def link_particles(particle_data, max_displacement,
                         #TODO problem with link_range = 2 (out of bounds)
                         cur_particle.next[0][link] = j
                         
-        print("Done with linking Particles for image " + str(frame+1))
+        #print("Done with linking Particles for image " + str(frame+1))
 
         '''
         m = 0
@@ -276,6 +286,7 @@ def link_particles(particle_data, max_displacement,
             cur_link_range -= 1
             '''
     
+    sys.stdout.write("#"*(50-aaa)+"]\n")
     #######################################
     # At Last Frame all Trajectories End
     #######################################

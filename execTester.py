@@ -36,7 +36,7 @@ def chPath(path):
     if not os.path.isdir(path):
         os.mkdir(path)
     else:
-        option = raw_input("Careful! '"+path+"' exists! Do you want to continue? [y,N] ")
+        option = raw_input("    !!! Careful! '"+path+"' exists! !!!\n    !!!    Do you wish to continue? [y,N] ")
         if not (option == "y" or option == "Y" or option == "Yes" or option == "yes" or option == "YES"):
             sys.exit("Data exists already. Quitting now.")
     shutil.copyfile("setup.txt",path+"/setup.txt")
@@ -93,7 +93,7 @@ def makeDetectionFromFile():
     return particle_data
 
 def makeTracks(particle_data):
-    print('\n==== Start Tracking ====\n')
+    print('\n==== Start Tracking ====')
     tracks = ctrack.link_particles(particle_data,max_displacement,min_track_len=0)
     return tracks
 
@@ -145,9 +145,19 @@ def readConfig(filename):
     return imagedir
 
 def compileMultiTracks(img,tr):
+    print("Mark tracks in images")
     image = markPosition.autoScale(readImage.readImage(img[0]))
     posmark = np.zeros(image.shape)
-    for i in xrange(len(img)-addUp):
+    print('_'*52)
+    count = 0
+    sys.stdout.write("[")
+    sys.stdout.flush()
+    for i in xrange(len(img)):
+        a = int(i * 50/len(img))
+        if a > count:
+            sys.stdout.write("#"*(a-count))
+            sys.stdout.flush()
+            count += a-count
         # read image i
         image = markPosition.autoScale(readImage.readImage(img[i]))
         data = markPosition.convertRGBGrey(image)
@@ -156,7 +166,7 @@ def compileMultiTracks(img,tr):
             # Make markings of track j for frame i and add to trackmarks
             # make markings for particle positions in frame i
             if not np.isnan(j.track[i]['x']):
-                print j.track[i]['frame'], i
+                #print j.track[i]['frame'], i
                 mark += markPosition.placeMarking(image.shape,j.track[i]['y'],j.track[i]['x'],markPosition.circle(radius=3))
                 posmark += markPosition.connectPositions(image.shape,j.track[:i+1])
         # add trackmarks for frame i to image i
@@ -164,57 +174,65 @@ def compileMultiTracks(img,tr):
         # add particle position markings to image i
         data = markPosition.imposeWithColor(data,mark,'Y')
         # saveImage
-        markPosition.saveRGBImage(data,"frame{:0004d}.tif".format(i))
+        markPosition.saveRGBImage(data,"frame{:0004d}.tif".format(i+1))
+    sys.stdout.write("#"*(50-a)+"]\n")
     return
 
 def drawAllFoundTracks(img,tr):
     image = readImage.readImage(img[0])
     m = np.zeros(image.shape)
+    if len(tr) == 0:
+        return
+    print('_'*52)
+    count = 0
+    sys.stdout.write("[")
+    sys.stdout.flush()
     for t in xrange(len(tr)):
-        print "doing track {:}".format(t)
+        a = int(t * 50/len(tr))
+        if a > count:
+            sys.stdout.write("#"*(a-count))
+            sys.stdout.flush()
+            count += a-count
+        #print "doing track {:}".format(t)
         m += markPosition.connectPositions(image.shape,tr[t].track)
     markPosition.saveRGBImage(markPosition.convertRGBMonochrome(m,'B'),"tr{:0004d}.tif".format(t))
+    sys.stdout.write("#"*(50-a)+"]\n")
     return
 
 #==============================
 # Main
 #==============================
 def main():
-    print("=================================\n"
-            +"Welcome! Starting the Program.\n"
-            +"=================================\n")
+    print("\n    ==================================\n"
+            +"    = Welcome! Starting the Program. =\n"
+            +"    ==================================\n")
     print("Switching path and copying setup file.")
-    chPath("Tester")
+    chPath("TesterNoKalman")
 
     # Read in setup file and sort
     img = readImageList(readConfig("setup.txt"))
     img = sorted(img)
-    img = img[:31]
+    #img = img[:31]
 
     #print("Editing first image")
     #makeFirstImage(img)
-    print("Detection and Localization starting")
-    pd = makeDetectionsAndMark(img,"../SmallMito/Handmade Tracks/track01.txt")
+    pd = makeDetectionsAndMark(img,"../SmallMito/Handmade Tracks/track02.txt")
     #print("Read particle data from file")
     #pd = convertFiles.readDetectedParticles("../Tses/foundParticles.txt")
-    print("Start of Linking and tracking process.")
     tr = makeTracks(pd)
-    print("Done! Got all the data from images.\n"+
-            "--------------------------------------------------")
+    print("Done! Got all the data from images.\n"+ "-" * 52)
     
-    print("Start analysis")
-    print("Read found Tracks")
-    #tr,liste = ctrack.readTrajectoriesFromFile("foundTracks.txt",minTrackLen)
+    print("\n==== Start Analysis ====")
+    tr,liste = ctrack.readTrajectoriesFromFile("foundTracks.txt",minTrackLen)
     #TODO:Create images of positions
-    print("Mark tracks in images")
     compileMultiTracks(img,tr)
     print("Create images of single tracks")
     drawAllFoundTracks(img,tr)
 
-    #print("\nAppending trajectories to mega-trajectory")
-    #tra = analysisTools.appendTrajectories(tr,liste)
-    #print("\nCalculating MSD for comined Tracks")
-    #analysisTools.calcMSD(tra,"combined")
+    print("\nAppending trajectories to mega-trajectory")
+    tra = analysisTools.appendTrajectories(tr,liste)
+    print("\nCalculating MSD for comined Tracks")
+    analysisTools.calcMSD(tra,"combined")
 
     return
 

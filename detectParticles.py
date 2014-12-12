@@ -50,6 +50,10 @@ def multiImageDetect(img,
     if not (local_max is None):
         local_max_pixels = convertFiles.giveLocalMaxValues(convertFiles.convImageJTrack(local_max),len(img))
         
+    count = 0
+    print('_' * 52)
+    sys.stdout.write("[")
+    sys.stdout.flush()
     for i in xrange(len(img)):
 
         #Read image
@@ -85,7 +89,7 @@ def multiImageDetect(img,
         if output:
             readImage.saveImageToFile(a,"01sanityCheck{:0004d}.png".format(frame))
 
-        print("\n==== Doing image no " + str(frame) + " ====")
+        #print("\n==== Doing image no " + str(frame) + " ====")
         if local_max is None:
             particles = detectParticles(
                     a,
@@ -114,7 +118,13 @@ def multiImageDetect(img,
         a = np.zeros(image.shape)
         particle_data.append(particles)
         writeDetectedParticles(particles,frame,outfile)
+        aaa = int(i * 50/len(img))
+        if aaa > count:
+            sys.stdout.write("#"*(aaa-count))
+            sys.stdout.flush()
+            count += aaa-count
     outfile.close()
+    sys.stdout.write("#"*(50-aaa)+"]\n")
     pd = []
     for fr in particle_data:
         pd.append(fr[0])
@@ -454,8 +464,8 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
         print("Appended Parts: {:5d}".format(nupart))
         print("                +++++") 
         print("Sum:            {:5d}".format(sumparts))
-        print("Error: number of maxPixels not equal to processed positions\n")
-    print("Number of Particles found: " + str(len(particle_list)))
+        raise Exception("Error: number of maxPixels not equal to processed positions\n")
+    #print("Number of Particles found: " + str(len(particle_list)))
 
     return [particle_list,cutoff]
 
