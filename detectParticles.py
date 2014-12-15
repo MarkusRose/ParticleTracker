@@ -456,7 +456,7 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
 
     #Check, that all possible positions were considered.
     sumparts = nunocon+nunoexc+nusigma+int(nuedge)+nupart
-    if sumparts != len(local_max_pixels[0])+1:
+    if sumparts != len(local_max_pixels[0]):
         print
         print("Not converged:  {:5d}".format(nunocon))
         print("Too excentric:  {:5d}".format(nunoexc))

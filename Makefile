@@ -3,4 +3,4 @@
 all: runProg
 	
 runProg: readImage.py execTester.py
-	python execTester.py
+	python main.py

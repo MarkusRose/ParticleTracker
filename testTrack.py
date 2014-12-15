@@ -4,7 +4,7 @@ from PIL import Image
 import ctrack
 import detectParticles
 import markPosition
-import execTester
+import main
 
 # Determine image properties
 size = 512
@@ -51,7 +51,7 @@ def main():
     f,x,y = straightDrawer()
     particle_data = calcer(f,x,y)
 
-    tr = execTester.makeTracks(particle_data)
+    tr = main.makeTracks(particle_data)
     tr,liste = ctrack.readTrajectoriesFromFile("foundTracks.txt")
     for t in liste:
         print "doing track {:}".format(t)
