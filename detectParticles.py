@@ -188,10 +188,10 @@ def filterImage(image,sigma,local_max_window,signal_power,output):
     if False:
         readImage.saveImageToFile(median_img,"05MedianFilter1.png")
     (background_mean,background_std) = (median_img.mean(),median_img.std())
-    print background_mean, background_std
+    #print background_mean, background_std
     #cutoff = readImage.otsuMethod(image)
     cutoff = background_mean + signal_power * background_std
-    print cutoff
+    #print cutoff
 
     boxcarImage = filters.boxcarFilter(image,boxsize=5,cutoff=cutoff)
     if output:
@@ -219,22 +219,22 @@ def filterImage(image,sigma,local_max_window,signal_power,output):
             #background_std) = (median_img.mean(),median_img.std())
     #cutoff = readImage.otsuMethod(image)
     cutoff = background_mean + signal_power * background_std
-    print background_mean, background_std
-    print cutoff
+    #print background_mean, background_std
+    #print cutoff
 
-    print("Cutoff is at: {:}".format(cutoff))
-    print("Max of MaxFilter is at: {:}".format(img_max_filter.max()))
+    #print("Cutoff is at: {:}".format(cutoff))
+    #print("Max of MaxFilter is at: {:}".format(img_max_filter.max()))
     imgMaxNoBack = (img_max_filter >= cutoff)
     if output:
         readImage.saveImageToFile(imgMaxNoBack,"05MaxBinary.png")
      #Check if maxima found
     if imgMaxNoBack.any() == False:
-        print("Error: No max pixels detected.")
+        sys.stderr.write("Error: Error: No max pixels detected.\n")
 
     local_max_pixels = np.nonzero(imgMaxNoBack)
     
-    print('Cutoff is at ' + str(cutoff))
-    print("Found local Maxima: "+str(len(local_max_pixels[0])))
+    #print('Cutoff is at ' + str(cutoff))
+    #print("Found local Maxima: "+str(len(local_max_pixels[0])))
 
 
     return (local_max_pixels,cutoff,background_mean)
@@ -456,16 +456,17 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
 
     #Check, that all possible positions were considered.
     sumparts = nunocon+nunoexc+nusigma+int(nuedge)+nupart
-    if sumparts != len(local_max_pixels[0]):
+    if sumparts != len(local_max_pixels[0])+1:
+        print
         print("Not converged:  {:5d}".format(nunocon))
         print("Too excentric:  {:5d}".format(nunoexc))
         print("Wrong Sigma:    {:5d}".format(nusigma))
-        print("close to Edge:  {:5d}".format(int(nuedge)))
+        print("Close to Edge:  {:5d}".format(int(nuedge)))
         print("Appended Parts: {:5d}".format(nupart))
         print("                +++++") 
         print("Sum:            {:5d}".format(sumparts))
-        raise Exception("Error: number of maxPixels not equal to processed positions\n")
-    #print("Number of Particles found: " + str(len(particle_list)))
+        raise Exception("Error: Number of maxPixels not equal to processed positions.\n" +
+                "Number of Particles found: " + str(len(particle_list)))
 
     return [particle_list,cutoff]
 

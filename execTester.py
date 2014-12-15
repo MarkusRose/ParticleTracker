@@ -26,6 +26,7 @@ sigma_thresh = 3
 max_displacement = 10
 addUp = 1
 minTrackLen = 1
+bFLAG = True
 
     
 #==============================
@@ -68,7 +69,14 @@ def dataCorrect(particle_data):
     return output 
 
 def makeFirstImage(img,lm=None):
-    inimage = img[0:addUp]
+    print("\nEditing first image")
+    if len(img) > 2*addUp:
+        l = int(len(img)/2)
+        inimage = img[l:addUp+l]
+    elif len(img) >= addUp:
+        inimage = img[0:addUp]
+    else:
+        raise Exception("Not enough images given to perform make first visual.")
     particle_data = detectParticles.multiImageDetect(inimage,sigma,local_max_window,signal_power,bit_depth,eccentricity_thresh,sigma_thresh,addUp,local_max=lm,output=True)
     return particle_data
 
@@ -207,21 +215,25 @@ def main():
             +"    = Welcome! Starting the Program. =\n"
             +"    ==================================\n")
     print("Switching path and copying setup file.")
-    chPath("TesterNoKalman")
+    pathway = "BiBaBu"
+    chPath(pathway)
 
     # Read in setup file and sort
     img = readImageList(readConfig("setup.txt"))
     img = sorted(img)
     #img = img[:31]
+    
+    if bFLAG:
+        makeFirstImage(img)
+        print("Done! See first image at " + pathway + ".")
+        return
 
-    #print("Editing first image")
-    #makeFirstImage(img)
     pd = makeDetectionsAndMark(img,"../SmallMito/Handmade Tracks/track02.txt")
     #print("Read particle data from file")
     #pd = convertFiles.readDetectedParticles("../Tses/foundParticles.txt")
     tr = makeTracks(pd)
     print("Done! Got all the data from images.\n"+ "-" * 52)
-    
+
     print("\n==== Start Analysis ====")
     tr,liste = ctrack.readTrajectoriesFromFile("foundTracks.txt",minTrackLen)
     #TODO:Create images of positions
