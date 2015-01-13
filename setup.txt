@@ -3,7 +3,7 @@
 
 #Folder with input images:
 #/data/NEHADexperiments/2013-08-14/mito_DID007_Images
-/home/markus/LittleHelpers/SearchForMyParticle/SmallMito
+/data/AnalysisTracks/2014-10-26_Mito-Lipid_Tracks/Mito_DiD009-2/
 
 #Sigma:
 1.0
@@ -31,3 +31,6 @@
 
 #Minimum track length
 1
+
+#Read Initial positions from
+/data/AnalysisTracks/2014-10-26_Mito-Lipid_Tracks/DID009-2-HT.txt

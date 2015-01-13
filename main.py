@@ -27,6 +27,7 @@ max_displacement = 10
 addUp = 1
 minTrackLen = 1
 bFLAG = False
+lm = None
 
     
 #==============================
@@ -115,6 +116,7 @@ def readConfig(filename):
     global max_displacement 
     global addUp
     global minTrackLen
+    global lm
 
     innumber = 10
     a = []
@@ -136,7 +138,7 @@ def readConfig(filename):
     #print a
     if len(a) < innumber:
         sys.exit("Input file missing {:} entries!".format(innumber-len(a)))
-    elif len(a) > innumber:
+    elif len(a) > innumber+1:
         sys.exit("Input file has {:} too many entries!".format(len(a)-innumber))
     else:
         imagedir = a[0]
@@ -149,6 +151,12 @@ def readConfig(filename):
         max_displacement  = float(a[4])
         addUp = int(a[5])
         minTrackLen = int(a[9])
+        if len(a) > innumber:
+            lm = a[10]
+            if not os.path.isfile(lm):
+                sys.exit("File with initial positions does not exist.")
+        else:
+            lm = None
 
     return imagedir
 
@@ -215,7 +223,9 @@ def main():
             +"    = Welcome! Starting the Program. =\n"
             +"    ==================================\n")
     print("Switching path and copying setup file.")
-    pathway = "BiBaBu"
+
+    print("\nPlease select a folder: \n")
+    pathway = raw_input()
     chPath(pathway)
 
     # Read in setup file and sort
@@ -228,7 +238,7 @@ def main():
         print("Done! See first image at " + pathway + ".")
         return
 
-    pd = makeDetectionsAndMark(img,"../SmallMito/Handmade Tracks/track02.txt")
+    pd = makeDetectionsAndMark(img,lm)
     #print("Read particle data from file")
     #pd = convertFiles.readDetectedParticles("../Tses/foundParticles.txt")
     tr = makeTracks(pd)
