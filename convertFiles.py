@@ -219,7 +219,6 @@ def convImageJTrack(filename):
 def giveLocalMaxValues(track,length):
     local_max = []
     counter = 1
-    print track
     for i in track:
         counter += 1
         while i[0] > counter:
@@ -227,7 +226,6 @@ def giveLocalMaxValues(track,length):
             local_max.append((np.ndarray((0),dtype=int),np.ndarray((0),dtype=int)))
         if i[0] < counter:
             counter -=1
-            #raise Exception("The time jumped over the frame! Not possible for giveLocalMaxValues from ImageJ")
         local_max.append((np.array([i[1]]),np.array([i[2]])))
 
     while counter < length:
@@ -243,5 +241,4 @@ def giveLocalMaxValues(track,length):
 
 if __name__=="__main__":
     loc = giveLocalMaxValues(convImageJTrack("testterer.txt"),7)
-    print loc
     
