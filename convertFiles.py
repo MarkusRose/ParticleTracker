@@ -205,25 +205,29 @@ def convImageJTrack(filename):
     traject = []
 
     for line in infile:
-        x = int(float(line.split()[4])/0.16 - 0.5)
-        y = int(float(line.split()[3])/0.16 - 0.5)
-        t = int(float(line.split()[5]))
+        if not line.strip():
+            continue
+        x = int(float(line.split()[2]))#/0.16 - 0.5)
+        y = int(float(line.split()[1]))#/0.16 - 0.5)
+        t = int(float(line.split()[3]))
         traject.append([t,x,y])
 
-    return traject
+    return sorted(traject)
 
 
 
 def giveLocalMaxValues(track,length):
     local_max = []
-    counter = 0
+    counter = 1
+    print track
     for i in track:
         counter += 1
         while i[0] > counter:
             counter += 1 
             local_max.append((np.ndarray((0),dtype=int),np.ndarray((0),dtype=int)))
         if i[0] < counter:
-            raise Exception("The time jumped over the frame! Not possible for giveLocalMaxValues from ImageJ")
+            counter -=1
+            #raise Exception("The time jumped over the frame! Not possible for giveLocalMaxValues from ImageJ")
         local_max.append((np.array([i[1]]),np.array([i[2]])))
 
     while counter < length:
@@ -238,5 +242,6 @@ def giveLocalMaxValues(track,length):
 
 
 if __name__=="__main__":
-    loc = giveLocalMaxValues(convImageJTrack("track02.txt"),221)
+    loc = giveLocalMaxValues(convImageJTrack("testterer.txt"),7)
+    print loc
     
