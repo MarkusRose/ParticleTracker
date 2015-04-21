@@ -19,6 +19,9 @@ def readTrajectoryFromFile(filename):
     track = []
 
     while line:
+        if (not line.strip()) or line[0] == '#':
+            line = infile.readline()
+            continue
         [frame,x,y] = line.split()[:3]
         track.append({"frame":float(frame),"x":float(x),"y":float(y)})
         line = infile.readline()
@@ -207,8 +210,8 @@ def convImageJTrack(filename):
     for line in infile:
         if not line.strip():
             continue
-        x = int(float(line.split()[2]))#/0.16 - 0.5)
-        y = int(float(line.split()[1]))#/0.16 - 0.5)
+        x = int(float(line.split()[2])/0.16 - 0.5)
+        y = int(float(line.split()[1])/0.16 - 0.5)
         t = int(float(line.split()[3]))
         traject.append([t,x,y])
 
@@ -218,27 +221,27 @@ def convImageJTrack(filename):
 
 def giveLocalMaxValues(track,length):
     local_max = []
-    counter = 1
+    counter = 0
     for i in track:
         counter += 1
         while i[0] > counter:
             counter += 1 
-            local_max.append((np.ndarray((0),dtype=int),np.ndarray((0),dtype=int)))
+            local_max.append([[0],[0]])
         if i[0] < counter:
             counter -=1
-        local_max.append((np.array([i[1]]),np.array([i[2]])))
+            local_max[-1][0].append(i[1])
+            local_max[-1][1].append(i[2])
+        else:
+            local_max.append([[i[1]],[i[2]]])
 
     while counter < length:
         counter += 1
-        local_max.append((np.ndarray((0),dtype=int),np.ndarray((0),dtype=int)))
+        local_max.append([[0],[0]])
 
     return local_max
         
 
-
-
-
-
 if __name__=="__main__":
     loc = giveLocalMaxValues(convImageJTrack("testterer.txt"),7)
+    print loc
     

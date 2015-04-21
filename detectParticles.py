@@ -46,6 +46,9 @@ def multiImageDetect(img,
                     sigma_thresh,numAdder,local_max=None,output=False):
     particle_data = []
     frame = 0
+    outfile2 = open("foundCentroids.txt",'w')
+    outfile2.write("")
+    outfile2.close()
     outfile = open("foundParticles.txt",'w')
     if not (local_max is None):
         local_max_pixels = convertFiles.giveLocalMaxValues(convertFiles.convImageJTrack(local_max),len(img))
@@ -118,11 +121,13 @@ def multiImageDetect(img,
         a = np.zeros(image.shape)
         particle_data.append(particles)
         writeDetectedParticles(particles,frame,outfile)
+        #Progress Bar
         aaa = int(i * 50/len(img))
         if aaa > count:
             sys.stdout.write("#"*(aaa-count))
             sys.stdout.flush()
             count += aaa-count
+        #PB
     outfile.close()
     sys.stdout.write("#"*(50-aaa)+"]\n")
     pd = []
@@ -183,24 +188,7 @@ def gaussian2d(height, amplitude, center_x,
 
 
 
-def filterImage(image,sigma,local_max_window,signal_power,output):
-    median_img = ndimage.filters.median_filter(image, (21,21))
-    if False:
-        readImage.saveImageToFile(median_img,"05MedianFilter1.png")
-    (background_mean,background_std) = (median_img.mean(),median_img.std())
-    #print background_mean, background_std
-    #cutoff = readImage.otsuMethod(image)
-    cutoff = background_mean + signal_power * background_std
-    #print cutoff
-
-    boxcarImage = filters.boxcarFilter(image,boxsize=5,cutoff=cutoff)
-    if output:
-        readImage.saveImageToFile(boxcarImage,"02boxFilter.png")
-
-    gausFiltImage = ndimage.filters.gaussian_filter(boxcarImage,sigma,order=0)
-    if output:
-        readImage.saveImageToFile(gausFiltImage,"02gaussFilter.png")
-    
+def localMaximaMethod(gausFiltImage,local_max_window,signal_power,background_std,output):
     localMaxImage = ndimage.filters.maximum_filter(gausFiltImage,size=local_max_window)
     if output:
         readImage.saveImageToFile(localMaxImage,"03localMax.png")
@@ -232,19 +220,117 @@ def filterImage(image,sigma,local_max_window,signal_power,output):
         sys.stderr.write("Error: Error: No max pixels detected.\n")
 
     local_max_pixels = np.nonzero(imgMaxNoBack)
+    return (local_max_pixels,cutoff,background_mean) 
+
+def centroidMethod(gausFiltImage,cutoff,output):
+    binaryMap = (gausFiltImage >=cutoff)
+    '''
+    cccc = 0
+    for i in binaryMap:
+        for j in i:
+            if j:
+                cccc+=1
+    print cccc
+    '''
+    if output:
+        readImage.saveImageToFile(binaryMap,"05BinaryMap.png")
+    clusterImage = np.zeros((len(binaryMap),len(binaryMap[0])))
+    for i in xrange(len(clusterImage)):
+        for j in xrange(len(clusterImage[i])):
+            if binaryMap[i,j]:
+                clusterImage[i,j] = -1
+            else:
+                clusterImage[i,j] = 0
+
+    def checkNN(i,j,clco):
+        if i > 0 and clusterImage[i-1,j] == -1:
+            clusterImage[i-1,j] = clco
+            toDo.append([i-1,j])
+        if i < len(clusterImage)-1 and clusterImage[i+1][j] == -1:
+            clusterImage[i+1,j] = clco
+            toDo.append([i+1,j])
+        if j > 0 and clusterImage[i,j-1] == -1:
+            clusterImage[i,j-1] = clco
+            toDo.append([i,j-1])
+        if j < len(clusterImage[0])-1 and clusterImage[i,j+1]:
+            clusterImage[i,j+1] = clco
+            toDo.append([i,j+1])
+
+    '''
+    cccc = 0
+    for i in clusterImage:
+        for j in i:
+            if j==-1:
+                cccc+=1
+    print cccc
+    '''
+    toDo = []
+    clco = 0
+    for i in xrange(len(clusterImage)):
+        for j in xrange(len(clusterImage[i])):
+            if clusterImage[i,j] == 0:
+                continue
+            elif clusterImage[i,j] == -1:
+                clco += 1
+                clusterImage[i,j] = clco
+                toDo.append([i,j])
+                while len(toDo) > 0:
+                    checkNN(toDo[0][0],toDo[0][1],clco)
+                    del toDo[0]
+    local_max_pixels = [[],[]]
+
+    while clco > 0:
+        #calculate center of mass
+        x = 0
+        y = 0
+        sizeOC = 0
+        for i in xrange(len(clusterImage)):
+            for j in xrange(len(clusterImage[i])):
+                if clusterImage[i,j] == clco:
+                    sizeOC += 1
+                    x += i
+                    y += j
+        local_max_pixels[0].append((1.0*x)/sizeOC)
+        local_max_pixels[1].append((1.0*y)/sizeOC)
+        clco -= 1
+
+    return local_max_pixels
+
+
+def filterImage(image,sigma,local_max_window,signal_power,output):
+    median_img = ndimage.filters.median_filter(image, (21,21))
+    if False:
+        readImage.saveImageToFile(median_img,"05MedianFilter1.png")
+    (background_mean,background_std) = (median_img.mean(),median_img.std())
+    #print background_mean, background_std
+    #cutoff = readImage.otsuMethod(image)
+    cutoff = background_mean + signal_power * background_std
+    #print cutoff
+
+    boxcarImage = filters.boxcarFilter(image,boxsize=5,cutoff=cutoff)
+    if output:
+        readImage.saveImageToFile(boxcarImage,"02boxFilter.png")
+
+    gausFiltImage = ndimage.filters.gaussian_filter(boxcarImage,sigma,order=0)
+    if output:
+        readImage.saveImageToFile(gausFiltImage,"02gaussFilter.png")
     
     #print('Cutoff is at ' + str(cutoff))
     #print("Found local Maxima: "+str(len(local_max_pixels[0])))
 
-
-    return (local_max_pixels,cutoff,background_mean)
+    if False:
+        #LocalMaximaMethod
+        return localMaximaMethod(gausFiltImage,local_max_window,signal_power,background_std,output)
+    else:
+        #CentroidMethod
+        return (centroidMethod(gausFiltImage,cutoff,output),cutoff,background_mean)
 
 def readLocalMax(inf):
     local_max = []
     infile = open(inf,'r')
     for line in infile:
         (a,x,y) = line.split()
-        local_max.append([0,int(x),int(y)])
+        local_max.append([0,int(float(x)+0.5),int(float(y)+0.5)])
     infile.close()
     return local_max
 
@@ -365,8 +451,8 @@ def addParticleToList(particle_list,frame,row_min,row_max,col_min,col_max,fitdat
         p.amplitude = fitdata[1]
         
         #TODO: FIX THIS BUG (switching of x and y)
-        p.y = fitdata[2] + row_min + 1
-        p.x = fitdata[3] + col_min + 1
+        p.y = fitdata[2] + row_min 
+        p.x = fitdata[3] + col_min 
         p.width_x = np.abs(fitdata[4])
         p.width_y = np.abs(fitdata[5])
         p.volume = (2 * np.pi * p.amplitude * p.width_x * p.width_y)
@@ -443,9 +529,14 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
         cutoff = 0
 
     outf = open("foundLocalMaxima.txt",'w')
+    saverf = open("foundCentroids.txt",'a')
+    saverf.write("\n\n# frame    y    x\n")
     for i in xrange(len(local_max_pixels[0])):
-        outf.write("1 {:} {:}\n".format(local_max_pixels[0][i],local_max_pixels[1][i]))
+        outf.write("{:} {:} {:}\n".format(frame,local_max_pixels[0][i],local_max_pixels[1][i]))
+        saverf.write("{:} {:} {:}\n".format(frame,local_max_pixels[0][i],local_max_pixels[1][i]))
+
     outf.close()
+    saverf.close()
 
     # Get Background and STD (has to be redone)
     median_img = ndimage.filters.median_filter(img, (21,21))

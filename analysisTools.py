@@ -146,5 +146,7 @@ def calcSCF(track,fileident=""):
 
 
 if __name__=="__main__":
-    tracks = convertFiles.convImageJTrack("/data/AnalysisTracks/2014-10-26_Mito-Lipid_Tracks/Mito_DiD001-2-HandTracks/VisTrack01.xls")
+    #tracks = convertFiles.convImageJTrack("/data/AnalysisTracks/2014-10-26_Mito-Lipid_Tracks/Mito_DiD001-2-HandTracks/VisTrack01.xls")
+    tracks = convertFiles.readTrajectoryFromFile("addUpTracks.txt")
+    print len(tracks)
     calcMSD(tracks)

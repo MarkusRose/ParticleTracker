@@ -3,19 +3,19 @@
 
 #Folder with input images:
 #/data/NEHADexperiments/2013-08-14/mito_DID007_Images
-/data/AnalysisTracks/2014-10-26_Mito-Lipid_Tracks/Mito_DiD009-2/
+../Pictures/
 
 #Sigma:
 1.0
 
 #Signal Power:
-2
+12
 
 #Image Bit depth:
 16
 
 #Maximum displacement:
-4
+5
 
 #Number of Images to add:
 1
@@ -33,4 +33,4 @@
 1
 
 #Read Initial positions from
-/data/AnalysisTracks/2014-10-26_Mito-Lipid_Tracks/DID009-2-HT.txt
+#/data/AnalysisTracks/2014-10-26_Mito-Lipid_Tracks/DID009-2-HT.txt

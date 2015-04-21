@@ -82,7 +82,6 @@ def makeFirstImage(img,lm=None):
     return particle_data
 
 def makeDetectionsAndMark(img,local_max=None):
-    print('\n==== Start Localization and Detection ====')
     particle_data = detectParticles.multiImageDetect(img,sigma,local_max_window,signal_power,bit_depth,eccentricity_thresh,sigma_thresh,addUp,local_max=local_max,output=False)
 
     if not dataCorrect(particle_data):
@@ -102,7 +101,6 @@ def makeDetectionFromFile():
     return particle_data
 
 def makeTracks(particle_data):
-    print('\n==== Start Tracking ====')
     tracks = ctrack.link_particles(particle_data,max_displacement,min_track_len=0)
     return tracks
 
@@ -231,16 +229,26 @@ def main():
     # Read in setup file and sort
     img = readImageList(readConfig("setup.txt"))
     img = sorted(img)
-    #img = img[:31]
+    img = img[:10]
     
-    if bFLAG:
+    print("{:} images selected for analysis.".format(len(img)))
+    
+    firstImageFLAG = bFLAG
+    if firstImageFLAG:
         makeFirstImage(img)
         print("Done! See first image at " + pathway + ".")
         return
 
-    pd = makeDetectionsAndMark(img,lm)
-    #print("Read particle data from file")
-    #pd = convertFiles.readDetectedParticles("../Tses/foundParticles.txt")
+    print('\n==== Start Localization and Detection ====')
+    detectFLAG = True
+    if detectFLAG:
+        pd = makeDetectionsAndMark(img,lm)
+    else:
+        print("Read particle data from file")
+        pd = convertFiles.readDetectedParticles("../Tses/foundParticles.txt")
+    print("Done Localization and Detection\n")
+    """
+    print('\n==== Start Tracking ====')
     tr = makeTracks(pd)
     print("Done! Got all the data from images.\n"+ "-" * 52)
 
@@ -255,9 +263,14 @@ def main():
     tra = analysisTools.appendTrajectories(tr,liste)
     print("\nCalculating MSD for comined Tracks")
     analysisTools.calcMSD(tra,"combined")
+    """
 
     return
 
+def tester():
+    print("\n   !!!TEST VERSION!!!\n")
+
 if __name__=="__main__":
+    #tester()
     main()
 
