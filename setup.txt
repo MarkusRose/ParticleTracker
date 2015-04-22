@@ -2,7 +2,6 @@
 #The following values can be adjusted
 
 #Folder with input images:
-#/data/NEHADexperiments/2013-08-14/mito_DID007_Images
 ../Pictures/
 
 #Sigma:
@@ -11,10 +10,10 @@
 #Signal Power:
 12
 
-#Image Bit depth:
+#Image Bit Depth:
 16
 
-#Maximum displacement:
+#Maximum Displacement:
 5
 
 #Number of Images to add:
@@ -29,8 +28,11 @@
 #Local_Max_Window:
 2
 
-#Minimum track length
+#Minimum track length:
 1
 
-#Read Initial positions from
-#/data/AnalysisTracks/2014-10-26_Mito-Lipid_Tracks/DID009-2-HT.txt
+#Read Output Directory
+Tester
+
+#Read Initial position from:
+#

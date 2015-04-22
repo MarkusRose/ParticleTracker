@@ -4,6 +4,7 @@ import ctrack
 import markPosition
 import convertFiles
 import analysisTools
+import guiInterface
 
 import pysm
 import sys
@@ -116,7 +117,8 @@ def readConfig(filename):
     global minTrackLen
     global lm
 
-    innumber = 10
+    innumber = 11
+    pathway = ""
     a = []
     infile = open(filename,'r')
     for i in xrange(2):
@@ -149,12 +151,14 @@ def readConfig(filename):
         max_displacement  = float(a[4])
         addUp = int(a[5])
         minTrackLen = int(a[9])
+        pathway = a[10]
         if len(a) > innumber:
-            lm = a[10]
+            lm = a[11]
             if not os.path.isfile(lm):
                 sys.exit("File with initial positions does not exist.")
         else:
             lm = None
+    chPath(pathway)
 
     return imagedir
 
@@ -220,11 +224,14 @@ def main():
     print("\n    ==================================\n"
             +"    = Welcome! Starting the Program. =\n"
             +"    ==================================\n")
+    '''
     print("Switching path and copying setup file.")
 
     print("\nPlease select a folder: \n")
     pathway = raw_input()
     chPath(pathway)
+    '''
+    guiInterface.runGUI()
 
     # Read in setup file and sort
     img = readImageList(readConfig("setup.txt"))
@@ -269,6 +276,8 @@ def main():
 
 def tester():
     print("\n   !!!TEST VERSION!!!\n")
+    guiInterface.runGUI()
+    print("Hello now")
 
 if __name__=="__main__":
     #tester()
