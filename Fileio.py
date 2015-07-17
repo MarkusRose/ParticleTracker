@@ -12,8 +12,8 @@ program. It contains getter and setter functions for each type.
 #The input parameters have to be of the shape:
 '''
 (D1, D2, D3, p12, p21, p13, p23, p31, p32,
- wavelength, acquisition time, Pixel size, pixel array,
- NA, magnification, S/N, Intensity)
+ number of frame, number of particles, acquisition time, pixel array,
+ wavelength, Pixel size, NA, magnification, S/N, Intensity)
 '''
 #setter
 def setSysProps(paramArray):
@@ -27,14 +27,14 @@ def setSysProps(paramArray):
     outfile.write("\n\n#Transition probabilities [p12, p21, p13, p23, p31, p32]\n")
     for i in xrange(3,9,1):
         outfile.write(str(paramArray[i])+" ")
-    outfile.write("\n\n#Imaging properties [lambda (nm), tau (ms)]\n")
-    for i in xrange(9,11,1):
+    outfile.write("\n\n#Imaging properties [numFrames, numParticles, tau (ms), numPixels-1d]\n")
+    for i in xrange(9,13,1):
         outfile.write(str(paramArray[i])+" ")
-    outfile.write("\n\n#Camera Properties [pixel size (um), pixel array length]\n")
-    for i in xrange(11,13,1):
+    outfile.write("\n\n#Camera Properties [lambda (nm), pixel size (um)]\n")
+    for i in xrange(13,15,1):
         outfile.write(str(paramArray[i])+" ")
     outfile.write("\n\n#Microscope Properties [NA, magnification, S/N, Intensity (#photons)\n")
-    for i in xrange(13,17,1):
+    for i in xrange(15,19,1):
         outfile.write(str(paramArray[i])+" ")
     outfile.write("\n\n#EOF\n")
     
