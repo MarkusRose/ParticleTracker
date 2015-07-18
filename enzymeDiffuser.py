@@ -113,7 +113,6 @@ for n in xrange(N):
 
     #Append Track to output var
     atracks.append(track)
-print atracks
 
 #Print tracks to file
 Fileio.setTrackFile(atracks)
