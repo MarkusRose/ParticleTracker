@@ -1,6 +1,7 @@
 #Makefile for Project "Search for Particle"
 
 all: runProg
-	
-runProg: readImage.py execTester.py
+
+
+runProg: readImage.py main.py
 	python main.py

@@ -2,25 +2,25 @@
 #The following values can be adjusted
 
 #Folder with input images:
-../Pictures/
+../Pictures/10particlesOn
 
 #Sigma:
 1.0
 
 #Signal Power:
-12
+3
 
 #Image Bit Depth:
 16
 
 #Maximum Displacement:
-5
+10
 
 #Number of Images to add:
 1
 
 #Sigma Threshold:
-4
+3
 
 #Eccentricity Threshold:
 6
@@ -29,10 +29,10 @@
 2
 
 #Minimum track length:
-1
+3
 
 #Read Output Directory
-Tester
+SimData
 
 #Read Initial position from:
 #
