@@ -166,7 +166,7 @@ def getTrackFile():
 #--------------------------
 #setter
 def setImages():
-    pass
+    print "Hello World!"
 
 #getter
 def getImages():
@@ -178,3 +178,7 @@ def getImages():
 still need the images
 the rest works
 '''
+
+
+if __name__=="__main__":
+    setImages()
