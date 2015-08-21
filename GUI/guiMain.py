@@ -3,7 +3,7 @@ import sys
 
 import guiAnalysis
 import guiTracking
-#import guiDetection
+import guiDetection
 import guiSimulation
 
 class mainWindow(Tkinter.Tk):
@@ -23,7 +23,9 @@ class mainWindow(Tkinter.Tk):
             app.grid_columnconfigure(0,weight=1)
             
         def runDetection():
-            print "Detecting"
+            app = guiDetection.guiDetection(self)
+            app.grid(column=1,row=0,rowspan=12,sticky="NWSE")
+            app.grid_columnconfigure(0,weight=1)
 
         def runTracking():
             print "Tracking"
