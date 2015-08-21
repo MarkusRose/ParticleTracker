@@ -1,5 +1,6 @@
 import Tkinter
 import tkMessageBox
+import System.Fileio
 
 class Simulation_App(Tkinter.Frame):
     
@@ -328,32 +329,33 @@ class Simulation_App(Tkinter.Frame):
 
     def giveToProgram(self):
         outvar = []
-        outvar.append(self.diff1Var.get())
-        outvar.append(self.diff1Var.get())
-        outvar.append(self.diff1Var.get())
-        outvar.append(self.diff1Var.get())
-        outvar.append(self.diff1Var.get())
-        outvar.append(self.diff1Var.get())
-        outvar.append(self.diff1Var.get())
-        outvar.append(self.diff1Var.get())
-        outvar.append(self.diff1Var.get())
-        outvar.append(self.diff1Var.get())
-        outvar.append(self.diff1Var.get())
-        outvar.append(self.diff1Var.get())
-        outvar.append(self.diff1Var.get())
-        outvar.append(self.diff1Var.get())
-        outvar.append(self.diff1Var.get())
-        outvar.append(self.diff1Var.get())
-        outvar.append(self.diff1Var.get())
-        outvar.append(self.diff1Var.get())
-        outvar.append(self.diff1Var.get())
-        outvar.append(self.diff1Var.get())
+        outvar.append(int(self.numStates.get()))
+        outvar.append(float(self.diff1Var.get()))
+        outvar.append(str(self.diff2Var.get()))
+        outvar.append(str(self.diff3Var.get())) 
+        outvar.append(str(self.prob12.get())) 
+        outvar.append(str(self.prob21.get())) 
+        outvar.append(str(self.prob13.get())) 
+        outvar.append(str(self.prob23.get())) 
+        outvar.append(str(self.prob31.get())) 
+        outvar.append(str(self.prob32.get())) 
+        outvar.append(str(self.numframesVar.get())) 
+        outvar.append(str(self.numPartVar.get())) 
+        outvar.append(str(self.tauVar.get())) 
+        outvar.append(str(self.frameLengthVar.get())) 
+        outvar.append(str(self.lambdaVar.get())) 
+        outvar.append(str(self.pixsizeVar.get())) 
+        outvar.append(str(self.naVar.get())) 
+        outvar.append(str(self.magnifVar.get())) 
+        outvar.append(str(self.signoiseVar.get())) 
+        outvar.append(str(self.intensityVar.get())) 
         return outvar
 
         
     def runcomm(self):
         if self.checkVars():
             print "Everythings fine, running program now. Have to pass variables to Fileio.setSysProps with all the parameters given."
+            System.Fileio.setSysProps(self.giveToProgram())
             self.destroy()
         return
 
