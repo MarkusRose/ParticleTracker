@@ -1,4 +1,6 @@
-import System.Fileio
-import Simulation.simSetup as sims
+import GUI.guiMain
 
-sims.createSystemProperties()
+app = GUI.guiMain.mainWindow(None)
+app.title("MainWindow")
+app.mainloop()
+
