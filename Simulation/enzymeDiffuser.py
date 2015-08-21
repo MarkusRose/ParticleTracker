@@ -20,24 +20,24 @@ Particle1 = [frame, dx, dy, x, y, state, Intensity,
 #Read in Values from file
 sV = Fileio.getSysProps()
 #Diff constants of 3 states
-D = np.array([sV[0],sV[1],sV[2]]) 
+D = np.array([sV[1],sV[2],sV[3]]) 
 #Markov probability matrix for state switching
-p = np.array([[0,sV[3],sV[5]],[sV[4],0,sV[6]],[sV[7],sV[8],0]]) 
+p = np.array([[0,sV[4],sV[6]],[sV[5],0,sV[7]],[sV[8],sV[9],0]]) 
 #Number of frames
-frames = int(sV[9])
+frames = int(sV[10])
 #Number of particles
-N = int(sV[10])
+N = int(sV[11])
 #Acquisition time
-tau = sV[11]
+tau = sV[12]
 #Number of pixels (side of square)
-numPixels = int(sV[12])
+numPixels = int(sV[13])
 #Other properties
-wavelength = sV[13]
-pixel_size = sV[14]
-numAperture = sV[15]
-mag = sV[16]
-sigToNoise = sV[17]
-intensity = sV[18]
+wavelength = sV[14]
+pixel_size = sV[15]
+numAperture = sV[16]
+mag = sV[17]
+sigToNoise = sV[18]
+intensity = sV[19]
 
 #Initial probabilities for choosing state
 '''
@@ -46,10 +46,10 @@ pi2 = ( p12 + p32 ) / (p12 + p13 + p21 + p23 + p31 + p32)
 pi3 = ( p13 + p23 ) / (p12 + p13 + p21 + p23 + p31 + p32)
 '''
 statProbs = []
-sumprobs = sV[3]+sV[4]+sV[5]+sV[6]+sV[7]+sV[8]
-statProbs.append((sV[4]+sV[7])/sumprobs)
-statProbs.append((sV[3]+sV[8])/sumprobs)
-statProbs.append((sV[5]+sV[6])/sumprobs)
+sumprobs = sV[4]+sV[5]+sV[6]+sV[7]+sV[8]+sV[9]
+statProbs.append((sV[5]+sV[8])/sumprobs)
+statProbs.append((sV[4]+sV[9])/sumprobs)
+statProbs.append((sV[6]+sV[7])/sumprobs)
 
 #output variable
 atracks = []

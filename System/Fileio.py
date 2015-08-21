@@ -21,20 +21,23 @@ def setSysProps(paramArray):
     outfile.write("#System Parameteres for [Program]\n")
     outfile.write("#\n")
 
+    outfile.write("#Number of diffusion states: \n" )
+    outfile.write(str(paramArray[0])+"\n\n")
+
     outfile.write("#Diffusion constants [D1, D2, D3] (um^2/s)\n")
-    for i in xrange(0,3,1):
+    for i in xrange(1,4,1):
         outfile.write(str(paramArray[i])+" ")
     outfile.write("\n\n#Transition probabilities [p12, p21, p13, p23, p31, p32]\n")
-    for i in xrange(3,9,1):
+    for i in xrange(4,10,1):
         outfile.write(str(paramArray[i])+" ")
     outfile.write("\n\n#Imaging properties [numFrames, numParticles, tau (ms), numPixels-1d]\n")
-    for i in xrange(9,13,1):
+    for i in xrange(10,14,1):
         outfile.write(str(paramArray[i])+" ")
     outfile.write("\n\n#Camera Properties [lambda (nm), pixel size (um)]\n")
-    for i in xrange(13,15,1):
+    for i in xrange(14,16,1):
         outfile.write(str(paramArray[i])+" ")
     outfile.write("\n\n#Microscope Properties [NA, magnification, S/N, Intensity (#photons)\n")
-    for i in xrange(15,19,1):
+    for i in xrange(16,20,1):
         outfile.write(str(paramArray[i])+" ")
     outfile.write("\n\n#EOF\n")
     

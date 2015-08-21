@@ -16,8 +16,20 @@ class Simulation_App(Tkinter.Frame):
         self.diff2Var = Tkinter.StringVar()
         self.diff3Var = Tkinter.StringVar()
         self.diff1Var.set("3.0")
-        self.diff2Var.set("")
-        self.diff3Var.set("")
+        self.diff2Var.set("n/a")
+        self.diff3Var.set("n/a")
+        self.prob12 = Tkinter.StringVar()
+        self.prob21 = Tkinter.StringVar()
+        self.prob13 = Tkinter.StringVar()
+        self.prob31 = Tkinter.StringVar()
+        self.prob23 = Tkinter.StringVar()
+        self.prob32 = Tkinter.StringVar()
+        self.prob12.set("0.0")
+        self.prob21.set("1.0")
+        self.prob13.set("0.0")
+        self.prob23.set("0.0")
+        self.prob31.set("1.0")
+        self.prob32.set("0.0")
         self.numframesVar = Tkinter.StringVar()
         self.numframesVar.set("100")
         self.numPartVar = Tkinter.StringVar()
@@ -42,15 +54,43 @@ class Simulation_App(Tkinter.Frame):
     def checkVars(self):
         try:
             #Check diff Constants and number of states
-            if int(self.numStates.get()) >=3 and (len(self.diff3Var.get()) == 0 or float(self.diff3Var.get()) < 0):
-                tkMessageBox.showerror("D3 false", "Third Diffusion coefficient does not match!")
-                return False
-            if int(self.numStates.get()) >=2 and (len(self.diff2Var.get()) == 0 or float(self.diff2Var.get()) < 0):
-                tkMessageBox.showerror("D2 false", "Second Diffusion coefficient does not match!")
-                return False
+            if int(self.numStates.get()) >=3:
+                if (self.diff3Var.get() == "n/a" or float(self.diff3Var.get()) < 0):
+                    tkMessageBox.showerror("D3 false", "Third Diffusion coefficient does not match!")
+                    return False
+                if ((self.prob13.get() == "0.0" or float(self.prob13.get()) <=0 or float(self.prob13.get()) >=1) or
+                    (self.prob23.get() == "0.0" or float(self.prob23.get()) <=0 or float(self.prob23.get()) >=1) or
+                    (self.prob31.get() == "0.0" or float(self.prob31.get()) <=0 or float(self.prob31.get()) >=1) or
+                    (self.prob32.get() == "0.0" or float(self.prob32.get()) <=0 or float(self.prob32.get()) >=1)):
+                    tkMessageBox.showerror("Probs false", "Transition probatilities concerning the third diffusion coefficient do not match number of states!")
+                    return False
+            if int(self.numStates.get()) >=2:
+                if (self.diff2Var.get() == "n/a" or float(self.diff2Var.get()) < 0):
+                    tkMessageBox.showerror("D2 false", "Second Diffusion coefficient does not match!")
+                    return False
+                if ((self.prob12.get() == "0.0" or float(self.prob12.get()) <=0 or float(self.prob12.get()) >=1) or
+                    (self.prob21.get() == "0.0" or float(self.prob21.get()) <=0 or float(self.prob21.get()) >=1)):
+                    tkMessageBox.showerror("Probs false", "Transition probatilities concerning the first and second diffusion coefficient do not match number of states!")
+                    return False
             if (len(self.diff1Var.get()) == 0 or float(self.diff1Var.get()) < 0):
                 tkMessageBox.showerror("D1 false", "First Diffusion coefficient does not match!")
                 return False
+            if int(self.numStates.get()) == 2:
+                self.diff3Var.set("n/a")
+                self.prob13.set("0.0")
+                self.prob23.set("0.0")
+                self.prob31.set("0.0")
+                self.prob32.set("0.0")
+            
+            if int(self.numStates.get()) == 1:
+                self.diff2Var.set("n/a")
+                self.diff3Var.set("n/a")
+                self.prob12.set("0.0")
+                self.prob21.set("1.0")
+                self.prob13.set("0.0")
+                self.prob23.set("0.0")
+                self.prob31.set("1.0")
+                self.prob32.set("0.0")
             
             #Check number of frames, particles
             if int(self.numframesVar.get()) < 1:
@@ -103,29 +143,56 @@ class Simulation_App(Tkinter.Frame):
         self.numStates= Tkinter.Spinbox(self, from_=1, to=3)
         self.numStates.grid(column=1,row=0,sticky="EW")
         #Diffconsts
-        numDiffButton = Tkinter.Button(self, text=u"Set Diff.Const.", command=self.setDiffs)
-        numDiffButton.grid(column=0,row=1, sticky="EW")
         diffFrame = Tkinter.Frame(self)
+        numDiffButton = Tkinter.Button(diffFrame, text=u"Set Diff.Const.", command=self.setDiffs)
+        numDiffButton.grid(column=0,row=0, sticky="EW")
         l1 = Tkinter.Label(diffFrame,text="D1 = ")
-        l1.grid(column = 0, row = 0)
+        l1.grid(column = 1, row = 0)
         d1 = Tkinter.Label(diffFrame,textvariable=self.diff1Var)
-        d1.grid(column = 1, row = 0)
+        d1.grid(column = 2, row = 0)
         l1l = Tkinter.Label(diffFrame,text=" um^2/s")
-        l1l.grid(column = 2, row = 0, sticky = "E")
+        l1l.grid(column = 3, row = 0, sticky = "E")
         l2 = Tkinter.Label(diffFrame,text="D2 = ")
-        l2.grid(column = 0, row = 1)
+        l2.grid(column = 1, row = 1)
         d2 = Tkinter.Label(diffFrame,textvariable=self.diff2Var)
-        d2.grid(column = 1, row = 1)
+        d2.grid(column = 2, row = 1)
         l2l = Tkinter.Label(diffFrame,text=" um^2/s")
-        l2l.grid(column = 2, row = 1, sticky = "E")
+        l2l.grid(column = 3, row = 1, sticky = "E")
         l3 = Tkinter.Label(diffFrame,text="D3 = ")
-        l3.grid(column = 0, row = 2)
+        l3.grid(column = 1, row = 2)
         d3 = Tkinter.Label(diffFrame,textvariable=self.diff3Var)
-        d3.grid(column = 1, row = 2)
+        d3.grid(column = 2, row = 2)
         l3l = Tkinter.Label(diffFrame,text=" um^2/s")
-        l3l.grid(column = 2, row = 2, sticky ="E")
-        diffFrame.grid(column=1,row=1,rowspan=1, columnspan=1, sticky="EW")
-        diffFrame.grid_columnconfigure(1,weight=1)
+        l3l.grid(column = 3, row = 2, sticky ="E")
+
+        d12l = Tkinter.Label(diffFrame,text="p12 = ")
+        d12l.grid(column=4, row=0)
+        d21l = Tkinter.Label(diffFrame,text="p21 = ")
+        d21l.grid(column=4, row=1)
+        d13l = Tkinter.Label(diffFrame,text="p13 = ")
+        d13l.grid(column=4, row=2)
+        d23l = Tkinter.Label(diffFrame,text="p23 = ")
+        d23l.grid(column=6, row=0)
+        d31l = Tkinter.Label(diffFrame,text="p31 = ")
+        d31l.grid(column=6, row=1)
+        d32l = Tkinter.Label(diffFrame,text="p32 = ")
+        d32l.grid(column=6, row=2)
+        d12 = Tkinter.Label(diffFrame, textvariable=self.prob12)
+        d12.grid(column=5, row=0)
+        d21 = Tkinter.Label(diffFrame, textvariable=self.prob21)
+        d21.grid(column=5, row=1)
+        d13 = Tkinter.Label(diffFrame, textvariable=self.prob13)
+        d13.grid(column=5, row=2)
+        d23 = Tkinter.Label(diffFrame, textvariable=self.prob23)
+        d23.grid(column=7, row=0)
+        d31 = Tkinter.Label(diffFrame, textvariable=self.prob31)
+        d31.grid(column=7, row=1)
+        d32 = Tkinter.Label(diffFrame, textvariable=self.prob32)
+        d32.grid(column=7, row=2)
+        diffFrame.grid(column=0,row=1,rowspan=1, columnspan=3, sticky="EW")
+        diffFrame.grid_columnconfigure(2,weight=1)
+        diffFrame.grid_columnconfigure(5,weight=1)
+        diffFrame.grid_columnconfigure(7,weight=1)
 
         
         #Number of frames
@@ -204,31 +271,91 @@ class Simulation_App(Tkinter.Frame):
             diff2Label.grid(column=0,row=2,sticky="EW")
             diff2Text = Tkinter.Entry(fra, textvariable=self.diff2Var)
             diff2Text.grid(column=1,row=2, sticky="EW")
+            prob12Label = Tkinter.Label(fra, text=u"p1->2 = ")
+            prob12Label.grid(column=2,row=1,sticky="EW")
+            prob21Label = Tkinter.Label(fra, text=u"p2->1 = ")
+            prob21Label.grid(column=2,row=2,sticky="EW")
+            prob12Text = Tkinter.Entry(fra, textvariable=self.prob12)
+            prob12Text.grid(column=3,row=1,sticky="EW")
+            prob21Label = Tkinter.Label(fra, text=u"p2->1 = ")
+            prob21Label.grid(column=2,row=2,sticky="EW")
+            prob21Text = Tkinter.Entry(fra, textvariable=self.prob21)
+            prob21Text.grid(column=3,row=2,sticky="EW")
             if int(self.numStates.get()) >=3:
                 #D3
                 diff3Label = Tkinter.Label(fra, text=u"Diff const 3 [um^2/s]")
                 diff3Label.grid(column=0,row=3,sticky="EW")
                 diff3Text = Tkinter.Entry(fra, textvariable=self.diff3Var)
                 diff3Text.grid(column=1,row=3, sticky="EW")
+                prob13Label = Tkinter.Label(fra, text=u"p1->3 = ")
+                prob13Label.grid(column=2,row=3,sticky="EW")
+                prob13Text = Tkinter.Entry(fra, textvariable=self.prob13)
+                prob13Text.grid(column=3,row=3,sticky="EW")
+                prob23Label = Tkinter.Label(fra, text=u"p2->3 = ")
+                prob23Label.grid(column=2,row=4,sticky="EW")
+                prob23Text = Tkinter.Entry(fra, textvariable=self.prob23)
+                prob23Text.grid(column=3,row=4,sticky="EW")
+                prob31Label = Tkinter.Label(fra, text=u"p3->1 = ")
+                prob31Label.grid(column=2,row=5,sticky="EW")
+                prob31Text = Tkinter.Entry(fra, textvariable=self.prob31)
+                prob31Text.grid(column=3,row=5,sticky="EW")
+                prob32Label = Tkinter.Label(fra, text=u"p3->2 = ")
+                prob32Label.grid(column=2,row=6,sticky="EW")
+                prob32Text = Tkinter.Entry(fra, textvariable=self.prob32)
+                prob32Text.grid(column=3,row=6,sticky="EW")
             else:
-                self.diff3Var.set("")
+                self.diff3Var.set("n/a")
+                self.prob13.set("0.0")
+                self.prob23.set("0.0")
+                self.prob31.set("0.0")
+                self.prob32.set("0.0")
         else:
-            self.diff2Var.set("")
+            self.diff2Var.set("n/a")
+            self.prob12.set("0.0")
+            self.prob21.set("1.0")
+            self.prob13.set("0.0")
+            self.prob23.set("0.0")
+            self.prob31.set("1.0")
+            self.prob32.set("0.0")
 
         def saveDiffs():
             fra.destroy()
         
         closeButton = Tkinter.Button(fra, text=u"Close", command=saveDiffs)
-        closeButton.grid(column=1,row=4)
+        closeButton.grid(column=1,row=7)
 
         fra.mainloop()
-        
 
+    def giveToProgram(self):
+        outvar = []
+        outvar.append(self.diff1Var.get())
+        outvar.append(self.diff1Var.get())
+        outvar.append(self.diff1Var.get())
+        outvar.append(self.diff1Var.get())
+        outvar.append(self.diff1Var.get())
+        outvar.append(self.diff1Var.get())
+        outvar.append(self.diff1Var.get())
+        outvar.append(self.diff1Var.get())
+        outvar.append(self.diff1Var.get())
+        outvar.append(self.diff1Var.get())
+        outvar.append(self.diff1Var.get())
+        outvar.append(self.diff1Var.get())
+        outvar.append(self.diff1Var.get())
+        outvar.append(self.diff1Var.get())
+        outvar.append(self.diff1Var.get())
+        outvar.append(self.diff1Var.get())
+        outvar.append(self.diff1Var.get())
+        outvar.append(self.diff1Var.get())
+        outvar.append(self.diff1Var.get())
+        outvar.append(self.diff1Var.get())
+        return outvar
+
+        
     def runcomm(self):
         if self.checkVars():
+            print "Everythings fine, running program now. Have to pass variables to Fileio.setSysProps with all the parameters given."
             self.destroy()
-        else:
-            return
+        return
 
 
 if __name__ == "__main__":
