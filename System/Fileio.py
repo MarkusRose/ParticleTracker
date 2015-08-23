@@ -7,6 +7,11 @@ This script reads and generates the 4 used filetypes in this
 program. It contains getter and setter functions for each type.
 '''
 
+import Image
+import math
+import random
+import os
+
 import numpy as np
 import copy
 
@@ -209,6 +214,41 @@ def setImages():
 #getter
 def getImages():
     pass
+
+def makeImage(positions,framenumber,dirname,numPixels,pixsize,sigma):
+    data = np.zeros((numPixels,numPixels),np.uint16)
+     
+    def gauss(i,j,posx,posy,intensity,sig):
+        return math.exp(-((i-posx)**2+(j-posy)**2)/(2.0*sig))/(2*math.pi*sigma)*intensity
+       
+    for k in xrange(len(positions)):
+        px = int(round(positions[k][1]/pixsize))
+        py = int(round(positions[k][2]/pixsize))
+     
+        for i in xrange(max(0,px-10),min(len(data)-1,px+10),1):
+            for j in xrange(max(0,py-10),min(len(data[0]-1),py+10),1):
+                data[i][j] += gauss(i,j,px,py,positions[k][5],sigma)
+                if data[i][j] >= 2**16:
+                    data[i][j] = 2**16-1
+        
+     
+    h,w = data.shape
+     
+    im = Image.fromstring('I;16',(w,h),data.tostring())
+    im.save(dirname+'/frame{0:04d}.tif'.format(framenumber))
+
+    return
+
+
+def createImages(dirname,frames,numPixels,pixsize,sigma):
+    try:
+        os.stat(dirname)
+    except:
+        os.mkdir(dirname)
+
+    for i in xrange(len(frames)):
+        makeImage(frames[i],i,dirname,numPixels,pixsize,sigma)
+    return
     
 
 #So this is what there is to be done

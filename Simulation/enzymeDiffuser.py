@@ -34,7 +34,7 @@ def simulateTracks(inVars=None):
         #Number of pixels (side of square)
         numPixels = int(sV[13])
         #Other properties
-        wavelength = sV[14]
+        wavelength = sV[14]/1000.0
         pixel_size = sV[15]
         numAperture = sV[16]
         mag = sV[17]
@@ -72,8 +72,8 @@ def simulateTracks(inVars=None):
             #first or not?
             if len(track)  == 0:
                 #initial position
-                particle[3] = 0
-                particle[4] = 0
+                particle[3] = random.uniform(0,(numPixels-1)*pixel_size/mag)
+                particle[4] = random.uniform(0,(numPixels-1)*pixel_size/mag)
      
                 #choose state
                 u = random.random()
@@ -105,9 +105,12 @@ def simulateTracks(inVars=None):
             #Generate displacement in correct state
             particle[1] = random.gauss(0,2*D[particle[5]]*tau)
             particle[2] = random.gauss(0,2*D[particle[5]]*tau)
+
+            #Set Intensity:
+            particle[6] = intensity
      
             #Rest of particle variables
-            for k in xrange(6,10,1):
+            for k in xrange(7,10,1):
                 particle[k] = 0
      
             particle[10] = n
@@ -120,8 +123,8 @@ def simulateTracks(inVars=None):
      
     #Print tracks to file
     Fileio.setTrackFile(atracks)
-    Fileio.setDetection(Fileio.tracksToFrames(atracks))
+    frames = Fileio.tracksToFrames(atracks)
+    Fileio.setDetection(frames)
+    Fileio.createImages("SimulatedImages",frames,numPixels,pixel_size/mag,(0.5*wavelength/numAperture*100/pixel_size)**2)
 
     return atracks
-
-    
