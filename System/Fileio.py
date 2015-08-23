@@ -7,6 +7,9 @@ This script reads and generates the 4 used filetypes in this
 program. It contains getter and setter functions for each type.
 '''
 
+import numpy as np
+import copy
+
 #System Properties
 #-----------------
 #The input parameters have to be of the shape:
@@ -56,7 +59,11 @@ def getSysProps():
         else:
             k = line.split()
             for i in k:
-                pA.append(float(i))
+                if i == "n/a":
+                    pA.append(-1)
+                    print "n/a found"
+                else:
+                    pA.append(float(i))
     return pA
 
 #Frame-by-frame Detection
@@ -165,6 +172,34 @@ def getTrackFile():
     return alltracks
 
 
+#Convert Tracks to Frames
+#------------------------
+def tracksToFrames(alltracks):
+    max = len(alltracks[0])
+    for i in xrange(1,len(alltracks),1):
+        if max < len(alltracks[i]):
+            max = len(alltracks[i])
+    
+    allframes = []
+    for k in xrange(max):
+        frame = []
+        for i in xrange(len(alltracks)):
+            for j in xrange(len(alltracks[i])):
+                if alltracks[i][j][0] == k:
+                    part = []
+                    for v in xrange(len(alltracks[i][j])):
+                        if v in [0,3,4,6,7,8,9,10]:
+                            part.append(alltracks[i][k][v])
+                            if v == 4:
+                                part.append(0.0)
+                                part.append(0.0)
+                    frame.append(list(part))
+        allframes.append(copy.deepcopy(frame))
+
+    return allframes
+
+
+    
 #Read and write tiff Images
 #--------------------------
 #setter

@@ -1,6 +1,7 @@
 import Tkinter
 import tkMessageBox
 import System.Fileio
+import Simulation.enzymeDiffuser
 
 class Simulation_App(Tkinter.Frame):
     
@@ -357,6 +358,8 @@ class Simulation_App(Tkinter.Frame):
             print "Everythings fine, running program now. Have to pass variables to Fileio.setSysProps with all the parameters given."
             System.Fileio.setSysProps(self.giveToProgram())
             self.destroy()
+            Simulation.enzymeDiffuser.simulateTracks()
+            print "Done"
         return
 
 
