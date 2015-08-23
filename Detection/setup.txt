@@ -1,0 +1,38 @@
+#This is the setup file for ParticleSearcher
+#The following values can be adjusted
+
+#Folder with input images:
+../Pictures/10particlesOn
+
+#Sigma:
+1.0
+
+#Signal Power:
+3
+
+#Image Bit Depth:
+16
+
+#Maximum Displacement:
+10
+
+#Number of Images to add:
+1
+
+#Sigma Threshold:
+3
+
+#Eccentricity Threshold:
+6
+
+#Local_Max_Window:
+2
+
+#Minimum track length:
+3
+
+#Read Output Directory
+SimData
+
+#Read Initial position from:
+#
