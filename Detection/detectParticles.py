@@ -51,6 +51,7 @@ def multiImageDetect(img,
     outfile2.close()
     outfile = open("foundParticles.txt",'w')
     if not (local_max is None):
+        print "oh here we are"
         local_max_pixels = convertFiles.giveLocalMaxValues(convertFiles.convImageJTrack(local_max),len(img))
         
     count = 0
@@ -223,7 +224,12 @@ def localMaximaMethod(gausFiltImage,local_max_window,signal_power,background_std
     return (local_max_pixels,cutoff,background_mean) 
 
 def centroidMethod(gausFiltImage,cutoff,output):
-    binaryMap = (gausFiltImage >=cutoff)
+    print 'doing centroid'
+    for i in xrange(len(gausFiltImage)):
+        for j in xrange(len(gausFiltImage[i])):
+            if gausFiltImage[i,j] > 0:
+                print gausFiltImage[i,j]
+    binaryMap = (gausFiltImage >=(cutoff))
     '''
     cccc = 0
     for i in binaryMap:
@@ -239,9 +245,9 @@ def centroidMethod(gausFiltImage,cutoff,output):
         for j in xrange(len(clusterImage[i])):
             if binaryMap[i,j]:
                 clusterImage[i,j] = -1
+                #print i,j
             else:
                 clusterImage[i,j] = 0
-
     def checkNN(i,j,clco):
         if i > 0 and clusterImage[i-1,j] == -1:
             clusterImage[i-1,j] = clco
@@ -255,7 +261,7 @@ def centroidMethod(gausFiltImage,cutoff,output):
         if j < len(clusterImage[0])-1 and clusterImage[i,j+1]:
             clusterImage[i,j+1] = clco
             toDo.append([i,j+1])
-
+    
     '''
     cccc = 0
     for i in clusterImage:
@@ -266,17 +272,22 @@ def centroidMethod(gausFiltImage,cutoff,output):
     '''
     toDo = []
     clco = 0
+    countnet1 = 0
     for i in xrange(len(clusterImage)):
         for j in xrange(len(clusterImage[i])):
             if clusterImage[i,j] == 0:
                 continue
             elif clusterImage[i,j] == -1:
+                countnet1 += 1
+                print i,j
                 clco += 1
                 clusterImage[i,j] = clco
                 toDo.append([i,j])
                 while len(toDo) > 0:
                     checkNN(toDo[0][0],toDo[0][1],clco)
                     del toDo[0]
+    print "done clustering"
+    print countnet1
     local_max_pixels = [[],[]]
 
     while clco > 0:
@@ -293,7 +304,8 @@ def centroidMethod(gausFiltImage,cutoff,output):
         local_max_pixels[0].append((1.0*x)/sizeOC)
         local_max_pixels[1].append((1.0*y)/sizeOC)
         clco -= 1
-
+    print "done getting local maxs"
+    print local_max_pixels
     return local_max_pixels
 
 
@@ -323,6 +335,7 @@ def filterImage(image,sigma,local_max_window,signal_power,output):
         return localMaximaMethod(gausFiltImage,local_max_window,signal_power,background_std,output)
     else:
         #CentroidMethod
+        print "doing centroid"
         return (centroidMethod(gausFiltImage,cutoff,output),cutoff,background_mean)
 
 def readLocalMax(inf):
@@ -352,7 +365,7 @@ def setFittingROI(imageshape,lmpx,lmpy,boxsize=7):
 
     if (row_min < 0 or row_max >= num_rows or
             col_min < 0 or col_max >= num_cols):
-        #print("Oh, too close to frame boarder to fit a gaussian.")
+        print("Oh, too close to frame boarder to fit a gaussian.")
         return False
     else:
         return (row_min,row_max,col_min,col_max)
@@ -481,8 +494,10 @@ def findParticleAndAdd(image,frame,local_max_pixels,signal_power,sigma,backgroun
     nuedge = 0
 
     outf = open("localBoxes.txt",'w')
+    print "length is: ", len(local_max_pixels[0])
     for i in xrange(len(local_max_pixels[0])):
-        
+        print i
+        print "setting ROI"
         #isIt = determineFittingROI(image.shape,local_max_pixels[0][i],local_max_pixels[1][i],signal_power,sigma)
         isIt = setFittingROI(image.shape,local_max_pixels[0][i],local_max_pixels[1][i],7)
         if isIt:
@@ -493,15 +508,18 @@ def findParticleAndAdd(image,frame,local_max_pixels,signal_power,sigma,backgroun
             continue
         outf.write("{:} {:} {:} {:}\n".format(row_min,row_max,col_min,col_max))
 
+        print "starting Fit"
         fitdata = fitgaussian2d(
                     image[row_min:row_max+1, col_min:col_max+1],
                     background_mean)
 
+        print "checking fit"
         checkedfit = checkFit(fitdata,sigma,sigma_thresh,eccentricity_thresh,nunocon,nunoexc,nusigma)
         if not checkedfit[0]:
             nunocon,nunoexc,nusigma = checkedfit[1:]
             continue
-
+        
+        print "add a particle to the list"
         addParticleToList(particle_list,frame,row_min,row_max,col_min,col_max,fitdata)
         nupart += 1
     outf.close()
@@ -524,6 +542,7 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
     #Check if initial positions are given
     if (local_max_pixels is None):
         #Filter Image and get initial particle positions
+        print "get local maxima"
         local_max_pixels,cutoff,background_mean = filterImage(img,sigma,local_max_window,signal_power,output)
     else:
         cutoff = 0

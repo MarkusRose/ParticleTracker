@@ -6,6 +6,8 @@ import sys
 
 import os
 
+import Detection.det_and_track as Detection
+
 class guiDetection(Tkinter.Frame):
     def __init__(self,parent):
         Tkinter.Frame.__init__(self,parent)
@@ -324,6 +326,8 @@ class guiDetection(Tkinter.Frame):
         if self.checkInputs():
             print "Works now"
             self.printVars()
+            self.destroy
+            Detection.detectAndTrack()
         else:
             print "Wrong inputs"
         return

@@ -243,6 +243,9 @@ def makeImage(positions,framenumber,dirname,numPixels,pixsize,sigma):
 def createImages(dirname,frames,numPixels,pixsize,sigma):
     try:
         os.stat(dirname)
+        os.removedirs(dirname)
+        print "Deleted all files"
+        os.mkdir(dirname)
     except:
         os.mkdir(dirname)
 

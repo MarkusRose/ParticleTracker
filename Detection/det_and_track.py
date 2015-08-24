@@ -4,7 +4,6 @@ import ctrack
 import markPosition
 import convertFiles
 import analysisTools
-import guiInterface
 
 import pysm
 import sys
@@ -15,33 +14,88 @@ from scipy import ndimage
 from matplotlib import pyplot as plt
 import numpy as np
 
-#==============================
-# Global Variables
-#==============================
-sigma = 1.0
-local_max_window = 4
-signal_power = 8
-bit_depth = 16
-eccentricity_thresh = 2
-sigma_thresh = 3
-max_displacement = 10
-addUp = 1
-minTrackLen = 1
-bFLAG = False
-lm = None
 
-    
+
+class detectAndTrack():
+    def __init__(self):
+        #==============================
+        # Global Variables
+        #==============================
+        self.imagedir = ""
+        self.sigma = 1.0
+        self.local_max_window = 4
+        self.signal_power = 8
+        self.bit_depth = 16
+        self.eccentricity_thresh = 2
+        self.sigma_thresh = 3
+        self.max_displacement = 10
+        self.addUp = 1
+        self.minTrackLen = 1
+        self.bFLAG = False
+        self.lm = None
+        self.pathway = "AnalyzedData"
+
+        # Read in setup file and sort
+        self.readConfig("setup.txt")
+        self.img = readImageList(self.imagedir)
+        self.img = sorted(self.img)
+        print len(self.img)
+        self.img = self.img[:1]
+        
+        self.particles = self.makeDetectionsAndMark()
+
+    def readConfig(self,filename):
+        
+        innumber = 12
+        a = []
+        infile = open(filename,'r')
+        counter = 0
+        for line in infile:
+            counter += 1
+            if counter in xrange(5,39,3):
+                a.append(line.split()[0])
+                continue
+            
+        #print a
+        if len(a) < innumber:
+            sys.exit("Input file missing {:} entries!".format(innumber-len(a)))
+        elif len(a) > innumber+1:
+            sys.exit("Input file has {:} too many entries!".format(len(a)-innumber))
+        else:
+            self.imagedir = a[0]
+            self.sigma  = float(a[1])
+            self.local_max_window  = float(a[8])
+            self.signal_power  = float(a[2])
+            self.bit_depth  = float(a[3])
+            self.eccentricity_thresh  = float(a[7])
+            self.sigma_thresh  = float(a[6])
+            self.max_displacement  = float(a[4])
+            self.addUp = int(a[5])
+            self.minTrackLen = int(a[9])
+            self.pathway = a[11]
+            self.lm = a[10]
+            if self.lm == "#":
+                self.lm = None
+        chPath(self.pathway)
+     
+        return
+        
+    def makeDetectionsAndMark(self):
+        particle_data = detectParticles.multiImageDetect(self.img,self.sigma,self.local_max_window,self.signal_power,self.bit_depth,self.eccentricity_thresh,self.sigma_thresh,self.addUp,local_max=self.lm,output=True)
+
+        if not dataCorrect(particle_data):
+            sys.exit("Particle data not correct")
+
+        return particle_data
+
+
 #==============================
-# Main Functions
+# General Functions
 #==============================
 def chPath(path):
 
     if not os.path.isdir(path):
         os.mkdir(path)
-    else:
-        option = raw_input("    !!! Careful! '"+path+"' exists! !!!\n    !!!    Do you wish to continue? [y,N] ")
-        if not (option == "y" or option == "Y" or option == "Yes" or option == "yes" or option == "YES"):
-            sys.exit("Data exists already. Quitting now.")
     shutil.copyfile("setup.txt",path+"/setup.txt")
     os.chdir(path)
 
@@ -82,13 +136,6 @@ def makeFirstImage(img,lm=None):
     particle_data = detectParticles.multiImageDetect(inimage,sigma,local_max_window,signal_power,bit_depth,eccentricity_thresh,sigma_thresh,addUp,local_max=lm,output=True)
     return particle_data
 
-def makeDetectionsAndMark(img,local_max=None):
-    particle_data = detectParticles.multiImageDetect(img,sigma,local_max_window,signal_power,bit_depth,eccentricity_thresh,sigma_thresh,addUp,local_max=local_max,output=False)
-
-    if not dataCorrect(particle_data):
-        sys.exit("Particle data not correct")
-
-    return particle_data
 
 #TODO: repair for new marking functions:
 def makeDetectionFromFile():
@@ -105,62 +152,6 @@ def makeTracks(particle_data):
     tracks = ctrack.link_particles(particle_data,max_displacement,min_track_len=0)
     return tracks
 
-def readConfig(filename):
-    global sigma 
-    global local_max_window 
-    global signal_power 
-    global bit_depth 
-    global eccentricity_thresh 
-    global sigma_thresh 
-    global max_displacement 
-    global addUp
-    global minTrackLen
-    global lm
-
-    innumber = 11
-    pathway = ""
-    a = []
-    infile = open(filename,'r')
-    for i in xrange(2):
-        infile.readline()
-    counter = 0
-    for line in infile:
-        counter += 1
-        if counter == 1 and line[0] != "#":
-            counter -= 1
-            continue
-        if counter == 2 and line[0] == "#":
-            counter -= 1
-            continue
-        elif counter == 2:
-            counter = 0
-            a.append(line.split()[0])
-    #print a
-    if len(a) < innumber:
-        sys.exit("Input file missing {:} entries!".format(innumber-len(a)))
-    elif len(a) > innumber+1:
-        sys.exit("Input file has {:} too many entries!".format(len(a)-innumber))
-    else:
-        imagedir = a[0]
-        sigma  = float(a[1])
-        local_max_window  = float(a[8])
-        signal_power  = float(a[2])
-        bit_depth  = float(a[3])
-        eccentricity_thresh  = float(a[7])
-        sigma_thresh  = float(a[6])
-        max_displacement  = float(a[4])
-        addUp = int(a[5])
-        minTrackLen = int(a[9])
-        pathway = a[10]
-        if len(a) > innumber:
-            lm = a[11]
-            if not os.path.isfile(lm):
-                sys.exit("File with initial positions does not exist.")
-        else:
-            lm = None
-    chPath(pathway)
-
-    return imagedir
 
 def compileMultiTracks(img,tr):
     print("Mark tracks in images")
@@ -220,7 +211,7 @@ def drawAllFoundTracks(img,tr):
 #==============================
 # Main
 #==============================
-def main():
+def leftovers():
     print("\n    ==================================\n"
             +"    = Welcome! Starting the Program. =\n"
             +"    ==================================\n")
@@ -231,7 +222,6 @@ def main():
     pathway = raw_input()
     chPath(pathway)
     '''
-    guiInterface.runGUI()
 
     # Read in setup file and sort
     img = readImageList(readConfig("setup.txt"))
@@ -240,7 +230,7 @@ def main():
     
     print("{:} images selected for analysis.".format(len(img)))
     
-    firstImageFLAG = bFLAG
+    firstImageFLAG = False
     if firstImageFLAG:
         makeFirstImage(img)
         print("Done! See first image at " + pathway + ".")
@@ -274,12 +264,8 @@ def main():
 
     return
 
-def tester():
-    print("\n   !!!TEST VERSION!!!\n")
-    guiInterface.runGUI()
-    print("Hello now")
 
 if __name__=="__main__":
-    #tester()
-    main()
+    run = detectAndTrack()
+    
 

@@ -5,3 +5,5 @@ testertexts/
 GUI/__init__.pyc
 GUI/guiMain.pyc
 Simulation/enzymeDiffuser.pyc
+Detection/__init__.pyc
+Detection/det_and_track.pyc
