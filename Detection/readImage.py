@@ -104,30 +104,33 @@ def saveImageToFile(inArray,outName):
 def detectParticlePosition(inImage,outImage,cutoffMethod):
     image = readImage(inImage)
     cutI = cutImage(image,cutoffMethod)
-    #outI = Image.fromarray(cutI.astype("uint16"),'I;16B')
-    #outI.save(outImage)
-    cutI2 = pysm.new_cython.gaussian_filter_image(image,1.0)
-    outI = Image.fromarray(cutI2.astype("uint16"),'I;16B')
+    outI = Image.fromarray((cutI*2**16).astype("uint16"),'I;16')
+    outI.save(outImage)
+    cutI2 = pysm.new_cython.gaussian_filter_image(image,0.2)
+    outI = Image.fromarray((cutI2*2**16).astype("uint16"),'I;16')
     outI.save("gaussfit-"+outImage)
     cutI3 = pysm.new_cython.local_maximum(cutI2)
-    outI = Image.fromarray(cutI3.astype("uint16"),'I;16B')
+    outI = Image.fromarray((cutI3*2**16).astype("uint16"),'I;16')
     outI.save("localmax-"+outImage)
 
     median_img = ndimage.median_filter(image,(21,21))
-    outI = Image.fromarray(median_img.astype("uint16"),'I;16B')
+    outI = Image.fromarray((median_img*2**16).astype("uint16"),'I;16')
     outI.save("median-"+outImage)
 
     (background_mean, background_std) = pysm.new_cython.estimate_background_median(image,(21,21))
     print background_mean, background_std
 
+    oo = Image.fromarray((image*2**16).astype("uint16"),'I;16')
+    oo.save("test0001.tif")
+    saveImageToFile(image,"test0003.tif")
 
     listOfParticles = []
 #    listOfParticles = pysm.new_cython.detect_particles_deflation(cutI)
     print(listOfParticles)
+    
+    return
 
 
 if __name__=="__main__":
-    detectParticlePosition("/data/NEHADexperiments/2013-08-14/mito_DiD_Images/mito_DiD0000.tif","outTest.tif",determineCutoff)
+    detectParticlePosition("/home/markus/LittleHelpers/DATAanalysisCenter/2015-08-22_LTOS-first-rudimentarySim/SimulatedImages/frame0000.tif","outTest.tif",determineCutoff)
     #detectParticlePosition("tester.tif","otsuTest.tif",otsuMethod)
-
-

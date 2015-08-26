@@ -8,6 +8,10 @@ import convertFiles
 from scipy import ndimage, optimize
 
 
+################################
+# Multi Image operations
+################################
+
 def writeDetectedParticles(particles,frame,outfile):
     outfile.write('\n#-Frame {:2.0f} -------------------------------------\n'.format(frame))
     outfile.write('#-Number-of-particles: ' + str(len(particles[0])) + '\n')
@@ -309,35 +313,6 @@ def centroidMethod(gausFiltImage,cutoff,output):
     return local_max_pixels
 
 
-def filterImage(image,sigma,local_max_window,signal_power,output):
-    median_img = ndimage.filters.median_filter(image, (21,21))
-    if False:
-        readImage.saveImageToFile(median_img,"05MedianFilter1.png")
-    (background_mean,background_std) = (median_img.mean(),median_img.std())
-    #print background_mean, background_std
-    #cutoff = readImage.otsuMethod(image)
-    cutoff = background_mean + signal_power * background_std
-    #print cutoff
-
-    boxcarImage = filters.boxcarFilter(image,boxsize=5,cutoff=cutoff)
-    if output:
-        readImage.saveImageToFile(boxcarImage,"02boxFilter.png")
-
-    gausFiltImage = ndimage.filters.gaussian_filter(boxcarImage,sigma,order=0)
-    if output:
-        readImage.saveImageToFile(gausFiltImage,"02gaussFilter.png")
-    
-    #print('Cutoff is at ' + str(cutoff))
-    #print("Found local Maxima: "+str(len(local_max_pixels[0])))
-
-    if False:
-        #LocalMaximaMethod
-        return localMaximaMethod(gausFiltImage,local_max_window,signal_power,background_std,output)
-    else:
-        #CentroidMethod
-        print "doing centroid"
-        return (centroidMethod(gausFiltImage,cutoff,output),cutoff,background_mean)
-
 def readLocalMax(inf):
     local_max = []
     infile = open(inf,'r')
@@ -534,7 +509,43 @@ def readBox(inf):
         boxList.append([float(xmin),float(xmax),float(ymin),float(ymax)])
     infile.close
     return boxList
+    
+######### Important functions##############################
+    
+def filterImage(image,sigma,local_max_window,signal_power,output):
+    median_img = ndimage.filters.median_filter(image, (21,21))
+    if False:
+        readImage.saveImageToFile(median_img,"05MedianFilter1.png")
+    (background_mean,background_std) = (median_img.mean(),median_img.std())
+    #print background_mean, background_std
+    #cutoff = readImage.otsuMethod(image)
+    cutoff = background_mean + signal_power * background_std
+    #print cutoff
 
+    boxcarImage = filters.boxcarFilter(image,boxsize=5,cutoff=cutoff)
+    if output:
+        readImage.saveImageToFile(boxcarImage,"02boxFilter.png")
+
+    gausFiltImage = ndimage.filters.gaussian_filter(boxcarImage,sigma,order=0)
+    if output:
+        readImage.saveImageToFile(gausFiltImage,"02gaussFilter.png")
+    
+    #print('Cutoff is at ' + str(cutoff))
+    #print("Found local Maxima: "+str(len(local_max_pixels[0])))
+
+    if False:
+        #LocalMaximaMethod
+        return localMaximaMethod(gausFiltImage,local_max_window,signal_power,background_std,output)
+    else:
+        #CentroidMethod
+        print "doing centroid"
+        return (centroidMethod(gausFiltImage,cutoff,output),cutoff,background_mean)
+
+
+
+##################################
+# Make Detections for single frame
+##################################
 
 
 def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,eccentricity_thresh,sigma_thresh,local_max_pixels=None,output=False):
