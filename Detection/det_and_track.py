@@ -40,9 +40,12 @@ class detectAndTrack():
         self.img = readImageList(self.imagedir)
         self.img = sorted(self.img)
         print len(self.img)
-        self.img = self.img[:1]
+        #self.img = self.img[:1]
         
         self.particles = self.makeDetectionsAndMark()
+        self.tracks = self.makeTracks()
+        print len(self.tracks)
+        
 
     def readConfig(self,filename):
         
@@ -87,6 +90,13 @@ class detectAndTrack():
             sys.exit("Particle data not correct")
 
         return particle_data
+
+
+    def makeTracks(self):
+        tracks = ctrack.link_particles(self.particles,self.max_displacement,self.minTrackLen)
+        return tracks
+
+
 
 
 #==============================
@@ -148,7 +158,7 @@ def makeDetectionFromFile():
         markPosition.superimpose(image,markings,"06mark-{:0004d}".format(i)+".png")
     return particle_data
 
-def makeTracks(particle_data):
+def makeTracks(self,particle_data):
     tracks = ctrack.link_particles(particle_data,max_displacement,min_track_len=0)
     return tracks
 
