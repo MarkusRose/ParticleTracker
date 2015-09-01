@@ -125,6 +125,7 @@ def multiImageDetect(img,
         outMarkedImages(a,particles,"out{:0004d}.tif".format(frame))
         a = np.zeros(image.shape)
         particle_data.append(particles)
+
         writeDetectedParticles(particles,frame,outfile)
         #Progress Bar
         aaa = int(i * 50/len(img))
@@ -382,16 +383,17 @@ def checkFit(fitdata,sigma,sigma_thresh,eccentricity_thresh,nunocon,nunoexc,nusi
     ##############
     #FIT CHECKING
     ##############
-    if fitdata[0] <= 0 or fitdata[1] <=0:
+    #if fitdata[0] <= 0 or fitdata[1] <=0:
+    if fitdata[1] <= 0:
         #print("Fit did not converge")
         #Fit did not converge
         nunocon += 1
         return False, nunocon,nunoexc,nusigma
 
-    if (np.abs(fitdata[5]/fitdata[4]) >= eccentricity_thresh or 
-        np.abs(fitdata[4]/fitdata[5]) >= eccentricity_thresh):
+    if (np.abs(fitdata[5]/fitdata[4]) > eccentricity_thresh or 
+        np.abs(fitdata[4]/fitdata[5]) > eccentricity_thresh):
         
-        #print("Fit too eccentric")
+        #print("Fit too eccentric "+ str(np.abs(fitdata[5]/fitdata[4])) + ' ' + str(np.abs(fitdata[4]/fitdata[5])))
         #Fit too eccentric
         nunoexc += 1
         return False, nunocon,nunoexc,nusigma
@@ -414,11 +416,11 @@ def checkFit(fitdata,sigma,sigma_thresh,eccentricity_thresh,nunocon,nunoexc,nusi
         nusigma += 1
         return False, nunocon,nunoexc,nusigma
     '''
-    if ((fitdata[4]**2+fitdata[5]**2) > (sigma_thresh * sigma)**2 or 
-        (fitdata[4]**2+fitdata[5]**2) < (sigma / sigma_thresh)**2):
-        #print("Fit too unlike theoretical psf")
+    if ((fitdata[4]**2+fitdata[5]**2) > ((sigma_thresh+1) * sigma)**2 or 
+        (fitdata[4]**2+fitdata[5]**2) < (sigma / (sigma_thresh+1))**2):
         #Fit too unlike theoretical psf
         nusigma += 1
+        #print("Fit too unlike theoretical psf "+ str(fitdata[4]**2+fitdata[5]**2) + ' ' + str(sigma))
         return False, nunocon,nunoexc,nusigma
 
     return True,nunocon,nunoexc,nusigma
@@ -512,6 +514,7 @@ def findParticleAndAdd(image,frame,local_max_pixels,signal_power,sigma,backgroun
     nuedge = 0
 
     outf = open("localBoxes.txt",'w')
+    print "local max pixels " + str(len(local_max_pixels[0]))
     #print "length is: ", len(local_max_pixels[0])
     for i in xrange(len(local_max_pixels[0])):
         #print i
@@ -530,11 +533,12 @@ def findParticleAndAdd(image,frame,local_max_pixels,signal_power,sigma,backgroun
         fitdata = fitgaussian2d(
                     image[row_min:row_max+1, col_min:col_max+1],
                     background_mean)
-
+        #print fitdata
         #print "checking fit"
         checkedfit = checkFit(fitdata,sigma,sigma_thresh,eccentricity_thresh,nunocon,nunoexc,nusigma)
         if not checkedfit[0]:
             nunocon,nunoexc,nusigma = checkedfit[1:]
+            #print "Fit not correct! "+str(nunocon) + " " + str(nunoexc) + " " + str(nusigma)
             continue
         
         #print "add a particle to the list"

@@ -35,17 +35,36 @@ class detectAndTrack():
         self.lm = None
         self.pathway = "AnalyzedData"
 
+        
+        #print len(self.img)
+        #self.img = self.img[:1]
+    
+
+    def runDetectionAndTracking(self):
         # Read in setup file and sort
         self.readConfig("setup.txt")
         self.img = readImageList(self.imagedir)
         self.img = sorted(self.img)
-        print len(self.img)
-        #self.img = self.img[:1]
-        
         self.particles = self.makeDetectionsAndMark()
         self.tracks = self.makeTracks()
         print len(self.tracks)
-        
+
+    def runDetection(self):
+        # Read in setup file and sort
+        self.readConfig("setup.txt")
+        self.img = readImageList(self.imagedir)
+        self.img = sorted(self.img)
+        self.particles = self.makeDetectionsAndMark()
+
+    def runTracking(self):
+        # Read in setup file and sort
+        self.readConfig("setup.txt")
+        self.img = readImageList(self.imagedir)
+        self.img = sorted(self.img)
+        if self.particles == None:
+            self.particles = convertFiles.readDetectedParticles("foundParticles.txt")
+        self.tracks = self.makeTracks()
+        print len(self.tracks)
 
     def readConfig(self,filename):
         
@@ -84,9 +103,9 @@ class detectAndTrack():
         return
         
     def makeDetectionsAndMark(self):
-        particle_data = detectParticles.multiImageDetect(self.img,self.sigma,self.local_max_window,self.signal_power,self.bit_depth,self.eccentricity_thresh,self.sigma_thresh,self.addUp,local_max=self.lm,output=True)
+        particle_data = detectParticles.multiImageDetect(self.img,self.sigma,self.local_max_window,self.signal_power,self.bit_depth,self.eccentricity_thresh,self.sigma_thresh,self.addUp,local_max=self.lm,output=False)
 
-        if not dataCorrect(particle_data):
+        if not dataCorrect(particle_data,self.addUp):
             sys.exit("Particle data not correct")
 
         return particle_data
@@ -119,7 +138,7 @@ def readImageList(path):
     print "Number of images found: " + str(len(img))
     return img
 
-def dataCorrect(particle_data):
+def dataCorrect(particle_data,addUp):
     frame_count = 0
     output = True
     for frame in particle_data:

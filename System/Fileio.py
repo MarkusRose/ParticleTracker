@@ -7,7 +7,7 @@ This script reads and generates the 4 used filetypes in this
 program. It contains getter and setter functions for each type.
 '''
 
-import Image
+from PIL import Image
 import math
 import random
 import os
@@ -215,11 +215,14 @@ def setImages():
 def getImages():
     pass
 
-def makeImage(positions,framenumber,dirname,numPixels,pixsize,sigma):
+def makeImage(positions,framenumber,dirname,numPixels,pixsize,sigma,signoise):
     data = np.zeros((numPixels,numPixels),np.uint16)
      
     def gauss(i,j,posx,posy,intensity,sig):
         return math.exp(-((i-posx)**2+(j-posy)**2)/(2.0*sig))/(2*math.pi*sigma)*intensity
+
+    def noise(meanSignal):
+        return random.gauss(meanSignal,math.sqrt(meanSignal))
        
     for k in xrange(len(positions)):
         px = int(round(positions[k][1]/pixsize))
@@ -227,9 +230,12 @@ def makeImage(positions,framenumber,dirname,numPixels,pixsize,sigma):
      
         for i in xrange(max(0,px-10),min(len(data)-1,px+10),1):
             for j in xrange(max(0,py-10),min(len(data[0]-1),py+10),1):
-                data[i][j] += gauss(i,j,px,py,positions[k][5],sigma)
+                msig = gauss(i,j,px,py,positions[k][5],sigma)
+                data[i][j] += noise(msig)
                 if data[i][j] >= 2**16:
                     data[i][j] = 2**16-1
+                elif data[i][j] < 0:
+                    data [i][j] = 0
         
      
     h,w = data.shape
@@ -240,7 +246,7 @@ def makeImage(positions,framenumber,dirname,numPixels,pixsize,sigma):
     return
 
 
-def createImages(dirname,frames,numPixels,pixsize,sigma):
+def createImages(dirname,frames,numPixels,pixsize,sigma,signoise):
     try:
         os.stat(dirname)
         os.removedirs(dirname)
@@ -250,7 +256,7 @@ def createImages(dirname,frames,numPixels,pixsize,sigma):
         os.mkdir(dirname)
 
     for i in xrange(len(frames)):
-        makeImage(frames[i],i,dirname,numPixels,pixsize,sigma)
+        makeImage(frames[i],i,dirname,numPixels,pixsize,sigma,signoise)
     return
     
 

@@ -183,7 +183,7 @@ class guiDetection(Tkinter.Frame):
             self.outvar1.set("Please select Folder containing Images")
         outfile.write(self.outvar1.get()+'\n\n#Sigma:\n')
         if self.outvar2.get()=="":
-            self.outvar2.set("1")
+            self.outvar2.set("2")
         outfile.write(self.outvar2.get()+'\n\n#Signal Power:\n')
         if self.outvar3.get()=="":
             self.outvar3.set("1")
@@ -258,7 +258,7 @@ class guiDetection(Tkinter.Frame):
             
             #Sigma positiv float
             if float(self.outvar2.get()) <= 0:
-                self.outvar2.set("1")
+                self.outvar2.set("2")
                 tkMessageBox.showwarning("Reset Value", "Value(s) was/were incorrect. Reset to defaults.")
                 return False
 
@@ -324,10 +324,11 @@ class guiDetection(Tkinter.Frame):
             
     def runDetection(self):
         if self.checkInputs():
-            print "Works now"
+            #print "Works now"
             self.printVars()
             self.destroy
-            Detection.detectAndTrack()
+            detector = Detection.detectAndTrack()
+            detector.runDetectionAndTracking()
         else:
             print "Wrong inputs"
         return

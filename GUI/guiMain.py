@@ -28,7 +28,9 @@ class mainWindow(Tkinter.Tk):
             app.grid_columnconfigure(0,weight=1)
 
         def runTracking():
-            print "Tracking"
+            app = guiTracking.guiTracking(self)
+            app.grid(column=1,row=0,rowspan=12,sticky="NWSE")
+            app.grid_columnconfigure(0,weight=1)
         
         def runAnalysis():
             print "Analyzing"
