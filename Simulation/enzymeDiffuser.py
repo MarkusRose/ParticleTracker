@@ -21,27 +21,29 @@ def simulateTracks(inVars=None):
     if inVars==None:
         #Read in Values from file
         sV = Fileio.getSysProps()
-        #Diff constants of 3 states
-        D = np.array([sV[1],sV[2],sV[3]]) 
-        #Markov probability matrix for state switching
-        p = np.array([[0,sV[4],sV[6]],[sV[5],0,sV[7]],[sV[8],sV[9],0]]) 
-        #Number of frames
-        frames = int(sV[10])
-        #Number of particles
-        N = int(sV[11])
-        #Acquisition time
-        tau = sV[12]
-        #Number of pixels (side of square)
-        numPixels = int(sV[13])
-        #Other properties
-        wavelength = sV[14]/1000.0
-        pixel_size = sV[15]
-        numAperture = sV[16]
-        mag = sV[17]
-        sigToNoise = sV[18]
-        intensity = sV[19]
-    else:
+    else:   
+        #else read from input
         sV = list(inVars)
+    #Diff constants of 3 states
+    D = np.array([sV[1],sV[2],sV[3]]) 
+    #Markov probability matrix for state switching
+    p = np.array([[0,sV[4],sV[6]],[sV[5],0,sV[7]],[sV[8],sV[9],0]]) 
+    #Number of frames
+    frames = int(sV[10])
+    #Number of particles
+    N = int(sV[11])
+    #Acquisition time
+    tau = sV[12]
+    #Number of pixels (side of square)
+    numPixels = int(sV[13])
+    #Other properties
+    wavelength = sV[14]/1000.0
+    pixel_size = sV[15]
+    numAperture = sV[16]
+    mag = sV[17]
+    sigToNoise = sV[18]
+    intensity = sV[19]
+    
 
     #Initial probabilities for choosing state
     '''
@@ -125,6 +127,8 @@ def simulateTracks(inVars=None):
     Fileio.setTrackFile(atracks)
     frames = Fileio.tracksToFrames(atracks)
     Fileio.setDetection(frames)
-    Fileio.createImages("SimulatedImages",frames,numPixels,pixel_size/mag,(0.5*wavelength/numAperture*100/pixel_size)**2)
+    Fileio.createImages("SimulatedImages",frames,numPixels,
+        pixel_size/mag,(0.5*wavelength/numAperture*100/pixel_size)**2,sigToNoise)
+
 
     return atracks

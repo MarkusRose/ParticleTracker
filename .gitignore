@@ -7,3 +7,5 @@ GUI/guiMain.pyc
 Simulation/enzymeDiffuser.pyc
 Detection/__init__.pyc
 Detection/det_and_track.pyc
+AnalyzedData
+SimulatedImages
