@@ -77,8 +77,8 @@ class guiTracking(Tkinter.Frame):
 
 
     def reload(self):
-        if os.path.isfile("setup.txt"):
-            infile = open("setup.txt",'r')
+        if os.path.isfile("setupTracing.txt"):
+            infile = open("setupTracking.txt",'r')
             infile.readline()
             infile.readline()
             infile.readline()
@@ -133,7 +133,7 @@ class guiTracking(Tkinter.Frame):
         return
 
     def printVars(self):
-        outfile = open("setup.txt",'w')
+        outfile = open("setupTracking.txt",'w')
         outfile.write("#This is the setup file for ParticleSearcher\n#The following values can be adjusted\n\n")
         outfile.write("#Folder with input images:\n")
         if self.outvar1.get()=="":
