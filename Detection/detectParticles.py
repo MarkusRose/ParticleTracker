@@ -243,7 +243,7 @@ def centroidMethod(gausFiltImage,cutoff,output):
                 cccc+=1
     print cccc
     '''
-    if output:
+    if True:
         readImage.saveImageToFile(binaryMap,"05BinaryMap.png")
     clusterImage = np.zeros((len(binaryMap),len(binaryMap[0])))
     for i in xrange(len(clusterImage)):
@@ -491,6 +491,13 @@ def filterImage(image,sigma,local_max_window,signal_power,output):
     if output:
         readImage.saveImageToFile(gausFiltImage,"02gaussFilter.png")
     
+    (background_mean,background_std) = (gausFiltImage.mean(),gausFiltImage.std())
+    #print background_mean, background_std
+    #cutoff = readImage.otsuMethod(image)
+    print image.max(), image.min()
+    cutoff = background_mean + signal_power * background_std
+    print cutoff, background_mean, signal_power, background_std
+    print gausFiltImage.max(), gausFiltImage.min()
     #print('Cutoff is at ' + str(cutoff))
     #print("Found local Maxima: "+str(len(local_max_pixels[0])))
 
