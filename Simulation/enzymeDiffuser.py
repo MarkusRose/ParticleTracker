@@ -1,5 +1,6 @@
 import numpy as np
 import random
+import math
 import System.Fileio as Fileio
 
 '''
@@ -105,8 +106,8 @@ def simulateTracks(inVars=None):
                     particle[5] = s0
      
             #Generate displacement in correct state
-            particle[1] = random.gauss(0,2*D[particle[5]]*tau)
-            particle[2] = random.gauss(0,2*D[particle[5]]*tau)
+            particle[1] = random.gauss(0,math.sqrt(2*D[particle[5]]*tau))
+            particle[2] = random.gauss(0,math.sqrt(2*D[particle[5]]*tau))
 
             #Set Intensity:
             particle[6] = intensity

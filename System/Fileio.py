@@ -240,14 +240,17 @@ def makeImage(positions,framenumber,dirname,numPixels,pixsize,sigma,signoise):
                     data [i][j] = 0
     intensity /= len(positions)
 
-    for i in xrange(len(data)):
-        for j in xrange(len(data[i])):
-            data[i][j] += noise(intensity/signoise)
-            if data[i][j] >= 2**16:
-                data[i][j] = 2**16 -1
-            elif data[i][j] < 0:
-                data[i][j] =0
-
+    if True:
+        data = data + np.random.normal(intensity/signoise,math.sqrt(intensity/signoise),size=data.shape)
+    else:
+        for i in xrange(len(data)):
+            for j in xrange(len(data[i])):
+                data[i][j] += noise(intensity/signoise)
+                if data[i][j] >= 2**16:
+                    data[i][j] = 2**16 -1
+                elif data[i][j] < 0:
+                    data[i][j] =0
+    np.clip(data,0,2**16-1,data)
 
     h,w = data.shape
      
