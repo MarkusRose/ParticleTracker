@@ -48,8 +48,10 @@ class Simulation_App(Tkinter.Frame):
         self.naVar.set("1.45")
         self.magnifVar = Tkinter.StringVar()
         self.magnifVar.set("100")
-        self.signoiseVar = Tkinter.StringVar()
-        self.signoiseVar.set("3")
+        self.backgroundVar = Tkinter.StringVar()
+        self.backgroundVar.set("500")
+        self.backnoiseVar = Tkinter.StringVar()
+        self.backnoiseVar.set("25")
         self.intensityVar = Tkinter.StringVar()
         self.intensityVar.set("10000")
 
@@ -123,8 +125,11 @@ class Simulation_App(Tkinter.Frame):
             if float(self.pixsizeVar.get()) <= 0:
                 tkMessageBox.showerror("Pixel size", "Pixels must have a size larget than 0.")
                 return False
-            if float(self.signoiseVar.get()) <= 0:
-                tkMessageBox.showerror("S/N", "Signal-to-noise must be larger than 0.")
+            if float(self.backgroundVar.get()) < 0:
+                tkMessageBox.showerror("Background", "Background cannot be negative.")
+                return False
+            if float(self.backnoiseVar.get()) <= 0:
+                tkMessageBox.showerror("Background noise", "Background noise must be larger than 0.")
                 return False
             if float(self.intensityVar.get()) <= 0:
                 tkMessageBox.showerror("Intensity", "Intensity must be larger than 0.")
@@ -237,16 +242,21 @@ class Simulation_App(Tkinter.Frame):
         magnifLabel.grid(column=0,row=11,sticky="EW")
         magnifText = Tkinter.Entry(self, textvariable=self.magnifVar)
         magnifText.grid(column=1,row=11, sticky="EW")
-        #S/N
-        signoiseLabel = Tkinter.Label(self,text=u"Signal-to-Noise ratio")
-        signoiseLabel.grid(column=0,row=12,sticky="EW")
-        signoiseText = Tkinter.Entry(self, textvariable=self.signoiseVar)
-        signoiseText.grid(column=1,row=12, sticky="EW")
+        #Background
+        backgroundLabel = Tkinter.Label(self,text=u"Background mean")
+        backgroundLabel.grid(column=0,row=12,sticky="EW")
+        backgroundText = Tkinter.Entry(self, textvariable=self.backgroundVar)
+        backgroundText.grid(column=1,row=12, sticky="EW")
+        #Background noise
+        backnoiseLabel = Tkinter.Label(self,text=u"Background noise")
+        backnoiseLabel.grid(column=0,row=13,sticky="EW")
+        backnoiseText = Tkinter.Entry(self, textvariable=self.backnoiseVar)
+        backnoiseText.grid(column=1,row=13, sticky="EW")
         #Intensity
         intensityLabel = Tkinter.Label(self,text=u"Intensity")
-        intensityLabel.grid(column=0,row=13,sticky="EW")
+        intensityLabel.grid(column=0,row=14,sticky="EW")
         intensityText = Tkinter.Entry(self, textvariable=self.intensityVar)
-        intensityText.grid(column=1,row=13, sticky="EW")
+        intensityText.grid(column=1,row=14, sticky="EW")
 
 
         #Save settings and run simulation or cancel with buttons
@@ -348,7 +358,8 @@ class Simulation_App(Tkinter.Frame):
         outvar.append(str(self.pixsizeVar.get())) 
         outvar.append(str(self.naVar.get())) 
         outvar.append(str(self.magnifVar.get())) 
-        outvar.append(str(self.signoiseVar.get())) 
+        outvar.append(str(self.backgroundVar.get()))
+        outvar.append(str(self.backnoiseVar.get()))
         outvar.append(str(self.intensityVar.get())) 
         return outvar
 

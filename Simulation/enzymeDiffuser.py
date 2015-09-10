@@ -42,8 +42,9 @@ def simulateTracks(inVars=None):
     pixel_size = sV[15]
     numAperture = sV[16]
     mag = sV[17]
-    sigToNoise = sV[18]
-    intensity = sV[19]
+    background = sV[18]
+    backnoise = sV[19]
+    intensity = sV[20]
     
 
     #Initial probabilities for choosing state
@@ -129,7 +130,7 @@ def simulateTracks(inVars=None):
     frames = Fileio.tracksToFrames(atracks)
     Fileio.setDetection(frames)
     Fileio.createImages("SimulatedImages",frames,numPixels,
-        pixel_size/mag,(0.5*wavelength/numAperture*100/pixel_size)**2,sigToNoise)
+                        pixel_size/mag,(0.5*wavelength/numAperture*100/pixel_size)**2,background,backnoise)
 
 
     return atracks

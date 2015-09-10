@@ -11,6 +11,7 @@ from PIL import Image
 import math
 import random
 import os
+import sys
 
 import numpy as np
 import copy
@@ -44,8 +45,8 @@ def setSysProps(paramArray):
     outfile.write("\n\n#Camera Properties [lambda (nm), pixel size (um)]\n")
     for i in xrange(14,16,1):
         outfile.write(str(paramArray[i])+" ")
-    outfile.write("\n\n#Microscope Properties [NA, magnification, S/N, Intensity (#photons)\n")
-    for i in xrange(16,20,1):
+    outfile.write("\n\n#Microscope Properties [NA, magnification, Background, Backnoise, Intensity (#photons)\n")
+    for i in xrange(16,21,1):
         outfile.write(str(paramArray[i])+" ")
     outfile.write("\n\n#EOF\n")
     
@@ -215,54 +216,71 @@ def setImages():
 def getImages():
     pass
 
-def makeImage(positions,framenumber,dirname,numPixels,pixsize,sigma,signoise):
+def makeImage(positions,framenumber,dirname,numPixels,pixsize,sigma,background,backnoise):
     data = np.zeros((numPixels,numPixels),np.uint16)
      
     def gauss(i,j,posx,posy,intensity,sig):
-        return math.exp(-((i-posx)**2+(j-posy)**2)/(2.0*sig))/(2*math.pi*sig)*intensity
+        return math.exp(-(((i)-posx)**2+((j)-posy)**2)/(2.0*sig))*intensity
 
-    def noise(stdSig):
-        return random.gauss(stdSig,math.sqrt(stdSig))
+    def integauss(i,j,posx,posy,intensity,sig):
+        #int_i^(i+1) int_j^(j+1) dx dy exp(-((i-posx)^2+(j-posy)^2)/2*sig^2) * intensity
+        px = math.sqrt(math.pi/2)*sig*(math.erf((posx-i)/(math.sqrt(2)*sig))-math.erf((posx-i-1)/(math.sqrt(2)*sig)))
+        py = math.sqrt(math.pi/2)*sig*(math.erf((posy-j)/(math.sqrt(2)*sig))-math.erf((posy-j-1)/(math.sqrt(2)*sig)))
+        return intensity*px*py
+
+    def noise():
+        return random.gauss(background,backnoise)
 
     intensity = 0
     for k in xrange(len(positions)):
         px = int(round(positions[k][1]/pixsize))
         py = int(round(positions[k][2]/pixsize))
         intensity += positions[k][5]
-     
+        #xnum = min(len(data)-1,px+10)-max(0,px-10)
+        #ynum = min(len(data[0])-1,py+10)-max(0,py-10)
         for i in xrange(max(0,px-10),min(len(data)-1,px+10),1):
-            for j in xrange(max(0,py-10),min(len(data[0]-1),py+10),1):
+            for j in xrange(max(0,py-10),min(len(data[i]-1),py+10),1):
                 msig = gauss(i,j,px,py,positions[k][5],sigma)
+                if msig >= 2**16:
+                    msig = 2**16-1
+                elif msig < 0:
+                    msig = 0
                 data[i][j] = msig
-                if data[i][j] >= 2**16:
-                    data[i][j] = 2**16-1
-                elif data[i][j] < 0:
-                    data [i][j] = 0
     intensity /= len(positions)
-
-    if True:
-        data = np.random.normal(loc=400.0,scale=1.0,size=data.shape)
+    
+    if backnoise > 0:
+        if True:
+            msig = np.random.normal(loc=background,scale=backnoise,size=data.shape)
+            np.clip(data+msig,0,2**16-1,data)
+        else:
+            for i in xrange(len(data)):
+                for j in xrange(len(data[i])):
+                    msig = np.random.normal(background,backnoise)
+                    if msig >= 2**16:
+                        msig = 2**16 -1
+                    elif msig < 0:
+                        msig = 0
+                    data[i][j] += msig
     else:
-        for i in xrange(len(data)):
-            for j in xrange(len(data[i])):
-                data[i][j] += noise(intensity/signoise)
-                if data[i][j] >= 2**16:
-                    data[i][j] = 2**16 -1
-                elif data[i][j] < 0:
-                    data[i][j] =0
-    np.clip(data,0,2**16-1,data)
-
+        msig = np.zeros(data.shape,np.uint16)
+        msig.fill(background)
+        np.clip(data+msig,0,2**16-1,data)
+    
     h,w = data.shape
      
     im = Image.fromstring('I;16',(w,h),data.tostring())
     im.save(dirname+'/frame{0:04d}.tif'.format(framenumber))
+    
+    return data
 
-    return
 
-
-def createImages(dirname,frames,numPixels,pixsize,sigma,signoise):
+def createImages(dirname,frames,numPixels,pixsize,sigma,background,backnoise):
     try:
         import shutil
+        a = "N"
+        #a = raw_input("Careful, deleting files. Abort? [Y]/n     ")
+        if a == "Y" or a == "y":
+            sys.exit(0)
         shutil.rmtree("SimulatedImages",ignore_errors=True)
         print "Deleted all files"
         os.mkdir(dirname)
@@ -270,7 +288,7 @@ def createImages(dirname,frames,numPixels,pixsize,sigma,signoise):
         os.mkdir(dirname)
     print "creating images now"
     for i in xrange(len(frames)):
-        makeImage(frames[i],i,dirname,numPixels,pixsize,sigma,signoise)
+        makeImage(frames[i],i,dirname,numPixels,pixsize,sigma,background,backnoise)
     return
     
 
@@ -282,4 +300,11 @@ the rest works
 
 
 if __name__=="__main__":
-    setImages()
+    mu = 10000
+    sigma = 0
+    d = makeImage([[1,34.4,34.4,0,0,500]],1111,".",512,0.16,(0.5*0.7/1.45/0.16)**2,mu,sigma)
+    print abs(np.mean(d))
+    print abs(np.std(d,ddof=1))
+    print d.shape
+    
+
