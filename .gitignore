@@ -29,3 +29,5 @@ Simulation/enzymeDiffuser.py
 System/Fileio.py
 System/__init__.pyc
 *.pyc
+*.png
+*.tif
