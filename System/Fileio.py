@@ -241,7 +241,7 @@ def makeImage(positions,framenumber,dirname,numPixels,pixsize,sigma,signoise):
     intensity /= len(positions)
 
     if True:
-        data = data + np.random.normal(intensity/signoise,math.sqrt(intensity/signoise),size=data.shape)
+        data = np.random.normal(loc=400.0,scale=1.0,size=data.shape)
     else:
         for i in xrange(len(data)):
             for j in xrange(len(data[i])):
