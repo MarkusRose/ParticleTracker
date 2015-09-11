@@ -224,9 +224,9 @@ def makeImage(positions,framenumber,dirname,numPixels,pixsize,sigma,background,b
 
     def integauss(i,j,posx,posy,intensity,sig):
         #int_i^(i+1) int_j^(j+1) dx dy exp(-((i-posx)^2+(j-posy)^2)/2*sig^2) * intensity
-        px = math.sqrt(math.pi/2)*sig*(math.erf((posx-i)/(math.sqrt(2)*sig))-math.erf((posx-i-1)/(math.sqrt(2)*sig)))
-        py = math.sqrt(math.pi/2)*sig*(math.erf((posy-j)/(math.sqrt(2)*sig))-math.erf((posy-j-1)/(math.sqrt(2)*sig)))
-        return intensity*px*py
+        px = (math.erf((posx-i)/(math.sqrt(2)*sig))-math.erf((posx-i-1)/(math.sqrt(2)*sig)))
+        py = (math.erf((posy-j)/(math.sqrt(2)*sig))-math.erf((posy-j-1)/(math.sqrt(2)*sig)))
+        return intensity/4*px*py
 
     def noise():
         return random.gauss(background,backnoise)
