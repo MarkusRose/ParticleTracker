@@ -13,7 +13,7 @@ signal_power = 5
 def analyseImage(filename,outf,signoise):
         
     def writeline(image):
-        outf.write("{:} {:} {:} {:}\n".format(float(image.max()),float(image.min()),image.mean(),image.std(), (float(image.max())-image.mean())/image.std()))
+        outf.write("{:} {:} {:} {:} {:}\n".format(float(image.max()),float(image.min()),image.mean(),image.std(), (float(image.max())-image.mean())/image.std()))
         return
     
     
