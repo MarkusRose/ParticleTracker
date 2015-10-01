@@ -32,6 +32,11 @@ class mainWindow(Tkinter.Tk):
             app.grid(column=1,row=0,rowspan=12,sticky="NWSE")
             app.grid_columnconfigure(0,weight=1)
         
+        def runDetandTrack():
+            app = guiDetection.guiDetandTrack(self)
+            app.grid(column=1,row=0,rowspan=12,sticky="NWSE")
+            app.grid_columnconfigure(0,weight=1)
+        
         def runAnalysis():
             print "Analyzing"
         
@@ -41,6 +46,8 @@ class mainWindow(Tkinter.Tk):
         detbutton.grid(column=0,row=2,sticky="EW")
         trabutton = Tkinter.Button(self, text=u"Tracking",command=runTracking)
         trabutton.grid(column=0,row=3,sticky="EW")
+        detatrabutton = Tkinter.Button(self, text=u"Detect and Track",command=runDetandTrack)
+        detatrabutton.grid(column=0,row=3,sticky="EW")
         anabutton = Tkinter.Button(self, text=u"Analysis",command=runAnalysis)
         anabutton.grid(column=0,row=4,sticky="EW")
         exibutton = Tkinter.Button(self, text=u"Quit", command=self.destroy)

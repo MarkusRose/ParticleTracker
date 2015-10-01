@@ -19,6 +19,7 @@ def writeDetectedParticles(particles,frame,outfile):
     outfile.write("# x       y        width_x      width_y   height  amplitude  sn  volume \n")
     for p in particles[0]:
         outfile.write('{:} {:} {:} {:} {:} {:} {:} {:} \n'.format(p.x,p.y,p.width_x,p.width_y,p.height,p.amplitude,p.sn,p.volume))
+    outfile.write('\n')
     return
 
 def outMarkedImages(image,partdata,out):
@@ -193,127 +194,6 @@ def gaussian2d(height, amplitude, center_x,
             amplitude*np.exp(-(((center_x-x)/width_x)**2+((center_y-y)/width_y)**2)/2))
 
 
-
-def localMaximaMethod(gausFiltImage,local_max_window,signal_power,background_std,output):
-    localMaxImage = ndimage.filters.maximum_filter(gausFiltImage,size=local_max_window)
-    if output:
-        readImage.saveImageToFile(localMaxImage,"03localMax.png")
-
-    img_max_filter = gausFiltImage.copy()
-    img_max_filter[(gausFiltImage != localMaxImage)] = 0
-    if output:
-        readImage.saveImageToFile(img_max_filter,"04MaxFilter.png")
-    
-#    print("Cutoff is at: {:}".format(cutoff))
-    median_img = ndimage.filters.median_filter(gausFiltImage, (21,21))
-    if False:
-        readImage.saveImageToFile(median_img,"05MedianFilter2.png")
-    background_mean = median_img.mean()
-    #cutoff = readImage.otsuMethod(image)
-            #background_std) = (median_img.mean(),median_img.std())
-    #cutoff = readImage.otsuMethod(image)
-    cutoff = background_mean + signal_power * background_std
-    #print background_mean, background_std
-    #print cutoff
-
-    #print("Cutoff is at: {:}".format(cutoff))
-    #print("Max of MaxFilter is at: {:}".format(img_max_filter.max()))
-    imgMaxNoBack = (img_max_filter >= cutoff)
-    if output:
-        readImage.saveImageToFile(imgMaxNoBack,"05MaxBinary.png")
-     #Check if maxima found
-    if imgMaxNoBack.any() == False:
-        sys.stderr.write("Error: Error: No max pixels detected.\n")
-
-    local_max_pixels = np.nonzero(imgMaxNoBack)
-    return (local_max_pixels,cutoff,background_mean) 
-
-def centroidMethod(gausFiltImage,cutoff,output):
-    #print 'doing centroid'
-    #for i in xrange(len(gausFiltImage)):
-    #    for j in xrange(len(gausFiltImage[i])):
-    #        if gausFiltImage[i,j] > 0:
-    #            print gausFiltImage[i,j]
-    binaryMap = (gausFiltImage >=(cutoff))
-    '''
-    cccc = 0
-    for i in binaryMap:
-        for j in i:
-            if j:
-                cccc+=1
-    print cccc
-    '''
-    if True:
-        readImage.saveImageToFile(binaryMap,"05BinaryMap.png")
-    clusterImage = np.zeros((len(binaryMap),len(binaryMap[0])))
-    for i in xrange(len(clusterImage)):
-        for j in xrange(len(clusterImage[i])):
-            if binaryMap[i,j]:
-                clusterImage[i,j] = -1
-                #print i,j
-            else:
-                clusterImage[i,j] = 0
-    def checkNN(i,j,clco):
-        if i > 0 and clusterImage[i-1,j] == -1:
-            clusterImage[i-1,j] = clco
-            toDo.append([i-1,j])
-        if i < len(clusterImage)-1 and clusterImage[i+1][j] == -1:
-            clusterImage[i+1,j] = clco
-            toDo.append([i+1,j])
-        if j > 0 and clusterImage[i,j-1] == -1:
-            clusterImage[i,j-1] = clco
-            toDo.append([i,j-1])
-        if j < len(clusterImage[0])-1 and clusterImage[i,j+1]:
-            clusterImage[i,j+1] = clco
-            toDo.append([i,j+1])
-    
-    '''
-    cccc = 0
-    for i in clusterImage:
-        for j in i:
-            if j==-1:
-                cccc+=1
-    print cccc
-    '''
-    toDo = []
-    clco = 0
-    countnet1 = 0
-    for i in xrange(len(clusterImage)):
-        for j in xrange(len(clusterImage[i])):
-            if clusterImage[i,j] == 0:
-                continue
-            elif clusterImage[i,j] == -1:
-                countnet1 += 1
-                #print i,j
-                clco += 1
-                clusterImage[i,j] = clco
-                toDo.append([i,j])
-                while len(toDo) > 0:
-                    checkNN(toDo[0][0],toDo[0][1],clco)
-                    del toDo[0]
-    #print "done clustering"
-    #print countnet1
-    local_max_pixels = [[],[]]
-
-    while clco > 0:
-        #calculate center of mass
-        x = 0
-        y = 0
-        sizeOC = 0
-        for i in xrange(len(clusterImage)):
-            for j in xrange(len(clusterImage[i])):
-                if clusterImage[i,j] == clco:
-                    sizeOC += 1
-                    x += i
-                    y += j
-        local_max_pixels[0].append((1.0*x)/sizeOC)
-        local_max_pixels[1].append((1.0*y)/sizeOC)
-        clco -= 1
-    #print "done getting local maxs"
-    #print local_max_pixels
-    return local_max_pixels
-
-
 def readLocalMax(inf):
     local_max = []
     infile = open(inf,'r')
@@ -474,10 +354,10 @@ def filterImage(image,sigma,local_max_window,signal_power,output):
     median_img = ndimage.filters.median_filter(image, (21,21))
     if False:
         readImage.saveImageToFile(median_img,"05MedianFilter1.png")
-    (background_mean,background_std) = (median_img.mean(),median_img.std())
+    (background_mean,background_std) = (median_img.mean(),image.std())
     #print background_mean, background_std
     #cutoff = readImage.otsuMethod(image)
-    cutoff = background_mean + signal_power * background_std
+    cutoff = background_mean + 2 * background_std
     if cutoff == 0:
         #print "Cutoff is {}: ".format(cutoff)
         cutoff = 1e-10
@@ -492,22 +372,147 @@ def filterImage(image,sigma,local_max_window,signal_power,output):
         readImage.saveImageToFile(gausFiltImage,"02gaussFilter.png")
     
     (background_mean,background_std) = (gausFiltImage.mean(),gausFiltImage.std())
-    #print background_mean, background_std
     #cutoff = readImage.otsuMethod(image)
-    print image.max(), image.min()
     cutoff = background_mean + signal_power * background_std
-    print cutoff, background_mean, signal_power, background_std
-    print gausFiltImage.max(), gausFiltImage.min()
-    #print('Cutoff is at ' + str(cutoff))
-    #print("Found local Maxima: "+str(len(local_max_pixels[0])))
 
-    if False:
+    if True:
         #LocalMaximaMethod
-        return localMaximaMethod(gausFiltImage,local_max_window,signal_power,background_std,output)
+        return (localMaximaMethod(gausFiltImage,local_max_window,cutoff,output),cutoff,background_mean)
     else:
         #CentroidMethod
         #print "doing centroid"
         return (centroidMethod(gausFiltImage,cutoff,output),cutoff,background_mean)
+
+
+
+def localMaximaMethod(gausFiltImage,local_max_window,cutoff,output):
+    localMaxImage = ndimage.filters.maximum_filter(gausFiltImage,size=local_max_window)
+    if output:
+        readImage.saveImageToFile(localMaxImage,"03localMax.png")
+
+    img_max_filter = gausFiltImage.copy()
+    img_max_filter[(gausFiltImage != localMaxImage)] = 0
+    if output:
+        readImage.saveImageToFile(img_max_filter,"04MaxFilter.png")
+    '''
+#    print("Cutoff is at: {:}".format(cutoff))
+    #median_img = ndimage.filters.median_filter(gausFiltImage, (21,21))
+    #if False:
+    #    readImage.saveImageToFile(median_img,"05MedianFilter2.png")
+    #background_mean = median_img.mean()
+    #cutoff = readImage.otsuMethod(image)
+            #background_std) = (median_img.mean(),median_img.std())
+    #cutoff = readImage.otsuMethod(image)
+    #cutoff = background_mean + signal_power * background_std
+    #print background_mean, background_std
+    #print cutoff
+
+    #print("Cutoff is at: {:}".format(cutoff))
+    #print("Max of MaxFilter is at: {:}".format(img_max_filter.max()))
+    '''
+    imgMaxNoBack = (img_max_filter >= cutoff)
+    if output:
+        readImage.saveImageToFile(imgMaxNoBack,"05MaxBinary.png")
+    #Check if maxima found
+    if imgMaxNoBack.any() == False:
+        sys.stderr.write("Error: Error: No max pixels detected.\n")
+
+    local_max_pixels = np.nonzero(imgMaxNoBack)
+    return local_max_pixels
+
+def centroidMethod(gausFiltImage,cutoff,output):
+    #print 'doing centroid'
+    #for i in xrange(len(gausFiltImage)):
+    #    for j in xrange(len(gausFiltImage[i])):
+    #        if gausFiltImage[i,j] > 0:
+    #            print gausFiltImage[i,j]
+    binaryMap = (gausFiltImage > (cutoff))
+    '''
+    cccc = 0
+    for i in binaryMap:
+        for j in i:
+            if j:
+                cccc+=1
+    print cccc
+    '''
+    if True:
+        readImage.saveImageToFile(binaryMap,"05BinaryMap.png")
+    clusterImage = - binaryMap.astype(int)
+
+    def checkNN(i,j,clco):
+        if i > 0 and clusterImage[i-1,j] == -1:
+            clusterImage[i-1,j] = clco
+            toDo.append([i-1,j])
+        if i < len(clusterImage)-1 and clusterImage[i+1][j] == -1:
+            clusterImage[i+1,j] = clco
+            toDo.append([i+1,j])
+        if j > 0 and clusterImage[i,j-1] == -1:
+            clusterImage[i,j-1] = clco
+            toDo.append([i,j-1])
+        if j < len(clusterImage[0])-1 and clusterImage[i,j+1]:
+            clusterImage[i,j+1] = clco
+            toDo.append([i,j+1])
+    
+    '''
+    cccc = 0
+    for i in clusterImage:
+        for j in i:
+            if j==-1:
+                cccc+=1
+    print cccc
+    '''
+    toDo = []
+    clco = 0
+    countnet1 = 0
+    clusters = []
+    for i in xrange(len(clusterImage)):
+        for j in xrange(len(clusterImage[i])):
+            if clusterImage[i,j] == 0:
+                continue
+            elif clusterImage[i,j] == -1:
+                countnet1 += 1
+                #print i,j
+                clco += 1
+                clusters.append([])
+                clusterImage[i,j] = clco
+                toDo.append([i,j])
+                while len(toDo) > 0:
+                    checkNN(toDo[0][0],toDo[0][1],clco)
+                    clusters[clco-1].append(toDo[0])
+                    del toDo[0]
+    #print "done clustering"
+    #print countnet1
+    local_max_pixels = [[],[]]
+    '''
+    while clco > 0:
+        #calculate center of mass
+        x = 0
+        y = 0
+        sizeOC = 0
+        for i in xrange(len(clusterImage)):
+            for j in xrange(len(clusterImage[i])):
+                if clusterImage[i,j] == clco:
+                    sizeOC += 1
+                    x += i
+                    y += j
+        local_max_pixels[0].append((1.0*x)/sizeOC)
+        local_max_pixels[1].append((1.0*y)/sizeOC)
+        clco -= 1
+    '''
+    for clust in clusters:
+        #calculate centroid for each cluster and append
+        x = 0
+        y = 0
+        sizeOC = 0
+        for part in clust:
+            sizeOC += 1
+            x += part[0]
+            y += part[1]
+        local_max_pixels[0].append((1.0*x)/sizeOC)
+        local_max_pixels[1].append((1.0*y)/sizeOC)
+    #print "done getting local maxs"
+    #print local_max_pixels
+    return local_max_pixels
 
 
 def findParticleAndAdd(image,frame,local_max_pixels,signal_power,sigma,background_mean,sigma_thresh,eccentricity_thresh,bit_depth):
@@ -521,7 +526,7 @@ def findParticleAndAdd(image,frame,local_max_pixels,signal_power,sigma,backgroun
     nuedge = 0
 
     outf = open("localBoxes.txt",'w')
-    print "local max pixels " + str(len(local_max_pixels[0]))
+    #print "local max pixels " + str(len(local_max_pixels[0]))
     #print "length is: ", len(local_max_pixels[0])
     for i in xrange(len(local_max_pixels[0])):
         #print i
@@ -583,7 +588,7 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
 
     # Get Background and STD (has to be redone)
     median_img = ndimage.filters.median_filter(img, (21,21))
-    (background_mean,background_std) = (median_img.mean(),median_img.std())
+    background_mean = median_img.mean()
 
     #Fit Gauss to Image and add to Particle list if ok
     particle_list,nupart,nunocon,nunoexc,nusigma,nuedge = findParticleAndAdd(img,frame,local_max_pixels,signal_power,sigma,background_mean,sigma_thresh,eccentricity_thresh,bit_depth)

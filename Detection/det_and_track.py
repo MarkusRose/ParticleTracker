@@ -36,9 +36,6 @@ class detectAndTrack():
         self.pathway = "AnalyzedData"
 
         
-        #print len(self.img)
-        #self.img = self.img[:1]
-    
 
     def runDetectionAndTracking(self):
         # Read in setup file and sort
@@ -54,6 +51,7 @@ class detectAndTrack():
         self.readConfig("setup.txt")
         self.img = readImageList(self.imagedir)
         self.img = sorted(self.img)
+        self.img = self.img[:10]
         self.particles = self.makeDetectionsAndMark()
 
     def runTracking(self):
@@ -98,7 +96,7 @@ class detectAndTrack():
             self.lm = a[10]
             if self.lm == "#":
                 self.lm = None
-        chPath(self.pathway)
+        chPath(self.imagedir+"/../"+self.pathway)
      
         return
         

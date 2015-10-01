@@ -328,7 +328,7 @@ class guiDetection(Tkinter.Frame):
             self.printVars()
             self.destroy
             detector = Detection.detectAndTrack()
-            detector.runDetectionAndTracking()
+            detector.runDetection()
         else:
             print "Wrong inputs"
         return

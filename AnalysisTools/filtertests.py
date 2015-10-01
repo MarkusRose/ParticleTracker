@@ -97,7 +97,7 @@ def analyseImage(filename,outf,signoise):
 
 
 
-def mainTest():
+def mainTestSimulation():
     
     os.mkdir("FilterBenchmark")
     os.chdir("FilterBenchmark")
@@ -140,6 +140,16 @@ def mainTest():
             fileout.close()
             os.chdir("../")
         intcount += 1
+    return
+
+
+def realData():
+    
+    os.mkdir("RealData")
+    os.chdir("RealData")
+
+    fileout = open("ImageMomentsReal.txt",'w')
+    analyseImage("0010",fileout,
         
 
 if __name__=="__main__":
