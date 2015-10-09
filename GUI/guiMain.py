@@ -4,6 +4,7 @@ import sys
 import guiAnalysis
 import guiTracking
 import guiDetection
+import guiDetandTrack
 import guiSimulation
 
 class mainWindow(Tkinter.Tk):
@@ -11,6 +12,7 @@ class mainWindow(Tkinter.Tk):
         Tkinter.Tk.__init__(self,parent)
         self.parent = parent
         self.initialize()
+        self.dett = None
 
     def initialize(self):
         self.grid()
@@ -18,22 +20,30 @@ class mainWindow(Tkinter.Tk):
 
         def runSimulation():
             #window = Tkinter.Toplevel(None)
-            app = guiSimulation.Simulation_App(self)
+            self.dett = Tkinter.Toplevel(self)
+            self.dett.title("Simulation")
+            app = guiSimulation.Simulation_App(self.dett)
             app.grid(column=1,row=0,rowspan=12,sticky="NWSE")
             app.grid_columnconfigure(0,weight=1)
             
         def runDetection():
-            app = guiDetection.guiDetection(self)
+            self.dett = Tkinter.Toplevel(self)
+            self.dett.title("Detection")
+            app = guiDetection.guiDetection(self.dett)
             app.grid(column=1,row=0,rowspan=12,sticky="NWSE")
             app.grid_columnconfigure(0,weight=1)
 
         def runTracking():
-            app = guiTracking.guiTracking(self)
+            self.dett = Tkinter.Toplevel(self)
+            self.dett.title("Tracking")
+            app = guiTracking.guiTracking(self.dett)
             app.grid(column=1,row=0,rowspan=12,sticky="NWSE")
             app.grid_columnconfigure(0,weight=1)
         
         def runDetandTrack():
-            app = guiDetection.guiDetandTrack(self)
+            self.dett = Tkinter.Toplevel(self)
+            self.dett.title("Detection and Tracking")
+            app = guiDetandTrack.guiDetandTrack(self.dett)
             app.grid(column=1,row=0,rowspan=12,sticky="NWSE")
             app.grid_columnconfigure(0,weight=1)
         
@@ -47,11 +57,11 @@ class mainWindow(Tkinter.Tk):
         trabutton = Tkinter.Button(self, text=u"Tracking",command=runTracking)
         trabutton.grid(column=0,row=3,sticky="EW")
         detatrabutton = Tkinter.Button(self, text=u"Detect and Track",command=runDetandTrack)
-        detatrabutton.grid(column=0,row=3,sticky="EW")
+        detatrabutton.grid(column=0,row=4,sticky="EW")
         anabutton = Tkinter.Button(self, text=u"Analysis",command=runAnalysis)
-        anabutton.grid(column=0,row=4,sticky="EW")
+        anabutton.grid(column=0,row=5,sticky="EW")
         exibutton = Tkinter.Button(self, text=u"Quit", command=self.destroy)
-        exibutton.grid(column=0,row=5,sticky="EW")
+        exibutton.grid(column=0,row=6,sticky="EW")
         #exibutton.pack()
         
         self.grid_columnconfigure(0,weight=1)

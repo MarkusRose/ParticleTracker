@@ -34,6 +34,7 @@ class detectAndTrack():
         self.bFLAG = False
         self.lm = None
         self.pathway = "AnalyzedData"
+        self.notCentroid = False
 
         
 
@@ -42,6 +43,7 @@ class detectAndTrack():
         self.readConfig("setup.txt")
         self.img = readImageList(self.imagedir)
         self.img = sorted(self.img)
+        #self.img = self.img[:10]
         self.particles = self.makeDetectionsAndMark()
         self.tracks = self.makeTracks()
         print len(self.tracks)
@@ -51,7 +53,7 @@ class detectAndTrack():
         self.readConfig("setup.txt")
         self.img = readImageList(self.imagedir)
         self.img = sorted(self.img)
-        self.img = self.img[:10]
+        #self.img = self.img[:10]
         self.particles = self.makeDetectionsAndMark()
 
     def runTracking(self):
@@ -66,17 +68,15 @@ class detectAndTrack():
 
     def readConfig(self,filename):
         
-        innumber = 12
+        innumber = 13
         a = []
         infile = open(filename,'r')
         counter = 0
         for line in infile:
             counter += 1
-            if counter in xrange(5,39,3):
+            if counter in xrange(5,43,3):
                 a.append(line.split()[0])
                 continue
-            
-        #print a
         if len(a) < innumber:
             sys.exit("Input file missing {:} entries!".format(innumber-len(a)))
         elif len(a) > innumber+1:
@@ -94,6 +94,7 @@ class detectAndTrack():
             self.minTrackLen = int(a[9])
             self.pathway = a[11]
             self.lm = a[10]
+            self.notCentroid = (a[12] == "1")
             if self.lm == "#":
                 self.lm = None
         chPath(self.imagedir+"/../"+self.pathway)
@@ -101,7 +102,7 @@ class detectAndTrack():
         return
         
     def makeDetectionsAndMark(self):
-        particle_data = detectParticles.multiImageDetect(self.img,self.sigma,self.local_max_window,self.signal_power,self.bit_depth,self.eccentricity_thresh,self.sigma_thresh,self.addUp,local_max=self.lm,output=False)
+        particle_data = detectParticles.multiImageDetect(self.img,self.sigma,self.local_max_window,self.signal_power,self.bit_depth,self.eccentricity_thresh,self.sigma_thresh,self.addUp,local_max=self.lm,output=False,lmmethod=self.notCentroid)
 
         if not dataCorrect(particle_data,self.addUp):
             sys.exit("Particle data not correct")

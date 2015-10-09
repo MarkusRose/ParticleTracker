@@ -262,7 +262,7 @@ class Simulation_App(Tkinter.Frame):
         #Save settings and run simulation or cancel with buttons
         runButton = Tkinter.Button(self, text=u"Save & Run", command=self.runcomm)
         runButton.grid(column=2,row=12, sticky="EW")
-        cancelButton = Tkinter.Button(self, text=u"Cancel", command=self.destroy)
+        cancelButton = Tkinter.Button(self, text=u"Cancel", command=self.parent.destroy)
         cancelButton.grid(column=2,row=13, sticky="EW")
 
         self.grid_columnconfigure(1,weight=1)

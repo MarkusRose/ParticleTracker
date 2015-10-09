@@ -12,7 +12,9 @@ class guiDetection(Tkinter.Frame):
     def __init__(self,parent):
         Tkinter.Frame.__init__(self,parent)
         self.parent = parent
+        self.detMethod = ['Centroid','Local Maximum']
         self.doSetup()
+
 
     def doSetup(self):
         self.mainframe = ttk.Frame(self)
@@ -21,7 +23,7 @@ class guiDetection(Tkinter.Frame):
         ttk.Button(self, text="Reset", command=self.reload).grid(column=1,row=3)
 
         ttk.Button(self, text="Run", command=self.runDetection).grid(column=2,row=2, sticky="SE")
-        ttk.Button(self, text="Cancel", command=self.destroy).grid(column=2,row=3, sticky='E')
+        ttk.Button(self, text="Cancel", command=self.parent.destroy).grid(column=2,row=3, sticky='E')
         
         self.labelframe = ttk.Frame(self.mainframe)
         self.labelframe.grid(column=0, row=0)
@@ -86,17 +88,28 @@ class guiDetection(Tkinter.Frame):
         ttk.Entry(self.labelframe, textvariable = self.invar10).grid(column=2, row=10, sticky='W')
         ttk.Label(self.labelframe, textvariable=self.outvar10).grid(column=3, row=10, sticky='W')
 
+
+
+        self.invar13 = Tkinter.StringVar()
+        self.outvar13 = Tkinter.StringVar()
+        ttk.Label(self.labelframe, text="Detection Method").grid(column=1, row=11, sticky='W')
+        drop = Tkinter.OptionMenu(self.labelframe,self.invar13,*(self.detMethod))
+        drop.grid(column=2,row=11,sticky="EW")
+        ttk.Label(self.labelframe, textvariable=self.invar13).grid(column=3, row=11, sticky='W')
+
+
         self.invar11 = Tkinter.StringVar()
         self.outvar11 = Tkinter.StringVar()
-        ttk.Label(self.labelframe, text="Initial Positions File").grid(column=1, row=11, sticky='W')
-        ttk.Button(self.labelframe, text="Choose", command = lambda:self.chooseFile(self.invar11)).grid(column=2, row=11, sticky='W')
-        ttk.Label(self.labelframe, textvariable=self.invar11).grid(column=3, row=11, sticky='W')
+        ttk.Label(self.labelframe, text="Initial Positions File").grid(column=1, row=12, sticky='W')
+        ttk.Button(self.labelframe, text="Choose", command = lambda:self.chooseFile(self.invar11)).grid(column=2, row=12, sticky='W')
+        ttk.Label(self.labelframe, textvariable=self.invar11).grid(column=3, row=12, sticky='W')
 
         self.invar12 = Tkinter.StringVar()
         self.outvar12 = Tkinter.StringVar()
-        ttk.Label(self.labelframe, text="Output Folder").grid(column=1, row=12, sticky='W')
-        ttk.Entry(self.labelframe, textvariable = self.invar12).grid(column=2, row=12, sticky='W')
-        ttk.Label(self.labelframe, textvariable=self.outvar12).grid(column=3, row=12, sticky='W')
+        ttk.Label(self.labelframe, text="Output Folder").grid(column=1, row=13, sticky='W')
+        ttk.Entry(self.labelframe, textvariable = self.invar12).grid(column=2, row=13, sticky='W')
+        ttk.Label(self.labelframe, textvariable=self.outvar12).grid(column=3, row=13, sticky='W')
+
 
         for child in self.labelframe.winfo_children(): child.grid_configure(padx = 5, pady = 5)
 
@@ -169,6 +182,14 @@ class guiDetection(Tkinter.Frame):
             a = infile.readline()
             self.invar12.set(a.strip())
             self.outvar12.set(a.strip())
+            infile.readline()
+            infile.readline()
+            a = infile.readline()
+            self.outvar13.set(a.strip())
+            if self.outvar13.get() == "0":
+                self.invar13.set(self.detMethod[0])
+            else:
+                self.invar13.set(self.detMethod[1])
             infile.close()
         else:
             self.printVars()
@@ -192,16 +213,16 @@ class guiDetection(Tkinter.Frame):
             self.outvar4.set("16")
         outfile.write(self.outvar4.get()+'\n\n#Maximum Displacement:\n')
         if self.outvar5.get()=="":
-            self.outvar5.set("100")
+            self.outvar5.set("10")
         outfile.write(self.outvar5.get()+'\n\n#Number of Images to add:\n')
         if self.outvar6.get()=="":
             self.outvar6.set("1")
         outfile.write(self.outvar6.get()+'\n\n#Sigma Threshold:\n')
         if self.outvar7.get()=="":
-            self.outvar7.set("1")
+            self.outvar7.set("2")
         outfile.write(self.outvar7.get()+'\n\n#Eccentricity Threshold:\n')
         if self.outvar8.get()=="":
-            self.outvar8.set("1")
+            self.outvar8.set("3")
         outfile.write(self.outvar8.get()+'\n\n#Local_Max_Window:\n')
         if self.outvar9.get()=="":
             self.outvar9.set("10")
@@ -214,7 +235,10 @@ class guiDetection(Tkinter.Frame):
         outfile.write(self.outvar11.get()+'\n\n#Read Output Directory\n')
         if self.outvar12.get()=="":
             self.outvar12.set("AnalyzedData")
-        outfile.write(self.outvar12.get()+'\n')
+        outfile.write(self.outvar12.get()+'\n\n#Detection Method\n')
+        if self.outvar13.get()=="":
+            self.outvar13.set("0")
+        outfile.write(self.outvar13.get()+'\n')
         outfile.close()
         return
     
@@ -231,6 +255,10 @@ class guiDetection(Tkinter.Frame):
         self.outvar10.set(self.invar10.get())
         self.outvar11.set(self.invar11.get())
         self.outvar12.set(self.invar12.get())
+        if self.invar13.get() == self.detMethod[0]:
+            self.outvar13.set("0")
+        else:
+            self.outvar13.set("1")
         return 
 
 
@@ -263,7 +291,7 @@ class guiDetection(Tkinter.Frame):
                 return False
 
             #Signal power
-            if float(self.outvar3.get()) < 1:
+            if float(self.outvar3.get()) <= 0:
                 self.outvar3.set("1")
                 tkMessageBox.showwarning("Reset Value", "Value(s) was/were incorrect. Reset to defaults.")
                 return False
@@ -315,6 +343,12 @@ class guiDetection(Tkinter.Frame):
             if os.path.isdir(self.invar12.get()):
                 if not tkMessageBox.askyesno("Folder Exists!", "This folder exists. Do you want to copy over its content?"):
                     return False
+            
+            #Method of detection
+            if self.invar13 == self.detMethod[0]:
+                self.outvar13.set("0")
+            else:
+                self.outvar13.set("1")
         except ValueError:
             tkMessageBox.showerror("NaN", "One of the entries is not correct (not a number).")
             return False
@@ -323,9 +357,10 @@ class guiDetection(Tkinter.Frame):
             
             
     def runDetection(self):
+        self.updateVars()
+        self.printVars()
         if self.checkInputs():
             #print "Works now"
-            self.printVars()
             self.destroy
             detector = Detection.detectAndTrack()
             detector.runDetection()

@@ -48,7 +48,7 @@ def multiImageDetect(img,
                     signal_power,
                     bit_depth,
                     eccentricity_thresh,
-                    sigma_thresh,numAdder,local_max=None,output=False):
+                     sigma_thresh,numAdder,local_max=None,output=False,lmmethod=False):
     particle_data = []
     frame = 0
     outfile2 = open("foundCentroids.txt",'w')
@@ -94,7 +94,8 @@ def multiImageDetect(img,
             a = np.zeros(image.shape)
             for j in xrange(numAdder):
                 a += readImage.readImage(img[i-j])
-
+            a /= numAdder
+            
         if output:
             readImage.saveImageToFile(a,"01sanityCheck{:0004d}.png".format(frame))
 
@@ -109,7 +110,8 @@ def multiImageDetect(img,
                     frame,
                     eccentricity_thresh,
                     sigma_thresh,
-                    output=output)
+                    output=output,
+                    lmm=lmmethod)
         else:
             particles = detectParticles(
                     a,
@@ -121,7 +123,8 @@ def multiImageDetect(img,
                     eccentricity_thresh,
                     sigma_thresh,
                     local_max_pixels=local_max_pixels[i],
-                    output=output)
+                    output=output,
+                    lmm=lmmethod)
 
         outMarkedImages(a,particles,"out{:0004d}.tif".format(frame))
         a = np.zeros(image.shape)
@@ -350,7 +353,7 @@ def readBox(inf):
     
 ######### Important functions##############################
     
-def filterImage(image,sigma,local_max_window,signal_power,output):
+def filterImage(image,sigma,local_max_window,signal_power,output,lmm):
     median_img = ndimage.filters.median_filter(image, (21,21))
     if False:
         readImage.saveImageToFile(median_img,"05MedianFilter1.png")
@@ -374,8 +377,7 @@ def filterImage(image,sigma,local_max_window,signal_power,output):
     (background_mean,background_std) = (gausFiltImage.mean(),gausFiltImage.std())
     #cutoff = readImage.otsuMethod(image)
     cutoff = background_mean + signal_power * background_std
-
-    if True:
+    if lmm:
         #LocalMaximaMethod
         return (localMaximaMethod(gausFiltImage,local_max_window,cutoff,output),cutoff,background_mean)
     else:
@@ -453,14 +455,6 @@ def centroidMethod(gausFiltImage,cutoff,output):
             clusterImage[i,j+1] = clco
             toDo.append([i,j+1])
     
-    '''
-    cccc = 0
-    for i in clusterImage:
-        for j in i:
-            if j==-1:
-                cccc+=1
-    print cccc
-    '''
     toDo = []
     clco = 0
     countnet1 = 0
@@ -484,6 +478,16 @@ def centroidMethod(gausFiltImage,cutoff,output):
     #print countnet1
     local_max_pixels = [[],[]]
     '''
+    #DEBUG: check all is clustered
+    cccc = 0
+    for i in clusterImage:
+        for j in i:
+            if j==-1:
+                cccc+=1
+    print cccc
+    '''
+    '''
+    #OLD CLUSTERING METHOD (computationally unefficient)
     while clco > 0:
         #calculate center of mass
         x = 0
@@ -499,6 +503,28 @@ def centroidMethod(gausFiltImage,cutoff,output):
         local_max_pixels[1].append((1.0*y)/sizeOC)
         clco -= 1
     '''
+    #apply size restrictions
+    '''
+    sizecheck = []
+    i = 0
+    while i < len(clusters):
+        sizecheck.append(len(clusters[i]))
+        i += 1
+    print("\nNumber of clusters detected: " + str(len(clusters)))
+    print("Cluster size: " + str(np.array(sizecheck).mean()) + " +- " + str(np.array(sizecheck).std()) + "\n")
+    '''
+    #sizecheck = []
+    i = 0
+    while i < len(clusters):
+        if len(clusters[i]) < 5:
+            clusters.pop(i)
+            continue
+        else:
+            #sizecheck.append(len(clusters[i]))
+            i += 1
+    #print("\nNumber of clusters after restrict: " + str(len(clusters)))
+    #print("Cluster size: " + str(np.array(sizecheck).mean()) + " +- " + str(np.array(sizecheck).std()) + "\n")
+
     for clust in clusters:
         #calculate centroid for each cluster and append
         x = 0
@@ -565,13 +591,13 @@ def findParticleAndAdd(image,frame,local_max_pixels,signal_power,sigma,backgroun
 ##################################
 
 
-def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,eccentricity_thresh,sigma_thresh,local_max_pixels=None,output=False):
-
+def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,eccentricity_thresh,sigma_thresh,local_max_pixels=None,output=False,lmm=False):
+    
     #Check if initial positions are given
     if (local_max_pixels is None):
         #Filter Image and get initial particle positions
         #print "get local maxima"
-        local_max_pixels,cutoff,background_mean = filterImage(img,sigma,local_max_window,signal_power,output)
+        local_max_pixels,cutoff,background_mean = filterImage(img,sigma,local_max_window,signal_power,output,lmm)
     else:
         cutoff = 0
     #print "               1"

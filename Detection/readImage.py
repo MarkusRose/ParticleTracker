@@ -21,7 +21,7 @@ def readImage(imagepath):
     elif inImage.mode == 'I;16':
         bit_depth = 16
     else:
-        print("Bit_depth unknown, set to 16bit")
+#        print("Bit_depth unknown, set to 16bit")
         bit_depth = 16
 
 #    print inImage.size

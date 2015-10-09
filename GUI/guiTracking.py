@@ -21,7 +21,7 @@ class guiTracking(Tkinter.Frame):
         ttk.Button(self, text="Reset", command=self.reload).grid(column=1,row=3)
 
         ttk.Button(self, text="Run", command=self.runDetection).grid(column=2,row=2, sticky="SE")
-        ttk.Button(self, text="Cancel", command=self.destroy).grid(column=2,row=3, sticky='E')
+        ttk.Button(self, text="Cancel", command=self.parent.destroy).grid(column=2,row=3, sticky='E')
         
         self.labelframe = ttk.Frame(self.mainframe)
         self.labelframe.grid(column=0, row=0)

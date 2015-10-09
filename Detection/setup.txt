@@ -31,8 +31,11 @@
 #Minimum track length:
 3
 
-#Read Output Directory
+#Read Initial position from:
 SimData
 
-#Read Initial position from:
-#
+#Read Output Directory
+0
+
+#Detection Method
+0
