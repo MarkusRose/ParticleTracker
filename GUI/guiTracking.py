@@ -73,7 +73,8 @@ class guiTracking(Tkinter.Frame):
         for child in self.labelframe.winfo_children(): child.grid_configure(padx = 5, pady = 5)
 
         self.reload()
-    
+
+        return    
 
 
     def reload(self):
@@ -252,4 +253,3 @@ if __name__ == "__main__":
     app = guiTracking(root)
     app.pack()
     root.mainloop()
-
