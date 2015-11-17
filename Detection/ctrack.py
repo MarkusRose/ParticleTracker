@@ -13,6 +13,7 @@ import os
 import time
 import sys
 import pysm.new_cython
+import System.Fileio as Fileio
 from scipy import io
 
 import numpy as np
@@ -409,6 +410,7 @@ def link_particles(particle_data, max_displacement,
     
     print("Done Linking")
     writeTrajectories(trajectories)
+    #Fileio.setTrackFile(trajectories)
     return trajectories
                         
 def build_cost_matrix(

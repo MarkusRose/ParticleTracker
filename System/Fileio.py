@@ -12,9 +12,11 @@ import math
 import random
 import os
 import sys
+import csv
 
 import numpy as np
 import copy
+
 
 #System Properties
 #-----------------
@@ -136,13 +138,14 @@ Particle1 = [frame, dx, dy, x, y, state, Intensity,
 '''
 #setter
 def setTrackFile(detTracks):
-    outfile = open("Tracks.txt",'w')
+    outfile = open("foundTracks.txt",'w')
     outfile.write("#All found tracks\n")
 
     for track in xrange(len(detTracks)):
         outfile.write("\n")
         outfile.write("#Track "+str(track+1)+":\n")
         outfile.write("#Frame  dX  dY  X_pos  Y_pos  State  Intensity  Background  sigma_X  sigma_Y  ParticleID\n")
+        print detTracks[track]
         for particle in detTracks[track]:
             for prop in particle:
                 outfile.write(str(prop) + " ")
@@ -152,12 +155,22 @@ def setTrackFile(detTracks):
     outfile.close()                        
     return
 
+def writeTrackCSV(tracks):
+    with open("foundTracks.csv",'w') as csvfile:
+        csvwriter = csv.writer(csvfile,delimiter=',')
+        head = ["Frame","dX","dY","X_pos","Y_pos","State","Intensity","Background","sigma_X","sigma_Y","ParticleID"]
+        csvwriter.writerow(head)
+        for track in tracks:
+            csvwriter.writerows(track)
+    return
+        
+
 #getter
 def getTrackFile():
     alltracks = []
     track = []
     particle = []
-    infile = open("Tracks.txt",'r')
+    infile = open("foundTracks.txt",'r')
     openTrack = 0
     for line in infile:
         if line[0] == '#':
@@ -176,6 +189,31 @@ def getTrackFile():
             particle = []
                 
     return alltracks
+
+def readTrackCSV(tracks):
+    with open("foundTracks.csv",'r') as csvfile:
+        csvreader = csv.reader(csvfile,delimiter=',')
+        alltracks = []
+        inarray = []
+        csvreader.next()
+        for row in csvreader:
+            inarray.append(np.array(map(float,row)))
+
+        part_id = inarray[0][-1]
+        print part_id
+        track = []
+        for part in inarray:
+            if part[-1] != part_id:
+                alltracks.append(list(track))
+                part_id = part[-1]
+                track = []
+            else:
+                track.append(part)
+        if len(track) != 0:
+            alltracks.append(list(track))
+            track = []
+        
+        return alltracks
 
 
 #Convert Tracks to Frames
@@ -209,6 +247,47 @@ def tracksToFrames(alltracks):
 #Read and write tiff Images
 #--------------------------
 #setter
+'''First we have to read the image'''
+def readImage(imagepath):
+    inImage = Image.open(imagepath)
+    bit_depth = 16
+    if inImage.mode == 'L':
+        bit_depth = 8
+    elif inImage.mode == 'I;16':
+        bit_depth = 16
+    else:
+#        print("Bit_depth unknown, set to 16bit")
+        bit_depth = 16
+
+#    print inImage.size
+    a = np.asarray(inImage.getdata())
+#    print a.shape
+    a = np.resize(a.astype(float),(inImage.size[1],inImage.size[0]))
+#    print a.shape
+    return adjustRange(a,bit_depth)
+
+
+'''
+Image is not read as unsigned integer, so range is [-2^(bit/2),(2^(bit/2)-1)]
+Range must be adjusted to [0,2^(bit)-1]
+'''
+def adjustRange(image,bit_depth):
+    '''
+    print(image.min())
+    print
+    '''
+    for i in xrange(len(image)):
+        for j in xrange(len(image[i])):
+            if image[i,j] < 0:
+                #print(image.min())
+                image[i,j] = 65536 + image[i,j]
+                #print(image.min())
+    '''
+    print
+    print(image.min())
+    '''
+    return image/(1.0*(2**bit_depth))
+
 def setImages():
     print "Hello World!"
 
@@ -300,11 +379,6 @@ the rest works
 
 
 if __name__=="__main__":
-    mu = 10000
-    sigma = 0
-    d = makeImage([[1,34.4,34.4,0,0,500]],1111,".",512,0.16,(0.5*0.7/1.45/0.16)**2,mu,sigma)
-    print abs(np.mean(d))
-    print abs(np.std(d,ddof=1))
-    print d.shape
-    
+    tracks = readTrackCSV("foundTracks.csv")
+    print len(tracks[0])
 
