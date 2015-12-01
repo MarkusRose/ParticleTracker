@@ -240,14 +240,16 @@ def eedispllist(tracks):
 def diffConstDistrib(tracks):
 
     print "Starting Analysis of " + str(len(tracks)) + " single tracks."
-    print "    This will take a while..."
-    print "        (creating a list of MSD from all tracks; this takes long...)"
+    print "....This will take a while..."
+    print "........(creating a list of MSD from all tracks; this takes long...)"
     msdlist = map(msd,tracks)
-    print "        (finding diffusion coefficient from all MSDs from list)"
+    print "........(finding diffusion coefficient from all MSDs from list)"
     Dlist = findDiffConsts(msdlist)
-    print "        (finding the lengths of the single tracks)"
-    lenList= map(len,tracks)
-
+    print "The average diffusion coefficient is: " + str(Dlist.mean()) + " +- " + str(Dlist.std()) + " px^2/frame"
+    print "........(finding the lengths of the single tracks)"
+    lenList= np.array(map(len,tracks))
+    print "The average track length is: " + str(lenList.mean()) + " +- " + str(lenList.std()) + " px^2/frame"
+    
     print 
     print "Diffusion coefficient distribution of " + str(len(tracks)) + " tracks."
     histo = np.histogram(Dlist,bins=10,range=(0,10),density=True)
