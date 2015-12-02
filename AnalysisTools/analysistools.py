@@ -18,18 +18,19 @@ import matplotlib.pyplot as plt
 
 bCleanUpTracks = True
 bSingleTrackEndToEnd = True
-bSingleTrackMSDanalysis = False
+bSingleTrackMSDanalysis = True
 bCombineTrack = True
 
 #combined Track input
 lenMSD_ct = 25
+plotlen = 5 #gives the range of the distribution plots
 
 
 #single track analysis input
-minTrLength = 30
+minTrLength = 1
 
 #debugging variables:
-testing = True
+testing = False
 
 #========================================
 # Program functions
@@ -37,7 +38,7 @@ testing = True
 #++++++++++++++++++++++++++++++++++++++++
 
 '''
-basic functions: Read in tracks, MSD, 
+basic functions: Read in tracks, MSD, r^2-distribution, xy-stepsize-distribution
 '''
 
 #read in Tracks
@@ -183,29 +184,49 @@ def printMultiArrayToFile(arr,fopen,sepword="Track",head=None):
         printArrayToFile(mem,fopen,head=head)
         fopen.write("\n\n")
 
-def plotTrack(track):
+def plotTrack(track,title="Track",save=False):
     plt.plot(track[1],track[2],'k')
+    plt.xlabel("x [px]")
+    plt.ylabel("y [px]")
+    if save:
+        plt.savefig(title+"-plot.eps",format="eps", dpi=600)
+    plt.title(title)
     plt.show()
     return
     
-def plotMSD(msd,D):
+def plotMSD(msd,D,title="Mean-Squared-Displacement",save=False):
     plt.plot(msd[:,0],msd[:,1],'ro')
     ran = np.arange(msd[-1,0])
     plt.plot(ran,4*D*ran,'k')
+    plt.xlabel("time lag [frameinterval]")
+    plt.ylabel("MSD [px^2/frameinterval]")
+    if save:
+        plt.savefig(title+"-plot.eps",format="eps", dpi=600)
+    plt.title(title)
     plt.show()
 
-def plotDistro(distro):
+def plotDistro(distro,xlabel,title,save=False):
     dbox = distro[1][1] - distro[1][0]
     xran = distro
     print xran
     plt.plot(distro[1][:-1]+dbox*0.5,distro[0],'k')
+    plt.xlabel(xlabel)
+    plt.ylabel("Normalized counts")
+    if save:
+        plt.savefig(title+"-plot.eps",format="eps", dpi=600)
+    plt.title(title)
     plt.show()
     return
 
-def plotMultidistro(distarray):
+def plotMultidistro(distarray,xlabel,title,save=False):
     for elem in distarray:
         dbox = elem[1][1]-elem[1][0]
         plt.plot(elem[1][:-1]+dbox*0.5,elem[0],'o')
+    plt.xlabel(xlabel)
+    plt.ylabel("Normalized counts")
+    if save:
+        plt.savefig(title+"-plot.eps",format="eps", dpi=600)
+    plt.title(title)
     plt.show()
     return
 
@@ -264,6 +285,8 @@ def tenMediumTracks(tracks):
 
 
 def endToEnd2(track):
+    if len(track) == 1:
+        return 0
     dx = track[-1,1]-track[0,1]
     dy = track[-1,2]-track[0,2]
     return dx**2+dy**2
@@ -275,6 +298,7 @@ def endToEnd2(track):
 #=== Single Track Analysis ==============
 def eedispllist(tracks):
     eedispl2 = map(endToEnd2,tracks)
+    print eedispl2
     eedispl = np.sqrt(eedispl2)
     print "Analyzing the End-To-End distribution of " + str(len(tracks)) + " tracks."
     histo = np.histogram(eedispl,bins=100,density=True)
@@ -301,14 +325,12 @@ def diffConstDistrib(tracks):
     msdlist = map(msd,tracks)
     print "........(finding diffusion coefficient from all MSDs from list)"
     Dlist = findDiffConsts(msdlist)
-    print "The average diffusion coefficient is: " + str(Dlist.mean()) + " +- " + str(Dlist.std()) + " px^2/frame"
+    print ">>>> The average diffusion coefficient is: " + str(Dlist.mean()) + " +- " + str(Dlist.std()) + " px^2/frame"
     print "........(finding the lengths of the single tracks)"
     lenList= np.array(map(len,tracks))
-    print "The average track length is: " + str(lenList.mean()) + " +- " + str(lenList.std()) + " px^2/frame"
-    
-    print 
-    print "Diffusion coefficient distribution of " + str(len(tracks)) + " tracks."
-    histo = np.histogram(Dlist,bins=10,range=(0,10),density=True)
+    print ">>>> The average track length is: " + str(lenList.mean()) + " +- " + str(lenList.std()) + " px^2/frame"
+    print "Showing: Diffusion coefficient distribution of " + str(len(tracks)) + " tracks."
+    histo = np.histogram(Dlist,bins=100,range=(0,10),density=True)
     plt.plot(histo[1][1:]-(histo[1][1]-histo[1][0])/2,histo[0],'ro')
     #plt.axis([0,10,0,1])
     plt.title("Diffusion Coefficient Distribution")
@@ -322,7 +344,7 @@ def diffConstDistrib(tracks):
     fo = open("diffConstDistro.txt",'w')
     printArrayToFile(outarray,fo,head=["diffConst(pixel**2/frame)","relativeCounts"])
     
-    print "Length of tracks distribution for " + str(len(tracks)) + " tracks."
+    print "Showing: Length of tracks distribution for " + str(len(tracks)) + " tracks."
     lenhist = np.histogram(lenList,bins=100,density=True)
     plt.plot(lenhist[1][1:]-(lenhist[1][1]-lenhist[1][0])/2,lenhist[0],'ro')
     #plt.axis([0,30,0,1])
@@ -335,7 +357,7 @@ def diffConstDistrib(tracks):
     fo = open("lengthDistro.txt",'w')
     printArrayToFile(outarray,fo,head=["track-length(frame)","relativeCounts"])
 
-    print "Dependence of the diffusion coefficient on the track length of " + str(len(tracks)) + " individual tracks."
+    print "Showing: Dependence of the diffusion coefficient on the track length of " + str(len(tracks)) + " individual tracks."
     nubin = 30
     wbin = (lenhist[1][-1]-lenhist[1][0])/nubin
     bincount = 1
@@ -399,11 +421,41 @@ def analyzeCombinedTrack(tracks,lenMSD=500):
     print "Creating MSD for combined track."
     ct_msd = msd(ct,length=lenMSD)
     ct_diffconst = findDiffConsts([ct_msd])[0]
-    print "-ct: Found diffusion coefficient: " + str(ct_diffconst[1]) + " px^2/frameinterval"
+    print ">>>> Found diffusion coefficient: " + str(ct_diffconst[1]) + " px^2/frameinterval"
     of = open("MSD-combinedTrack.txt",'w')
     printArrayToFile(ct_msd,of,head=["Stepsize","MSD"])
     plotMSD(ct_msd,ct_diffconst[1])
+    print "Starting Distribution Analysis"
+    distributionAnalysis(ct,plotlen)
     return ct_diffconst
+
+def distributionAnalysis(track,plotlen):
+    dipllist = relativeSteps(track)
+    print "....Saving Displacements to file."
+    outfile = open("combinedTrack-relativeXYDisplacements.txt",'w')
+    printArrayToFile(dipllist,outfile,["Steppingtime","dx","dy"])
+    
+    print "....Creating r^2-distribution"
+    r2 = r2distro(dipllist)
+    histograms = []
+    counter = 0
+    for elr2 in r2:
+        histo = np.histogram(elr2,bins=100,range=(0,plotlen),density=True)
+        counter += 1
+        histograms.append(list(histo))
+    plotMultidistro([histograms[i] for i in [0,4,8,16]],xlabel="r^2 [px^2]",title="r2-Distribution-combTr")
+    
+    print "....Creating distribution of stepsizes in x and y"
+    dispdist = displacementDistro(dipllist)
+    histograms = []
+    counter = 0
+    for elr2 in dispdist:
+        histo = np.histogram(elr2,bins=100,range=(-plotlen,plotlen),density=True)
+        counter += 1
+        histograms.append(list(histo))
+    plotMultidistro([histograms[i] for i in [0,4,8,16]],xlabel="dx and dy [px]",title="xy-Distribution-combTr")
+    return
+    
 #===========================================
 
 
@@ -412,28 +464,8 @@ def analyzeCombinedTrack(tracks,lenMSD=500):
 def testfunctions():
     tracks = readTracks("foundTracks.txt")
     ct = combineTracks(tracks)
-    dipllist = relativeSteps(ct)
-    r2 = r2distro(dipllist)
-    histograms = []
-    counter = 0
-    for elr2 in r2:
-        histo = np.histogram(elr2,bins=100,range=(0,3),density=True)
-        if counter == 3:
-            print histo
-            break
-        counter += 1
-        histograms.append(list(histo))
-    plotMultidistro(histograms)
-    dispdist = displacementDistro(dipllist)
-    histograms = []
-    counter = 0
-    for elr2 in dispdist:
-        histo = np.histogram(elr2,bins=100,range=(-2,2),density=True)
-        if counter == 3:
-            break
-        counter += 1
-        histograms.append(list(histo))
-    plotMultidistro(histograms)
+    distributionAnalysis(ct,plotlen)
+
     return
 #================================================
 
@@ -457,6 +489,8 @@ def main():
     for i in tracks:
         if len(i) >= minTrLength:
             considered.append(i)
+    if len(considered) == 0:
+        print "Tracks are too short! Please adjust 'minTrackLen' to a lower value!"
     if bSingleTrackEndToEnd:
         print
         print
@@ -474,7 +508,6 @@ def main():
         print
         print "Starting Combined Track Analysis"
         print "--------------------------------"
-        print
         analyzeCombinedTrack(tracks,lenMSD=lenMSD_ct)
     raw_input("Press Enter to finish...")
     return
