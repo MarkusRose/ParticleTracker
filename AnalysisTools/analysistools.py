@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 
 bCleanUpTracks = True
 bSingleTrackEndToEnd = True
-bSingleTrackMSDanalysis = True
+bSingleTrackMSDanalysis = False
 bCombineTrack = True
 
 #combined Track input
@@ -298,7 +298,6 @@ def endToEnd2(track):
 #=== Single Track Analysis ==============
 def eedispllist(tracks):
     eedispl2 = map(endToEnd2,tracks)
-    print eedispl2
     eedispl = np.sqrt(eedispl2)
     print "Analyzing the End-To-End distribution of " + str(len(tracks)) + " tracks."
     histo = np.histogram(eedispl,bins=100,density=True)
