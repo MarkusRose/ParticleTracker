@@ -6,8 +6,6 @@
 #=====================================
 
 
-
-
 import numpy as np
 import math
 from scipy.optimize import curve_fit
@@ -31,7 +29,7 @@ lenMSD_ct = 25
 minTrLength = 30
 
 #debugging variables:
-testing = False
+testing = True
 
 #========================================
 # Program functions
@@ -39,7 +37,7 @@ testing = False
 #++++++++++++++++++++++++++++++++++++++++
 
 '''
-basic functions: Read in tracks, MSD,
+basic functions: Read in tracks, MSD, 
 '''
 
 #read in Tracks
@@ -77,7 +75,49 @@ def cleanTracksFile(tracks):
     printMultiArrayToFile(tracks,outfile,head=head)
     return
 
+def relativeSteps(track):
+    relsteps = []
 
+    for i in xrange(1,len(track),1):
+        saver = []
+        for j in xrange(3):
+            saver.append(track[i][j] - track[i-1][j])
+        relsteps.append(np.array(saver))
+
+    return np.array(relsteps)
+
+def r2distro(relsteps):
+    r2 = []
+    for i in xrange(min(20,len(relsteps))):
+        saver = []
+        for j in xrange(len(relsteps)-i):
+            dx = 0
+            dy = 0
+            for k in xrange(i+1):
+                dx += relsteps[j+k][1]/relsteps[j+k][0]
+                dy += relsteps[j+k][2]/relsteps[j+k][0]
+            saver.append(dx**2+dy**2)
+        r2.append(np.array(saver))
+    return r2
+
+
+def displacementDistro(relsteps):
+    displ = []
+    for i in xrange(min(20,len(relsteps))):
+        saver = []
+        for j in xrange(len(relsteps)-i):
+            dx = 0
+            dy = 0
+            for k in xrange(i+1):
+                dx += relsteps[j+k][1]/relsteps[j+k][0]
+                dy += relsteps[j+k][2]/relsteps[j+k][0]
+            saver.append(dx)
+            saver.append(dy)
+        displ.append(np.array(saver))
+    return displ
+
+
+    
 def msd(track,length=500):
     msd = []
     l = length + 1
@@ -153,6 +193,22 @@ def plotMSD(msd,D):
     ran = np.arange(msd[-1,0])
     plt.plot(ran,4*D*ran,'k')
     plt.show()
+
+def plotDistro(distro):
+    dbox = distro[1][1] - distro[1][0]
+    xran = distro
+    print xran
+    plt.plot(distro[1][:-1]+dbox*0.5,distro[0],'k')
+    plt.show()
+    return
+
+def plotMultidistro(distarray):
+    for elem in distarray:
+        dbox = elem[1][1]-elem[1][0]
+        plt.plot(elem[1][:-1]+dbox*0.5,elem[0],'o')
+    plt.show()
+    return
+
 #=====================================
 
 def linfun(x,D):
@@ -355,7 +411,29 @@ def analyzeCombinedTrack(tracks,lenMSD=500):
 #====== Test new functions here ==================
 def testfunctions():
     tracks = readTracks("foundTracks.txt")
-    analyzeCombinedTrack(tracks,lenMSD=lenMSD_ct)
+    ct = combineTracks(tracks)
+    dipllist = relativeSteps(ct)
+    r2 = r2distro(dipllist)
+    histograms = []
+    counter = 0
+    for elr2 in r2:
+        histo = np.histogram(elr2,bins=100,range=(0,3),density=True)
+        if counter == 3:
+            print histo
+            break
+        counter += 1
+        histograms.append(list(histo))
+    plotMultidistro(histograms)
+    dispdist = displacementDistro(dipllist)
+    histograms = []
+    counter = 0
+    for elr2 in dispdist:
+        histo = np.histogram(elr2,bins=100,range=(-2,2),density=True)
+        if counter == 3:
+            break
+        counter += 1
+        histograms.append(list(histo))
+    plotMultidistro(histograms)
     return
 #================================================
 
