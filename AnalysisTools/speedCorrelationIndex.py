@@ -97,8 +97,12 @@ def sci(track,L):
 
 def main():
     tracks = readTracks("foundTracks.txt")
-    ct = combineTracks(tracks[0:11])
-    C = sci(ct,100)
+    ct = combineTracks(tracks[:30])
+    plt.plot(ct[:,1],ct[:,2],'k')
+    plt.xlabel("x [px]")
+    plt.ylabel("y [px]")
+    plt.show()
+    C = sci(ct,90)
     print C
     plt.plot(C,'k')
     plt.show()

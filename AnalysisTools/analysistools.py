@@ -18,16 +18,16 @@ import matplotlib.pyplot as plt
 
 bCleanUpTracks = True
 bSingleTrackEndToEnd = True
-bSingleTrackMSDanalysis = False
+bSingleTrackMSDanalysis = True
 bCombineTrack = True
 
 #combined Track input
-lenMSD_ct = 25
+lenMSD_ct = 100
 plotlen = 5 #gives the range of the distribution plots
 
 
 #single track analysis input
-minTrLength = 1
+minTrLength = 30
 
 #debugging variables:
 testing = False
@@ -300,12 +300,14 @@ def eedispllist(tracks):
     eedispl2 = map(endToEnd2,tracks)
     eedispl = np.sqrt(eedispl2)
     print "Analyzing the End-To-End distribution of " + str(len(tracks)) + " tracks."
-    histo = np.histogram(eedispl,bins=100,density=True)
-    plt.plot(histo[1][1:]-(histo[1][1]-histo[1][0])/2,histo[0],'ro')
+    histo = np.histogram(eedispl,bins=100,range=(0,10),density=True)
+    plt.plot(histo[1][1:]-(histo[1][1]-histo[1][0])/2,histo[0],'ro',histo[1][1:]-(histo[1][1]-histo[1][0])/2,histo[0],'-')
     #plt.axis([0,3,0,1])
     plt.title("End-To-End Track Length Distribution")
     plt.ylabel("relative Counts")
     plt.xlabel("End to end displacement (pixel)")
+    plt.xscale('log')
+    plt.axis([0.05,12,0,0.8])
     plt.savefig('EndToEndDistrib.eps', format='eps', dpi=600)
     plt.show()
 
@@ -490,6 +492,8 @@ def main():
             considered.append(i)
     if len(considered) == 0:
         print "Tracks are too short! Please adjust 'minTrackLen' to a lower value!"
+        raw_input("Please restart again...")
+        return
     if bSingleTrackEndToEnd:
         print
         print
