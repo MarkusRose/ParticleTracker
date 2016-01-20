@@ -19,12 +19,12 @@ class mainWindow(Tkinter.Tk):
         #self.geometry("320x400")
 
         def runSimulation():
-            #window = Tkinter.Toplevel(None)
             self.dett = Tkinter.Toplevel(self)
             self.dett.title("Simulation")
             app = guiSimulation.Simulation_App(self.dett)
             app.grid(column=1,row=0,rowspan=12,sticky="NWSE")
             app.grid_columnconfigure(0,weight=1)
+            return
             
         def runDetection():
             self.dett = Tkinter.Toplevel(self)
@@ -32,6 +32,7 @@ class mainWindow(Tkinter.Tk):
             app = guiDetection.guiDetection(self.dett)
             app.grid(column=1,row=0,rowspan=12,sticky="NWSE")
             app.grid_columnconfigure(0,weight=1)
+            return
 
         def runTracking():
             self.dett = Tkinter.Toplevel(self)
@@ -39,6 +40,7 @@ class mainWindow(Tkinter.Tk):
             app = guiTracking.guiTracking(self.dett)
             app.grid(column=1,row=0,rowspan=12,sticky="NWSE")
             app.grid_columnconfigure(0,weight=1)
+            return
         
         def runDetandTrack():
             self.dett = Tkinter.Toplevel(self)
@@ -46,6 +48,7 @@ class mainWindow(Tkinter.Tk):
             app = guiDetandTrack.guiDetandTrack(self.dett)
             app.grid(column=1,row=0,rowspan=12,sticky="NWSE")
             app.grid_columnconfigure(0,weight=1)
+            return
         
         def runAnalysis():
             print "Analyzing"
