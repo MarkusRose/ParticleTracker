@@ -10,6 +10,7 @@ import numpy as np
 import math
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
+import sys
 
 
 #========================================
@@ -17,14 +18,15 @@ import matplotlib.pyplot as plt
 #========================================
 
 bCleanUpTracks = True
-bSingleTrackEndToEnd = True
-bSingleTrackMSDanalysis = True
+bSingleTrackEndToEnd = False
+bSingleTrackMSDanalysis = False
 bCombineTrack = True
 
 #combined Track input
 lenMSD_ct = 100
 plotlen = 5 #gives the range of the distribution plots
 
+infilename = "foundTrackscomb.txt"
 
 #single track analysis input
 minTrLength = 30
@@ -479,13 +481,14 @@ def main():
     if (not bSingleTrackEndToEnd) and (not bSingleTrackMSDanalysis) and (not bCombineTrack):
         return
     
-    tracks = readTracks("foundTracks.txt")
+    tracks = readTracks(infilename)
+    
     if bCleanUpTracks:
         print
         print "Cleaning Track File from NAN"
         print "----------------------------"
         cleanTracksFile(tracks)
-
+    
     considered = []
     for i in tracks:
         if len(i) >= minTrLength:
@@ -500,6 +503,9 @@ def main():
         print "Starting End-To-End Displacement Analysis for single tracks"
         print "-----------------------------------------------------------"
         eehisto = eedispllist(considered)
+    if len(considered) > 100:
+        considered = considered[:100]
+    
     if bSingleTrackMSDanalysis:
         print
         print
@@ -511,7 +517,7 @@ def main():
         print
         print "Starting Combined Track Analysis"
         print "--------------------------------"
-        analyzeCombinedTrack(tracks,lenMSD=lenMSD_ct)
+        analyzeCombinedTrack(considered,lenMSD=lenMSD_ct)
     raw_input("Press Enter to finish...")
     return
 #=====================================

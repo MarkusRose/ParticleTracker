@@ -1,6 +1,7 @@
 
 Fileio.pyc
 *.txt
+*.csv
 testertexts/
 GUI/__init__.pyc
 GUI/guiMain.pyc
