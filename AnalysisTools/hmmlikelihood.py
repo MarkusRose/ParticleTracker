@@ -105,7 +105,7 @@ def doMetropolis2(allTracks):
     
     # Select a track by particle ID (the last column) and extract particle positions
     particleID = 0
-    dr = allTracks[:, [1,2]]
+    dr = allTracks[allTracks[:,-1] == particleID][:, [1,2]]
     
     # Compute squared displacements for selected track
     dr2 = np.sum(dr**2, axis=1)
@@ -113,12 +113,13 @@ def doMetropolis2(allTracks):
     #dr2 = sqdis(allTracks)
 
 
-    dt = 0.1
-    N = 100
+    dt = 1.
     theta = []
     L = []
     vartheta = np.array([4,4,0.2,0.2])
-    theta.append(np.array([10,-5,0.1,0.1]))
+    minvarp = 0.005
+    minvarD = 0.0005/dt
+    theta.append(np.array([-3,-5,0.1,0.1]))
     proptheta = theta[-1][:]
 
     ll = loglikelihood(proptheta, dr2, dt)
@@ -129,7 +130,7 @@ def doMetropolis2(allTracks):
     
     outfile = open("hiddenMCMC2.txt",'w')
     outfile.write("#Hidden Markov Chain Monte Carlo\n")
-    outfile.write("# LogLikelyhood   x   y\n")
+    outfile.write("# LogLikelyhood   D1  D2    p12    p21    dD1    dD2   dp12    dp21\n")
     outfile.write(str(L[-1]) + ' ' + str(theta[-1][0]) + ' ' + str(theta[-1][1]) + '\n')
     outpropsf = open("proposedHMM.txt",'w')
     outpropsf.write("# LogLikelyhood   x   y\n")
@@ -137,13 +138,14 @@ def doMetropolis2(allTracks):
     breakout = False
     
     i = 0
+    numbreakers = 0
+    numminvar = 0
     while True:
         Lmax = L[-1]
         index = 0
         props = []
         props.append([Lmax, theta[-1][0], theta[-1][1], theta[-1][2], theta[-1][3]])
         j = 0
-        C = 1000
         #for j in xrange(100):
         while j < 100 or Lmax <= L[-1]:
             dtheta = np.zeros((4))
@@ -170,7 +172,7 @@ def doMetropolis2(allTracks):
                 Lmax = Ltest
                 index = j+1
             j+=1
-            if j > 10000:
+            if j > 1000:
                 breakout = True
                 break
         print j
@@ -179,31 +181,61 @@ def doMetropolis2(allTracks):
         L.append(props[index][0])
         print i
         i += 1
-        C += 1000
         outfile.write(str(L[-1]))
-        for k in xrange(2):
+        for k in xrange(4):
             outfile.write(' ' + str(theta[-1][k]))
+        for k in xrange(4):
+            outfile.write(' ' + str(vartheta[k]))
         outfile.write('\n')
         print L[-1], 10**theta[-1][0], 10**theta[-1][1], theta[-1][2], theta[-1][3]
+        flag = False
         if breakout:
+            numbreakers += 1
+            flag = True
             for l in xrange(len(vartheta)):
                 if l in [2,3]:
-                    vartheta[l] /= 2.0
+                    if vartheta[l] > minvarp**2:
+                        vartheta[l] /= 2.0
+                        flag = flag and False
+                    else:
+                        vartheta[l] = minvarp**2
+                        flag = flag and True
                 else:
-                    vartheta[l] /= 2.0
+                    if (10**(theta[-1][l]+np.sqrt(vartheta[l]))-10**(theta[-1][l])) > minvarD*2:
+                        vartheta[l] /= 2.0
+                        flag = flag and False
+                    else:
+                        vartheta[l] = (np.log10(minvarD + 10**(theta[-1][l]))-theta[-1][l])**2
+                        flag = flag and True
+            if flag:
+                numminvar += 1
+            else:
+                numminvar = 0
             print "TRUE", vartheta
+            print numbreakers, numminvar, flag
             breakout = False
-        if vartheta[0] < 0.001:
+        else:
+            if len(theta) < 2:
+                continue
+            for l in xrange(len(theta[-1])):
+                if l in [2,3]:
+                    if (theta[-1][l] - theta[-2][l])**2 > minvarp:
+                        numbreakers = 0
+                else:
+                    if (theta[-1][l] - theta[-2][l])**2 > minvarp:
+                        numbreakers = 0
+        if numbreakers > 100 or numminvar >= 10:
             break
     outfile.close()
     print "RESULTS:"
-    print Lmax, theta[-1][0], theta[-1][1], theta[-1][2], theta[-1][3]
+    print Lmax, 10**theta[-1][0], 10**theta[-1][1], theta[-1][2], theta[-1][3]
+    
     return theta, L
 
 if __name__=="__main__":
     # Import all tracks
     #allTracks = importTracks('foundTracks.csv')
-    allTracks2 = np.array(readTracks('combinedTrack-relativeXYDisplacements.txt'))
+    allTracks2 = np.array(readTracks('foundTracks.txt'))
     sha = allTracks2.shape
     allTracks = allTracks2.reshape(sha[0]*sha[1],sha[2])
     print allTracks.shape
