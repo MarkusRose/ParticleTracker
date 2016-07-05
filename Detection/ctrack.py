@@ -361,9 +361,14 @@ def link_particles(particle_data, max_displacement,
                         
                         if cur_particle.next[0][n] != -1:
                             link_index = cur_particle.next[0][n]
-                            linked_particle = \
-                                particle_data[k + n + 1][link_index]
-                            
+                            try:
+                                linked_particle = particle_data[k + n + 1][link_index]
+                            except IndexError:
+                                print "IndexError for this line"
+                                print "linked_particle {:}, index {:}".format(len(particle_data),k+n+1)
+                                print "linked_particle-sublength {:}, index {:}".format(len(particle_data[k+n+1]),link_index)
+                                sys.exit(1)
+                                
                             # If particle is linked to a real 
                             # particle that is not already linked, 
                             # continue building the trajectory

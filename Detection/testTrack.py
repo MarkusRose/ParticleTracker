@@ -1,10 +1,11 @@
 import numpy as np
 from PIL import Image
 
-import ctrack
+import Detection.ctrack
 import detectParticles
 import markPosition
 import main
+import convertFiles
 
 # Determine image properties
 size = 512
@@ -48,6 +49,8 @@ def calcer(frames,xpos,ypos):
     return particle_data
 
 def main():
+    convertFiles.readDetectedParticles("../foundParticles.txt")
+    '''
     f,x,y = straightDrawer()
     particle_data = calcer(f,x,y)
 
@@ -57,8 +60,7 @@ def main():
         print "doing track {:}".format(t)
         m = markPosition.connectPositions((512,512),tr[t-1].track)
         markPosition.saveRGBImage(markPosition.convertRGBMonochrome(m,'B'),"tr{:0004d}.tif".format(t))
-
-    
+    '''
 
 if __name__=="__main__":
     main()

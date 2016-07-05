@@ -56,6 +56,55 @@ def readPositionsFromFile(filename):
 def readDetectedParticles(filename):
     infile = open(filename,'r')
     particle_data=[]
+
+    emptycounter = 0
+    hashcounter = 0
+    frame = 0
+
+    oneframe = []
+    
+    for line in infile:
+        if len(line.split()) == 0:
+            emptycounter += 1
+            if len(oneframe) != 0:
+                if len(oneframe) != partnum:
+                    print "Number of particles and Frame content don't match!"
+                    raise
+                particle_data.append(list(oneframe))
+                oneframe = []
+        elif line[0] == '#':
+            hashcounter += 1
+            if hashcounter % 4 == 1:
+                frame  = int(line.split()[1])
+            elif hashcounter % 4 == 2:
+                partnum = float(line.split()[1])
+            elif hashcounter % 4 == 3:
+                cutoff = float(line.split()[1])
+            elif hashcounter % 4 == 0:
+                oneframe = []
+            else:
+                continue
+        else:
+            b = []
+            for k in line.split():
+                b.append(float(k))
+            p = pysm.new_cython.TempParticle()        
+            p.frame = frame
+            p.x,p.y,p.width_x,p.width_y,p.height,p.amplitude,p.sn,p.volume = b
+            oneframe.append(p)
+    if len(oneframe) > 0:
+        particle_data.append(list(oneframe))
+        if len(oneframe) != partnum:
+            print "Number of particles and Frame content don't match!"
+            raise
+        del oneframe
+
+    print emptycounter
+    print hashcounter
+    
+    return particle_data
+
+    '''
     line = infile.readline()
     while line:
         particle_oneframe=[]
@@ -81,15 +130,14 @@ def readDetectedParticles(filename):
             print "We have a problem"
             break
         particle_data.append([particle_oneframe,cutoff])
-
     infile.close()
 
 #    detectParticles.writeDetectedParticles(particle_data)
     pd = []
     for fr in particle_data:
         pd.append(fr[0])
-#    print pd
     return pd
+    '''
 
 
 def sortPositionFile(filename):

@@ -40,7 +40,8 @@ class detectAndTrack():
 
     def runDetectionAndTracking(self):
         # Read in setup file and sort
-        self.readConfig("setup.txt")
+        innum = 13
+        self.readConfig("setup.txt",innum)
         self.img = readImageList(self.imagedir)
         self.img = sorted(self.img)
         #self.img = self.img[:10]
@@ -50,7 +51,8 @@ class detectAndTrack():
 
     def runDetection(self):
         # Read in setup file and sort
-        self.readConfig("setup.txt")
+        innum = 13
+        self.readConfig("setup.txt",innum)
         self.img = readImageList(self.imagedir)
         self.img = sorted(self.img)
         #self.img = self.img[:10]
@@ -58,17 +60,17 @@ class detectAndTrack():
 
     def runTracking(self):
         # Read in setup file and sort
-        self.readConfig("setup.txt")
-        self.img = readImageList(self.imagedir)
-        self.img = sorted(self.img)
-        if self.particles == None:
-            self.particles = convertFiles.readDetectedParticles("foundParticles.txt")
+        innum = 12
+        self.readConfig("setupTracking.txt",innum)
+        #self.img = readImageList(self.imagedir)
+        #self.img = sorted(self.img)
+        print "Got to here"
+        self.particles = convertFiles.readDetectedParticles(self.lm)
         self.tracks = self.makeTracks()
         print len(self.tracks)
 
-    def readConfig(self,filename):
+    def readConfig(self,filename,innumber):
         
-        innumber = 13
         a = []
         infile = open(filename,'r')
         counter = 0
@@ -94,11 +96,18 @@ class detectAndTrack():
             self.minTrackLen = int(a[9])
             self.pathway = a[11]
             self.lm = a[10]
-            self.notCentroid = (a[12] == "1")
+            if innumber == 13:
+                self.notCentroid = (a[12] == "1")
             if self.lm == "#":
                 self.lm = None
-        chPath(self.imagedir+"/../"+self.pathway)
-     
+        if self.lm != None:
+            chPath(os.path.dirname(self.lm))
+        else:
+            if self.imagedir != "Please select Folder containing Images":
+                chPath(self.imagedir+"/../"+self.pathway)
+            else:
+                print "Didn't Work, please restart!"
+                sys.exit(1)
         return
         
     def makeDetectionsAndMark(self):
@@ -124,7 +133,11 @@ def chPath(path):
 
     if not os.path.isdir(path):
         os.mkdir(path)
-    shutil.copyfile("setup.txt",path+"/setup.txt")
+    try:
+        shutil.copyfile("setup.txt",path+"/setup.txt")
+        shutil.copyfile("setupTracking.txt",path+"/setupTracking.txt")
+    except:
+        print "Setup couldn't be copied. It is the same File!"
     os.chdir(path)
 
     return

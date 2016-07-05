@@ -145,7 +145,7 @@ def setTrackFile(detTracks):
         outfile.write("\n")
         outfile.write("#Track "+str(track+1)+":\n")
         outfile.write("#Frame  dX  dY  X_pos  Y_pos  State  Intensity  Background  sigma_X  sigma_Y  ParticleID\n")
-        print detTracks[track]
+        #print detTracks[track]
         for particle in detTracks[track]:
             for prop in particle:
                 outfile.write(str(prop) + " ")
@@ -317,14 +317,18 @@ def makeImage(positions,framenumber,dirname,numPixels,pixsize,sigma,background,b
         intensity += positions[k][5]
         #xnum = min(len(data)-1,px+10)-max(0,px-10)
         #ynum = min(len(data[0])-1,py+10)-max(0,py-10)
-        for i in xrange(max(0,px-10),min(len(data)-1,px+10),1):
-            for j in xrange(max(0,py-10),min(len(data[i]-1),py+10),1):
+        for i in xrange(max(0,px-20),min(len(data)-1,px+20),1):
+            for j in xrange(max(0,py-20),min(len(data[i]-1),py+20),1):
                 msig = gauss(i,j,px,py,positions[k][5],sigma)
                 if msig >= 2**16:
                     msig = 2**16-1
                 elif msig < 0:
                     msig = 0
-                data[i][j] = msig
+                data[i][j] += msig
+                if data[i][j] >= 2**16:
+                    data[i][j] = 2**16-1
+                elif data[i][j] < 0:
+                    data[i][j] = 0
     intensity /= len(positions)
     
     if backnoise > 0:
