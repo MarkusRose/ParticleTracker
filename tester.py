@@ -5,59 +5,79 @@ import numpy as np
 import scipy.signal as sig
 from scipy import optimize
 import matplotlib.pyplot as plt
+import os
+import glob
 
-def main():
-    path = "/home/markus/LittleHelpers/LTOS/ExampleFiles/"
-    image1 = np.array(FIO.readImage(path+"green0639.tif"))
-    image1 = image1 - image1.mean()
-    image2 = np.copy(image1[100:412,100:412])
-    image2 -= image2.mean()
-    image3 = np.array(FIO.readImage(path+"green0001.tif"))
-    im3 = np.copy(image3[100:412,100:412])
-    im3 -= im3.mean()
-    binary1 = image1 > 0.05
-    binary2 = image2 > 0.05
-    '''
-    plt.imshow(binary1[100:len(binary1)-100,100:len(binary1[0])-100],cmap="Greys_r")
-    plt.show()
-    plt.imshow(binary2[100:len(binary1)-100,100:len(binary1[0])-100],cmap="Greys_r")
-    plt.show()
-    compare = np.zeros((51,51))
-    for a in xrange(len(compare)):
-        for b in xrange(len(compare[0])):
-            counter = 0.
-            print a,b
-            for i in xrange(150,len(binary1)-150,1):
-                for j in xrange(150,len(binary1[i])-150,1):
-                    compare[a,b] += float(binary1[i,j] == binary2[i-a+25,j-b+25])
-                    counter += 1.
-            compare[a,b] /= counter
-    plt.imshow(compare,cmap="Greys_r")
-    plt.show()
-    '''
-    im1 = np.zeros((100,100))
-    for i in xrange(20,21,1):
-        for j in xrange(20,21,1):
-            im1[i,j] = 1
-    im2 = np.zeros((100,100))
-    for i in xrange(60,61,1):
-        for j in xrange(60,61,1):
-            im2[i,j] = 1
-    corr = sig.correlate2d(image1,im3,mode="valid",boundary='symm')
+def correlateTwoImages(image1,image2,cutwindow):
+    im1 = image1 - image1.mean()
+    im2 = np.copy(image2[cutwindow:len(image2)-cutwindow,cutwindow:len(image2[0])-cutwindow])
+    im2 -= im2.mean()
+    corr = sig.correlate2d(im1,im2,mode="valid",boundary='symm')
     x,y = np.unravel_index(np.argmax(corr), corr.shape) # find the match
     print x,y
 
-    fig1, (ax1,ax2,ax3) = plt.subplots(1,3)
-    ax1.imshow(image1,cmap="Greys_r")
-    ax2.imshow(image3,cmap="Greys_r")
-    ax3.imshow(corr)
-    plt.show()
+    #fig1, (ax1,ax2,ax3) = plt.subplots(1,3)
+    #ax1.imshow(image1,cmap="Greys_r")
+    #ax2.imshow(image2,cmap="Greys_r")
+    #ax3.imshow(corr)
+    #plt.show()
 
-    dat = np.copy(corr[x-5:x+5,y-5:y+5])
+    fitbox = ( x-min(5,x), min(x+5,len(corr)), y-min(5,y), min(y+5,len(corr[0])) )
+    dat = np.copy(corr[fitbox[0]:fitbox[1],fitbox[2]:fitbox[3]])
     mback = corr.mean()
     para = fitgaussian2d(dat,mback)
+
+    print fitbox
     print para
+
+    correctx = fitbox[0]+para[2]-cutwindow
+    correcty = fitbox[2]+para[3]-cutwindow
+
+    print "Real position is {:} {:}".format(correctx,correcty)
+    return correctx,correcty
+
+def main():
+    path = "/home/markus/LittleHelpers/LTOS/ExampleFiles/Green"
+    images = readImageList(path)
+    images = sorted(images)
+    ref = 0
+    drift = [[0,0,0]]
+    imref = FIO.readImage(images[0])
+    for i in xrange(1,len(images),1):
+        print "Run {:}".format(i)
+        compimage = FIO.readImage(images[i])
+        x,y = correlateTwoImages(imref,compimage,100)
+        drift.append([i,x+drift[ref][1],y+drift[ref][2]])
+        if i % 10 == 0:
+            ref = i
+            imref = FIO.readImage(images[i])
+    outf = open("saveDrift.txt",'w')
+    outf.write("# Step xdrift ydrift")
+    for line in drift:
+        outf.write("{:} {:} {:}\n".format(line[0],line[1],line[2]))
+    drift = np.transpose(drift)
+    fig1, (ax1,ax2,ax3) = plt.subplots(3,1)
+    ax1.plot(drift[0],drift[1],'-')
+    ax2.plot(drift[0],drift[2],'-')
+    ax3.plot(drift[1],drift[2],'-')
+    plt.show()
     return
+    
+def testfunction():
+    path = "/home/markus/LittleHelpers/LTOS/ExampleFiles/"
+    image1 = np.array(FIO.readImage(path+"green0639.tif"))
+    image3 = np.array(FIO.readImage(path+"green0001.tif"))
+    correlateTwoImages(image1,image3,100)
+    return
+
+def readImageList(path):
+    if not os.path.isdir(path):
+        print "No path named " + path
+        raise ValueError, "No path named " + path
+    img = glob.glob(os.path.join(path, '*.tif'))
+    print "Number of images found: " + str(len(img))
+    return img
+
 
 def fitgaussian2d(data, background_mean, user_moments = None):
     """Returns (height, amplitude, x, y, width_x, width_y) as a numpy array
