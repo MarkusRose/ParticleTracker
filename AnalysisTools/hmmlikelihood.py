@@ -137,11 +137,11 @@ def segmentstate(theta, allTracks, particleID, tau=1.):
     for j in xrange(1, nsteps):
         logalpha[j,:] = map(logsum, logalpha[j-1,0] + logtransprob[0,:], logalpha[j-1,1] + logtransprob[1,:]) + loglike[j, :]
     # Compute backward variable beta (algorithm 5 - Das et al)
-    logbeta = np.emtpy_like(loglike)
+    logbeta = np.empty_like(loglike)
     logbeta[nsteps-1,:] = [0,0]
     for j in xrange(1,nsteps,1):
         logbeta[nsteps-1-j,:] = map(logsum, logtransprob[:,0] + logbeta[nsteps-j,0] + loglike[nsteps-j,0], logtransprob[:,1] + logbeta[nsteps-j,1] + loglike[nsteps-j,1])
-    stateprob = np.emtpy_like(loglike)
+    stateprob = np.empty_like(loglike)
     for j in xrange(nsteps):
         stateprob[j,:] = logalpha[j,:] * logbeta[j,:]
     statemap = np.zeros((nsteps))
@@ -279,7 +279,7 @@ def main(folder,reps):
     print numparts
     rawout = open("rawDataout.txt", 'w')
     rawout.write("# Analysis of Cel5A \n# D1  D2   p12  p21  nuruns\n")
-    sumout = open("avData.txt",'w')
+    sumout = open("avHmmData.txt",'w')
     sumout.write("# Analysis of Cel5A \n# D1  D2   p12  p21  nuruns stds....\n")
 
     while counter-1 < numparts:
@@ -303,10 +303,10 @@ def main(folder,reps):
         sumout.write("{:} {:} {:} {:} {:} {:} {:} {:} {:} {:}\n"
                      .format(thetaMean[0], thetaMean[1], thetaMean[2], thetaMean[3], np.mean(avNuruns),thetaStd[0],thetaStd[1],thetaStd[2],thetaStd[3],np.std(avNuruns)))
         rawout.write("\n\n")
-        statemap = segmentstate(theta, allTracks, particleID, tau=1.)
-        trackout = open("trackstates{:}.txt".format(counter))
+        statemap = segmentstate(thetaMean, anaTr, counter)
+        trackout = open("trackstates{:04d}.txt".format(counter),'w')
         for elem in statemap:
-            trackout.write("{:04d}\n".format(elem))
+            trackout.write("{:}\n".format(elem))
         trackout.close()
         counter += 1
     return outtheta, runs
