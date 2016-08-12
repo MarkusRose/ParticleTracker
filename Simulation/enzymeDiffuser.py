@@ -132,7 +132,7 @@ def simulateTracks(inVars=None):
     Fileio.setDetection(frames)
     if particle_size < 0.61*wavelength/numAperture:
         Fileio.createImages("SimulatedImages",frames,numPixels,
-                            pixel_size/mag,(0.5*0.61*wavelength/numAperture*mag/(pixel_size))**2,background,backnoise)
+                            pixel_size/mag,(0.5*0.211*wavelength/numAperture*mag/(pixel_size))**2,background,backnoise)
     else:
         Fileio.createImages("SimulatedImages",frames,numPixels,
                             pixel_size/mag,(particle_size*0.5*mag/(pixel_size))**2,background,backnoise)

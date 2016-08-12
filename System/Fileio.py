@@ -317,8 +317,8 @@ def makeImage(positions,framenumber,dirname,numPixels,pixsize,sigma,background,b
         intensity += positions[k][5]
         #xnum = min(len(data)-1,px+10)-max(0,px-10)
         #ynum = min(len(data[0])-1,py+10)-max(0,py-10)
-        for i in xrange(max(0,px-20),min(len(data)-1,px+20),1):
-            for j in xrange(max(0,py-20),min(len(data[i]-1),py+20),1):
+        for i in xrange(max(0,px-5),min(len(data)-1,px+5),1):
+            for j in xrange(max(0,py-5),min(len(data[i]-1),py+5),1):
                 msig = gauss(i,j,px,py,positions[k][5],sigma)
                 if msig >= 2**16:
                     msig = 2**16-1

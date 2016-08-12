@@ -260,8 +260,8 @@ def doMetropolis3(allTracks,folder,particleID):
     
     return theta, L, nuruns
 
-def main(folder):
-    allTracks2 = readTracks(folder+'/foundTracksCel5A.txt')
+def main(folder,reps):
+    allTracks2 = readTracks(folder+'/foundTracks.txt')
     anaTr = []
     for t in allTracks2:
         for p in t:
@@ -279,17 +279,35 @@ def main(folder):
     print numparts
     rawout = open("rawDataout.txt", 'w')
     rawout.write("# Analysis of Cel5A \n# D1  D2   p12  p21  nuruns\n")
+    sumout = open("avData.txt",'w')
+    sumout.write("# Analysis of Cel5A \n# D1  D2   p12  p21  nuruns stds....\n")
 
     while counter-1 < numparts:
-        print "    Run {:}".format(counter)
-        theta,L,nuruns = doMetropolis3(anaTr,folder,counter)
-        if theta[-1][0] > theta[-1][1]:
-            results = np.array([theta[-1][1],theta[-1][0],theta[-1][3],theta[-1][2]])
-        else:
-            results = np.array(theta[-1])
-        rawout.write("{:} {:} {:} {:} {:}\n".format(results[0], results[1], results[2], results[3], nuruns))
-        outtheta.append(results)
-        runs.append(nuruns)
+        rawout.write("# Track {:}\n".format(counter))
+        avTheta = []
+        avNuruns = []
+        for k in xrange(reps):
+            print "    Run {:},{:}".format(counter,k+1)
+            theta,L,nuruns = doMetropolis3(anaTr,folder,counter)
+            if theta[-1][0] > theta[-1][1]:
+                results = np.array([theta[-1][1],theta[-1][0],theta[-1][3],theta[-1][2]])
+            else:
+                results = np.array(theta[-1])
+            avTheta.append(np.array(results))
+            avNuruns.append(nuruns)
+            rawout.write("{:} {:} {:} {:} {:}\n".format(results[0], results[1], results[2], results[3], nuruns))
+        thetaMean = np.mean(avTheta,axis=0)
+        thetaStd = np.std(avTheta,axis=0)
+        outtheta.append([np.array(thetaMean),np.array(thetaStd)])
+        runs.append([np.mean(avNuruns),np.std(avNuruns)])
+        sumout.write("{:} {:} {:} {:} {:} {:} {:} {:} {:} {:}\n"
+                     .format(thetaMean[0], thetaMean[1], thetaMean[2], thetaMean[3], np.mean(avNuruns),thetaStd[0],thetaStd[1],thetaStd[2],thetaStd[3],np.std(avNuruns)))
+        rawout.write("\n\n")
+        statemap = segmentstate(theta, allTracks, particleID, tau=1.)
+        trackout = open("trackstates{:}.txt".format(counter))
+        for elem in statemap:
+            trackout.write("{:04d}\n".format(elem))
+        trackout.close()
         counter += 1
     return outtheta, runs
         
@@ -326,7 +344,7 @@ def testerFunction1():
 
 
 if __name__ == "__main__":
-    main(".")
+    main(".",4)
     
 
 
