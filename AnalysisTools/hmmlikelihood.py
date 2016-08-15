@@ -437,5 +437,5 @@ def testerFunction1(folder,runs):
     
 if __name__ == "__main__":
     #main(".",4)
-    testerFunction1(".")
+    testerFunction1(".",100)
     
