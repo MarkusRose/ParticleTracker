@@ -222,7 +222,7 @@ def doMetropolisOrig(allTracks,folder,particleID):
                     theta.append(np.array(theta[-1]))
                     L.append(L[-1])
             outf.write("{:} {:} {:} {:} {:} {:}\n".format(L[-1],10**theta[-1][0], 10**theta[-1][1], theta[-1][2], theta[-1][3], l))
-                    
+    outf.close()
     return theta, L, n
 
 def doMetropolis3(allTracks,folder,particleID):
@@ -395,6 +395,7 @@ def testerFunction1(folder,runs):
     sha = allTracks2.shape
     allTracks = allTracks2.reshape(sha[0]*sha[1],sha[2])
     '''
+    Thetas = []
     for i in xrange(max(runs,anaTr[-1:-1])):
         theta, L, nurun = doMetropolisOrig(anaTr,folder,i)
         theta = np.array(theta)
@@ -412,6 +413,8 @@ def testerFunction1(folder,runs):
         plt.show()
         
         thetaMean = [np.mean(theta1[1000:]),np.mean(theta2[1000:]),np.mean(p12[1000:]), np.mean(p21[1000:])]
+        thetaSTD = [np.std(theta1[1000:]),np.std(theta2[1000:]),np.std(p12[1000:]), np.std(p21[1000:])]
+        Thetas.append([np.array(thetaMean),np.array(thetaSTD)])
         print thetaMean
         
         statemap = segmentstate(thetaMean, anaTr, i)
@@ -419,6 +422,14 @@ def testerFunction1(folder,runs):
         for elem in statemap:
             trackout.write("{:}\n".format(elem))
         trackout.close()
+    outthetaf = open("AveragedData.txt",'w')
+    outtheta.write("#  D1 D2 p12 p21 stds: D1 D2 p12 p21\n")
+    for line in Thetas:
+        for ones in line:
+            for elem in ones:
+                outtheta.write("{:} ".format(elem))
+        outtheta.write("\n")
+    outtheta.close()
     
     return
     
