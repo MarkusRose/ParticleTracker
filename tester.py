@@ -16,11 +16,11 @@ def correlateTwoImages(image1,image2,cutwindow):
     x,y = np.unravel_index(np.argmax(corr), corr.shape) # find the match
     print x,y
 
-    #fig1, (ax1,ax2,ax3) = plt.subplots(1,3)
-    #ax1.imshow(image1,cmap="Greys_r")
-    #ax2.imshow(image2,cmap="Greys_r")
-    #ax3.imshow(corr)
-    #plt.show()
+    fig1, (ax1,ax2,ax3) = plt.subplots(1,3)
+    ax1.imshow(image1,cmap="Greys_r")
+    ax2.imshow(image2,cmap="Greys_r")
+    ax3.imshow(corr)
+    plt.show()
 
     fitbox = ( x-min(5,x), min(x+5,len(corr)), y-min(5,y), min(y+5,len(corr[0])) )
     dat = np.copy(corr[fitbox[0]:fitbox[1],fitbox[2]:fitbox[3]])
@@ -126,4 +126,5 @@ def gaussian2d(height, amplitude, center_x,
 
 
 if __name__=="__main__":
-    main()
+    #main()
+    testfunction()
