@@ -45,7 +45,7 @@ def simulateTracks(inVars=None):
     background = sV[18]
     backnoise = sV[19]
     intensity = sV[20]
-    particle_size = 1.0 #micrometer
+    particle_size = 0.04 #micrometer
     
 
     #Initial probabilities for choosing state
@@ -130,9 +130,10 @@ def simulateTracks(inVars=None):
     Fileio.setTrackFile(atracks)
     frames = Fileio.tracksToFrames(atracks)
     Fileio.setDetection(frames)
+    print 0.61*wavelength/numAperture
     if particle_size < 0.61*wavelength/numAperture:
         Fileio.createImages("SimulatedImages",frames,numPixels,
-                            pixel_size/mag,(0.5*0.211*wavelength/numAperture*mag/(pixel_size))**2,background,backnoise)
+                            pixel_size/mag,(0.211*wavelength/numAperture*mag/(pixel_size)),background,backnoise)
     else:
         Fileio.createImages("SimulatedImages",frames,numPixels,
                             pixel_size/mag,(particle_size*0.5*mag/(pixel_size))**2,background,backnoise)

@@ -299,7 +299,7 @@ def makeImage(positions,framenumber,dirname,numPixels,pixsize,sigma,background,b
     data = np.zeros((numPixels,numPixels),np.uint16)
      
     def gauss(i,j,posx,posy,intensity,sig):
-        return math.exp(-(((i)-posx)**2+((j)-posy)**2)/(2.0*sig))*intensity
+        return math.exp(-(((i)-posx)**2+((j)-posy)**2)/(2.0*sig*sig))*intensity
 
     def integauss(i,j,posx,posy,intensity,sig):
         #int_i^(i+1) int_j^(j+1) dx dy exp(-((i-posx)^2+(j-posy)^2)/2*sig^2) * intensity
@@ -346,6 +346,7 @@ def makeImage(positions,framenumber,dirname,numPixels,pixsize,sigma,background,b
                     data[i][j] += msig
     else:
         msig = np.zeros(data.shape,np.uint16)
+
         msig.fill(background)
         np.clip(data+msig,0,2**16-1,data)
     
