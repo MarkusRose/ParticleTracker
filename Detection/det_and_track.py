@@ -133,11 +133,11 @@ def chPath(path):
 
     if not os.path.isdir(path):
         os.mkdir(path)
-    try:
-        shutil.copyfile("setup.txt",path+"/setup.txt")
-        shutil.copyfile("setupTracking.txt",path+"/setupTracking.txt")
-    except:
-        print "Setup couldn't be copied. It is the same File!"
+#    try:
+        #shutil.copyfile("setup.txt",path+"/setup.txt")
+        #shutil.copyfile("setupTracking.txt",path+"/setupTracking.txt")
+#    except:
+#        print "Setup couldn't be copied. It is the same File!"
     os.chdir(path)
 
     return

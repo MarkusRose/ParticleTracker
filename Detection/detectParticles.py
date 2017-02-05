@@ -48,7 +48,8 @@ def multiImageDetect(img,
                     signal_power,
                     bit_depth,
                     eccentricity_thresh,
-                     sigma_thresh,numAdder,local_max=None,output=False,lmmethod=False):
+                     sigma_thresh,numAdder,local_max=None,output=False,lmmethod=False,
+                     imageOutput=False):
     particle_data = []
     frame = 0
     outfile2 = open("foundCentroids.txt",'w')
@@ -126,7 +127,8 @@ def multiImageDetect(img,
                     output=output,
                     lmm=lmmethod)
 
-        outMarkedImages(a,particles,"out{:0004d}.tif".format(frame))
+        if (imageOutput):
+            outMarkedImages(a,particles,"out{:0004d}.tif".format(frame))
         a = np.zeros(image.shape)
         particle_data.append(particles)
 
