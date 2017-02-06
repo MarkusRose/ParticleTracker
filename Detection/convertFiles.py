@@ -99,8 +99,8 @@ def readDetectedParticles(filename):
             raise
         del oneframe
 
-    print emptycounter
-    print hashcounter
+#    print("Empty lines: {:}".format(emptycounter))
+#    print("Hashtag lines: {:}".format(hashcounter))
     
     return particle_data
 

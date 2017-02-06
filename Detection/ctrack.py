@@ -175,7 +175,8 @@ def readTrajectoriesFromFile(filename,minTrackLen):
 
 def link_particles(particle_data, max_displacement,
                    link_range=2, 
-                   min_track_len=10):
+                   min_track_len=10,
+                   outfile="foundTracks.txt"):
     ''' Initialize Particle Tracking variables'''
     #Array Index Variables
     #cdef Py_ssize_t i, j, k, m, n 
@@ -414,7 +415,7 @@ def link_particles(particle_data, max_displacement,
                 trajectories.append(particle_track)   
     
     print("Done Linking")
-    writeTrajectories(trajectories)
+    writeTrajectories(trajectories,filename=outfile)
     #Fileio.setTrackFile(trajectories)
     return trajectories
                         
