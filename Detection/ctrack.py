@@ -15,6 +15,8 @@ import sys
 import pysm.new_cython
 import System.Fileio as Fileio
 from scipy import io
+import string
+import random
 
 import numpy as np
 #cimport numpy as np
@@ -22,7 +24,7 @@ import numpy as np
 
 class ParticleTrack(object):
     
-    struct_type = [('particle_id', np.uint32),
+    struct_type = [('particle_id', np.str_),
                    ('frame', np.uint32),
                    ('sn', np.double),
                    ('x', np.double),
@@ -36,9 +38,12 @@ class ParticleTrack(object):
     def __init__(self, id, num_elements):
         self.track = np.empty(num_elements, 
                               dtype=self.struct_type)
+        self.id = id
         
         for name in self.track.dtype.names:
-            if name == 'particle_id' or name == 'frame':
+            if name == 'particle_id':
+                self.track[name].fill(self.id)
+            elif name == 'frame':
                 self.track[name].fill(0)
             else:
                 self.track[name].fill(np.nan)
@@ -58,7 +63,7 @@ def writeTrajectories(tracks,filename="foundTracks.txt"):
     for track in tracks:
         track_num += 1
         outfile.write('\n\n# -Track {:2.0f} -------------------------------------\n'.format(track_num))
-        outfile.write("# frame    x      y    width_x   width_y  height  amplitude     sn     volume \n")
+        outfile.write("# frame    x      y    width_x   width_y  height  amplitude     sn     volume    Particle-ID\n")
         for particle in track.track:
             #print particle['x']
             if np.isnan(particle['x']):
@@ -68,6 +73,7 @@ def writeTrajectories(tracks,filename="foundTracks.txt"):
                     continue
                 outfile.write("{:3.4f} ".format(particle[name]))
             outfile.write("{:3.4f} ".format(particle['sn']))
+            outfile.write("{:}".format(track.id))
             outfile.write("\n")
 
     outfile.close()
@@ -75,7 +81,7 @@ def writeTrajectories(tracks,filename="foundTracks.txt"):
     print("Number of Tracks found: {:}".format(len(tracks)))
     return
 
-def makeParticle(frame,x,y,width_x,width_y,height,amplitude):
+def makeParticle(frame,x,y,width_x,width_y,height,amplitude,part_id):
         #Create a new Particle
         #TODO:        
         #p = cparticle.CParticle()
@@ -98,11 +104,13 @@ def makeParticle(frame,x,y,width_x,width_y,height,amplitude):
         # linking step
         #p.norm_volume = (2 * np.pi * p.amplitude * p.width_x * p.width_y)
         
+        #TODO: FIX THIS!!!
         # calculate signal to noise
         # (for our purposes a simple calc of amplitude of signal minus 
         # the background over the intensity of the background)
         if p.height != 0:
             p.sn = (p.amplitude + p.height) / p.height
+        p.particle_id = part_id
 
         return p
 
@@ -340,7 +348,8 @@ def link_particles(particle_data, max_displacement,
                 
                 # Else, particle is linked to another "real" particle
                 # that is not already linked.  Build new trajectory
-                particle_track = ParticleTrack(id=1, 
+                track_id = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(8))
+                particle_track = ParticleTrack(id=track_id, 
                                                num_elements=num_frames)
                 
                 particle_track.insert_particle(particle, 

@@ -120,7 +120,7 @@ class detectAndTrack():
 
 
     def makeTracks(self):
-        tracks = ctrack.link_particles(self.particles,self.max_displacement,self.minTrackLen)
+        tracks = ctrack.link_particles(self.particles,self.max_displacement,link_range=2,min_track_len=self.minTrackLen)
         return tracks
 
 
