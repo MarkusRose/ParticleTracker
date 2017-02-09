@@ -16,18 +16,19 @@ from time import strftime
 if __name__=="__main__":
 
     #System Parameters:
-    imagedir = "D:/Cellulases-Test/Original"
+    imagedir = "L:/Cel9A-6-9-10/45C/OD06/Experiment2/C-1"
     bit_depth  = 16
-    pathway = "AnalyzedData"
+    pathway = "C-1-AnalyzedData"
     #Detection Parameters:
     sigma  = 2
     local_max_window  = 10
-    signal_power  = 1.5
+    signal_power  = 1
     eccentricity_thresh = 4
     sigma_thresh  = 2
     addUp = 1 
     notCentroid = True
 
+    print "Doing {:} to {:} now!".format(imagedir,pathway)
 
     #Change to Analysis folder
     Detection.det_and_track.chPath(imagedir+"/../"+pathway)
