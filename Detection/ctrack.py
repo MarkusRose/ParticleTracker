@@ -115,7 +115,7 @@ def makeParticle(frame,x,y,width_x,width_y,height,amplitude,part_id):
         return p
 
 
-def readTrajectoriesFromFile(filename,minTrackLen):
+def readTrajectoriesFromFile(filename,minTrackLen=1):
     infile = open(filename,'r')
     boo = True
     frame = -2
@@ -154,8 +154,9 @@ def readTrajectoriesFromFile(filename,minTrackLen):
                 boo = False
             if not (frame < 0):
                 if not line[0] == "#":
-                    f,x,y,width_x,width_y,height,amplitude,z,z = line.split()
-                    particle = makeParticle(round(float(f)),float(x),float(y),float(width_x),float(width_y),float(height),float(amplitude))
+                    f,x,y,width_x,width_y,height,amplitude,sn,vol,part_id = line.split()
+                    particle_track.id = part_id
+                    particle = makeParticle(round(float(f)),float(x),float(y),float(width_x),float(width_y),float(height),float(amplitude),part_id)
                     particle_track.insert_particle(particle, particle.frame)
                     partpos += 1
             frame += 1
@@ -163,14 +164,14 @@ def readTrajectoriesFromFile(filename,minTrackLen):
             if not boo:
                 tracks.append(particle_track)
                 if partpos >= minTrackLen:
-                    liste.append(tracknum)
+                    liste.append(particle_track.id)
                 frame = -2
                 partpos = 0
                 boo = True
     if len(particle_track.track) != 0:
         tracks.append(particle_track)
         if partpos >= minTrackLen:
-            liste.append(tracknum)
+            liste.append(particle_track.id)
 
     infile.close()
 

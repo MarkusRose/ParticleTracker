@@ -29,7 +29,7 @@ filelist = ["L:/Cel5A-6-22-10/45C/OD06/Experiment1/C-1-AnalyzedData/foundParticl
         "L:/Cel9A-6-9-10/45C/OD06/Experiment2/C-2-AnalyzedData/foundParticles.txt"]
 
 #Tracking Parameter:
-searchRadius = 3
+searchRadius = 5
 minTracklen = 1
 linkRange = 2
 
