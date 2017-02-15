@@ -18,8 +18,49 @@ import matplotlib.pyplot as plt
 
 # Function definitions
 
+
+def readHMMData(filename):
+    infile = open(filename,'r')
+
+    allhmm = []
+    header = ""
+    for line in infile:
+        td = []
+        if line[0] == "#":
+            header = line[:]
+            continue
+        saver = line.split()
+        for i in xrange(len(saver)):
+            if i==9:
+                td.append(saver[i])
+            else:
+                td.append(float(saver[i]))
+        allhmm.append(td)
+    return allhmm, header
+
+
+def trackLength(track):
+
+    framestart = -1
+    frameend = -1
+
+    for part in track.track:
+        if np.isnan(part['frame']) or part['frame'] == 0:
+            continue
+        elif framestart == -1:
+            framestart = part['frame']
+        else:
+            frameend = part['frame']
+    if framestart == -1:
+        return 0
+    elif frameend == -1:
+        return 1
+    return frameend - framestart
+
+
 def displacements(tracks):
     displacements = []
+    lengths = []
     for track in tracks:
         single_disp = []
         x = np.nan
@@ -42,18 +83,19 @@ def displacements(tracks):
                 time_dis += 1
         if len(single_disp) > 0:
             displacements.append([np.array(single_disp),part_id])
-    return displacements
+            lengths.append(trackLength(track))
+    return displacements,lengths
 
 
 def squaredDisplacements(tracks):
 
-    disps = displacements(tracks)
+    disps,length = displacements(tracks)
     rsquared = []
     
     for tr in disps:
         rsquared.append([np.sum(tr[0]**2,axis=1),tr[1]])
     
-    return rsquared
+    return rsquared,length
     
 
 
@@ -161,7 +203,7 @@ def doMetropolisOrig(dr2,particleID,MCsteps=10000):
 
 def runHiddenMarkov(tracks,MCMC=10000):
 
-    rsq = squaredDisplacements(tracks)
+    rsq,lengths = squaredDisplacements(tracks)
     averagingStart = min(2000,MCMC)
     if averagingStart == MCMC:
         averagingStart /= 5
@@ -195,10 +237,15 @@ def runHiddenMarkov(tracks,MCMC=10000):
             trackout.write("{:}\n".format(elem))
         trackout.close()
     outthetaf = open("hmmAveragedData.txt",'w')
-    outthetaf.write("#  D1 D2 p12 p21 stds: D1 D2 p12 p21  particle-ID\n")
-    for line in Thetas:
-        for elem in line:
-            outthetaf.write("{:} ".format(elem))
+    outthetaf.write("#  D1 D2 p12 p21 stds: D1 D2 p12 p21 tracklength particle-ID\n")
+    for i in xrange(len(Thetas)):
+        counter = 0
+        for elem in Thetas[i]:
+            if counter != 8:
+                outthetaf.write("{:} ".format(elem))
+            else:
+                outthetaf.write("{:} ".format(lengths[i]))
+            counter += 1
         outthetaf.write("\n")
     outthetaf.close()
     

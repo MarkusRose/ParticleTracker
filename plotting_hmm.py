@@ -2,164 +2,61 @@ import Detection.ctrack as ctrack
 import AnalysisTools.driftCorrection as dc
 import AnalysisTools.hiddenMarkov as hmm
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 
 import os
 import sys
 import numpy as np
-
-'''
-tracklist = [
-        ["L:/Cel5A-6-22-10/45C/OD06/Experiment1/C-1-AnalyzedData/foundTracks-SR2_20170209-020551.txt",
-        "L:/Cel5A-6-22-10/45C/OD06/Experiment1/C-2-AnalyzedData/foundTracks-SR2_20170209-020551.txt"],
-        ["L:/Cel5A-6-22-10/45C/OD06/Experiment2/C-1-AnalyzedData/foundTracks-SR2_20170209-020551.txt",
-        "L:/Cel5A-6-22-10/45C/OD06/Experiment2/C-2-AnalyzedData/foundTracks-SR2_20170209-020551.txt"],
-        ["L:/Cel5A-6-22-10/45C/OD06/Experiment3/C-1-AnalyzedData/foundTracks-SR2_20170209-020551.txt",
-        "L:/Cel5A-6-22-10/45C/OD06/Experiment3/C-2-AnalyzedData/foundTracks-SR2_20170209-020551.txt"]
-        ]
-
-tracklist = [
-        ["L:/Cel5A-6-22-10/45C/OD06/Experiment1/C-1-AnalyzedData/foundTracks-SR3_20170208-230952.txt",
-            "L:/Cel5A-6-22-10/45C/OD06/Experiment1/C-2-AnalyzedData/foundTracks-SR3_20170208-230952.txt"],
-        ["L:/Cel5A-6-22-10/45C/OD06/Experiment2/C-1-AnalyzedData/foundTracks-SR3_20170208-230952.txt",
-            "L:/Cel5A-6-22-10/45C/OD06/Experiment2/C-2-AnalyzedData/foundTracks-SR3_20170208-230952.txt"],
-        ["L:/Cel5A-6-22-10/45C/OD06/Experiment3/C-1-AnalyzedData/foundTracks-SR3_20170208-230952.txt",
-            "L:/Cel5A-6-22-10/45C/OD06/Experiment3/C-2-AnalyzedData/foundTracks-SR3_20170208-230952.txt"]
-        ]
-tracklist = [
-        ["L:/Cel5A-6-22-10/45C/OD06/Experiment1/C-1-AnalyzedData/foundTracks-SR5_20170209-160448.txt",
-            "L:/Cel5A-6-22-10/45C/OD06/Experiment1/C-2-AnalyzedData/foundTracks-SR5_20170209-160448.txt"],
-        ["L:/Cel5A-6-22-10/45C/OD06/Experiment2/C-1-AnalyzedData/foundTracks-SR5_20170209-160448.txt",
-            "L:/Cel5A-6-22-10/45C/OD06/Experiment2/C-2-AnalyzedData/foundTracks-SR5_20170209-160448.txt"],
-        ["L:/Cel5A-6-22-10/45C/OD06/Experiment3/C-1-AnalyzedData/foundTracks-SR5_20170209-160448.txt",
-            "L:/Cel5A-6-22-10/45C/OD06/Experiment3/C-2-AnalyzedData/foundTracks-SR5_20170209-160448.txt"]
-        ]
-tracklist = [
-        ["L:/Cel5A-6-22-10/45C/OD06/Experiment1/C-1-AnalyzedData/foundTracks-SR1.5_20170209-030447.txt",
-            "L:/Cel5A-6-22-10/45C/OD06/Experiment1/C-2-AnalyzedData/foundTracks-SR1.5_20170209-030447.txt"],
-        ["L:/Cel5A-6-22-10/45C/OD06/Experiment2/C-1-AnalyzedData/foundTracks-SR1.5_20170209-030447.txt",
-            "L:/Cel5A-6-22-10/45C/OD06/Experiment2/C-2-AnalyzedData/foundTracks-SR1.5_20170209-030447.txt"],
-        ["L:/Cel5A-6-22-10/45C/OD06/Experiment3/C-1-AnalyzedData/foundTracks-SR1.5_20170209-030447.txt",
-            "L:/Cel5A-6-22-10/45C/OD06/Experiment3/C-2-AnalyzedData/foundTracks-SR1.5_20170209-030447.txt"]
-        ]
-tracklist = [
-        ["L:/Cel6B-5-26-10/45C/OD1/Experiment1/C-1-AnalyzedData/foundTracks-SR2_20170209-020551.txt",
-            "L:/Cel6B-5-26-10/45C/OD1/Experiment1/C-2-AnalyzedData/foundTracks-SR2_20170209-020551.txt"],
-        ["L:/Cel6B-5-26-10/45C/OD1/Experiment3/C-1-AnalyzedData/foundTracks-SR2_20170209-020551.txt",
-            "L:/Cel6B-5-26-10/45C/OD1/Experiment3/C-2-AnalyzedData/foundTracks-SR2_20170209-020551.txt"],
-        ["L:/Cel6B-5-26-10/45C/OD1/Experiment4/C-1-AnalyzedData/foundTracks-SR2_20170209-020551.txt",
-            "L:/Cel6B-5-26-10/45C/OD1/Experiment4/C-2-AnalyzedData/foundTracks-SR2_20170209-020552.txt"]
-        ]
-tracklist = [
-        ["L:/Cel6B-5-26-10/45C/OD1/Experiment1/C-1-AnalyzedData/foundTracks-SR3_20170208-230952.txt",
-            "L:/Cel6B-5-26-10/45C/OD1/Experiment1/C-2-AnalyzedData/foundTracks-SR3_20170208-230952.txt"],
-        ["L:/Cel6B-5-26-10/45C/OD1/Experiment3/C-1-AnalyzedData/foundTracks-SR3_20170208-230952.txt",
-            "L:/Cel6B-5-26-10/45C/OD1/Experiment3/C-2-AnalyzedData/foundTracks-SR3_20170208-230952.txt"],
-        ["L:/Cel6B-5-26-10/45C/OD1/Experiment4/C-1-AnalyzedData/foundTracks-SR3_20170208-230952.txt",
-            "L:/Cel6B-5-26-10/45C/OD1/Experiment4/C-2-AnalyzedData/foundTracks-SR3_20170208-230953.txt"]
-        ]
-tracklist = [
-        ["L:/Cel6B-5-26-10/45C/OD1/Experiment1/C-1-AnalyzedData/foundTracks-SR5_20170209-160448.txt",
-            "L:/Cel6B-5-26-10/45C/OD1/Experiment1/C-2-AnalyzedData/foundTracks-SR5_20170209-160448.txt"],
-        ["L:/Cel6B-5-26-10/45C/OD1/Experiment3/C-1-AnalyzedData/foundTracks-SR5_20170209-160448.txt",
-            "L:/Cel6B-5-26-10/45C/OD1/Experiment3/C-2-AnalyzedData/foundTracks-SR5_20170209-160448.txt"],
-        ["L:/Cel6B-5-26-10/45C/OD1/Experiment4/C-1-AnalyzedData/foundTracks-SR5_20170209-160448.txt",
-            "L:/Cel6B-5-26-10/45C/OD1/Experiment4/C-2-AnalyzedData/foundTracks-SR5_20170209-160449.txt"]
-        ]
-tracklist = [
-        ["L:/Cel6B-5-26-10/45C/OD1/Experiment1/C-1-AnalyzedData/foundTracks-SR1.5_20170209-030447.txt",
-            "L:/Cel6B-5-26-10/45C/OD1/Experiment1/C-2-AnalyzedData/foundTracks-SR1.5_20170209-030447.txt"],
-        ["L:/Cel6B-5-26-10/45C/OD1/Experiment3/C-1-AnalyzedData/foundTracks-SR1.5_20170209-030447.txt",
-            "L:/Cel6B-5-26-10/45C/OD1/Experiment3/C-2-AnalyzedData/foundTracks-SR1.5_20170209-030447.txt"],
-        ["L:/Cel6B-5-26-10/45C/OD1/Experiment4/C-1-AnalyzedData/foundTracks-SR1.5_20170209-030447.txt",
-            "L:/Cel6B-5-26-10/45C/OD1/Experiment4/C-2-AnalyzedData/foundTracks-SR1.5_20170209-030449.txt"]
-        ]
-tracklist = [
-["L:/Cel9A-6-9-10/45C/OD06/Experiment1/C-1-AnalyzedData/foundTracks-SR1.5_20170209-030450.txt",
-"L:/Cel9A-6-9-10/45C/OD06/Experiment1/C-2-AnalyzedData/foundTracks-SR1.5_20170209-030458.txt"],
-["L:/Cel9A-6-9-10/45C/OD06/Experiment2/C-1-AnalyzedData/foundTracks-SR1.5_20170209-030458.txt",
-"L:/Cel9A-6-9-10/45C/OD06/Experiment2/C-2-AnalyzedData/foundTracks-SR1.5_20170209-030609.txt"]
-]
-tracklist = [
-        ["L:/Cel9A-6-9-10/45C/OD06/Experiment1/C-1-AnalyzedData/foundTracks-SR2_20170209-020554.txt",
-            "L:/Cel9A-6-9-10/45C/OD06/Experiment1/C-2-AnalyzedData/foundTracks-SR2_20170209-020602.txt"],
-        ["L:/Cel9A-6-9-10/45C/OD06/Experiment2/C-1-AnalyzedData/foundTracks-SR2_20170209-020602.txt",
-            "L:/Cel9A-6-9-10/45C/OD06/Experiment2/C-2-AnalyzedData/foundTracks-SR2_20170209-020713.txt"]
-        ]
-        '''
-tracklist = [
-        ["L:/Cel9A-6-9-10/45C/OD06/Experiment1/C-1-AnalyzedData/foundTracks-SR3_20170208-230954.txt",
-            "L:/Cel9A-6-9-10/45C/OD06/Experiment1/C-2-AnalyzedData/foundTracks-SR3_20170208-231002.txt"],
-        ["L:/Cel9A-6-9-10/45C/OD06/Experiment2/C-1-AnalyzedData/foundTracks-SR3_20170208-231002.txt",
-            "L:/Cel9A-6-9-10/45C/OD06/Experiment2/C-2-AnalyzedData/foundTracks-SR3_20170208-231115.txt"]
-        ]
-tracklist = [
-["L:/Cel9A-6-9-10/45C/OD06/Experiment1/C-1-AnalyzedData/foundTracks-SR5_20170209-160451.txt",
-"L:/Cel9A-6-9-10/45C/OD06/Experiment1/C-2-AnalyzedData/foundTracks-SR5_20170209-160459.txt"],
-["L:/Cel9A-6-9-10/45C/OD06/Experiment2/C-1-AnalyzedData/foundTracks-SR5_20170209-160459.txt",
-"L:/Cel9A-6-9-10/45C/OD06/Experiment2/C-2-AnalyzedData/foundTracks-SR5_20170209-160608.txt"]
-]
-
-'''
-hmmlist = ["L:/Cel5A-6-22-10/45C/OD06/Experiment1/HiddenMarkov/SearchRadius2/hmmAveragedData.txt",
-        "L:/Cel5A-6-22-10/45C/OD06/Experiment2/HiddenMarkov/SearchRadius2/hmmAveragedData.txt",
-        "L:/Cel5A-6-22-10/45C/OD06/Experiment3/HiddenMarkov/SearchRadius2/hmmAveragedData.txt"]
-hmmlist = ["L:/Cel5A-6-22-10/45C/OD06/Experiment1/HiddenMarkov/SearchRadius3/hmmAveragedData.txt",
-"L:/Cel5A-6-22-10/45C/OD06/Experiment2/HiddenMarkov/SearchRadius3/hmmAveragedData.txt",
-"L:/Cel5A-6-22-10/45C/OD06/Experiment3/HiddenMarkov/SearchRadius3/hmmAveragedData.txt"]
-hmmlist = ["L:/Cel5A-6-22-10/45C/OD06/Experiment1/HiddenMarkov/SearchRadius5/hmmAveragedData.txt",
-    "L:/Cel5A-6-22-10/45C/OD06/Experiment2/HiddenMarkov/SearchRadius5/hmmAveragedData.txt",
-    "L:/Cel5A-6-22-10/45C/OD06/Experiment3/HiddenMarkov/SearchRadius5/hmmAveragedData.txt"]
-hmmlist = [
-        "L:/Cel5A-6-22-10/45C/OD06/Experiment1/HiddenMarkov/SearchRadius1_5/hmmAveragedData.txt",
-        "L:/Cel5A-6-22-10/45C/OD06/Experiment2/HiddenMarkov/SearchRadius1_5/hmmAveragedData.txt",
-        "L:/Cel5A-6-22-10/45C/OD06/Experiment3/HiddenMarkov/SearchRadius1_5/hmmAveragedData.txt"]
-hmmlist = [
-        "L:/Cel6B-5-26-10/45C/OD1/Experiment1/HiddenMarkov/SearchRadius2/hmmAveragedData.txt",
-        "L:/Cel6B-5-26-10/45C/OD1/Experiment3/HiddenMarkov/SearchRadius2/hmmAveragedData.txt",
-        "L:/Cel6B-5-26-10/45C/OD1/Experiment4/HiddenMarkov/SearchRadius2/hmmAveragedData.txt"]
-hmmlist = [
-        "L:/Cel6B-5-26-10/45C/OD1/Experiment1/HiddenMarkov/SearchRadius3/hmmAveragedData.txt",
-        "L:/Cel6B-5-26-10/45C/OD1/Experiment3/HiddenMarkov/SearchRadius3/hmmAveragedData.txt",
-        "L:/Cel6B-5-26-10/45C/OD1/Experiment4/HiddenMarkov/SearchRadius3/hmmAveragedData.txt"]
-hmmlist = [
-        "L:/Cel6B-5-26-10/45C/OD1/Experiment1/HiddenMarkov/SearchRadius5/hmmAveragedData.txt",
-        "L:/Cel6B-5-26-10/45C/OD1/Experiment3/HiddenMarkov/SearchRadius5/hmmAveragedData.txt",
-        "L:/Cel6B-5-26-10/45C/OD1/Experiment4/HiddenMarkov/SearchRadius5/hmmAveragedData.txt"]
-hmmlist = [
-        "L:/Cel6B-5-26-10/45C/OD1/Experiment1/HiddenMarkov/SearchRadius1_5/hmmAveragedData.txt",
-        "L:/Cel6B-5-26-10/45C/OD1/Experiment3/HiddenMarkov/SearchRadius1_5/hmmAveragedData.txt",
-        "L:/Cel6B-5-26-10/45C/OD1/Experiment4/HiddenMarkov/SearchRadius1_5/hmmAveragedData.txt"]
-hmmlist = [
-"L:/Cel9A-6-9-10/45C/OD06/Experiment1/HiddenMarkov/SearchRadius1_5/hmmAveragedData.txt",
-"L:/Cel9A-6-9-10/45C/OD06/Experiment2/HiddenMarkov/SearchRadius1_5/hmmAveragedData.txt"
-]
-hmmlist = [
-        "L:/Cel9A-6-9-10/45C/OD06/Experiment1/HiddenMarkov/SearchRadius2/hmmAveragedData.txt",
-        "L:/Cel9A-6-9-10/45C/OD06/Experiment2/HiddenMarkov/SearchRadius2/hmmAveragedData.txt"
-        ]
-hmmlist = [
-        "L:/Cel9A-6-9-10/45C/OD06/Experiment1/HiddenMarkov/SearchRadius3/hmmAveragedData.txt",
-        "L:/Cel9A-6-9-10/45C/OD06/Experiment2/HiddenMarkov/SearchRadius3/hmmAveragedData.txt"
-        ]
-'''
-hmmlist = [
-        "L:/Cel9A-6-9-10/45C/OD06/Experiment1/HiddenMarkov/SearchRadius5/hmmAveragedData.txt",
-        "L:/Cel9A-6-9-10/45C/OD06/Experiment2/HiddenMarkov/SearchRadius5/hmmAveragedData.txt"
-        ]
+import random
 
 
-list_of_tracks = []
-list_of_hmmdata = []
-path = "L:/Cel9A-6-9-10/45C/OD06/HiddenMarkov/"
+
+path = "D:/Cellulases-Analysis/"
 SR = 5
-trackfile = "foundTracks-Cel9A-SR{:}.txt".format(SR)
-hmmfile = "hmmAveragedData-Cel9A-SR{:}.txt".format(SR)
+Cel = "5A"
+trackfile = "foundTracks-Cel{0:}-SR{1:}.txt".format(Cel,SR)
+hmmfile = "hmmAveragedData-Cel{0:}-SR{1:}.txt".format(Cel,SR)
 
-def readHMMData(filename):
+minlength = 100
+
+
+class markovChain(object):
+    
+    struct_type = [('D1', np.double),
+                   ('D2', np.double),
+                   ('p12', np.double),
+                   ('p21', np.double),
+                   ('stdD1', np.double),
+                   ('stdD2', np.double),
+                   ('stdp12', np.double),
+                   ('stdp21', np.double),
+                   ('length',np.uint32)]
+                    
+    
+    def __init__(self, num_elements):
+        self.hmm = np.empty(num_elements, 
+                              dtype=self.struct_type)
+        self.id = np.empty(num_elements,dtype=np.str_)
+        
+        for name in self.hmm.dtype.names:
+            if name == 'track_id':
+                self.hmm[name].fill("empty")
+            else:
+                self.hmm[name].fill(0)
+
+    def readData(self,hmmlist):
+        for i in xrange(len(hmmlist)):
+            for j in xrange(len(hmmlist[i])):
+                break
+                #self.hmm[i][self.hmm.dtype.names[j]] = hmmlist[i][j]
+        return
+        
+
+def readInFile(filename):
+
     infile = open(filename,'r')
 
     allhmm = []
-    header = ""
     for line in infile:
         td = []
         if line[0] == "#":
@@ -167,33 +64,37 @@ def readHMMData(filename):
             continue
         saver = line.split()
         for i in xrange(len(saver)):
-            if i==8:
+            if i==9:
                 td.append(saver[i])
+            elif i == 8:
+                td.append(int(saver[i]))
+            elif i == 0:
+                a = float(saver[0])
+                b = float(saver[1])
+                if a > b:
+                    continue
+                else:
+                    td.append(a)
+            elif i == 1:
+                a = float(saver[0])
+                b = float(saver[1])
+                if a > b:
+                    td.append(b)
+                    td.append(a)
+                else:
+                    td.append(b)
             else:
                 td.append(float(saver[i]))
-        allhmm.append(td)
-    return allhmm, header
+        allhmm.append(list(td))
+    infile.close()
 
 
-def trackLength(track):
+    hmmdata = markovChain(len(allhmm))
+    hmmdata.readData(allhmm)
 
-    framestart = -1
-    frameend = -1
-
-    for part in track.track:
-        if np.isnan(part['frame']) or part['frame'] == 0:
-            continue
-        elif framestart == -1:
-            framestart = part['frame']
-        else:
-            frameend = part['frame']
-    if framestart == -1:
-        return 0
-    elif frameend == -1:
-        return 1
-    return frameend - framestart
-
-
+    return hmmdata
+                
+    
 
 if __name__=="__main__":
 
@@ -201,56 +102,40 @@ if __name__=="__main__":
         os.mkdir(path)
     os.chdir(path)
 
-    if os.path.isfile(hmmfile):
-        print("File '{:}' already exists!".format(hmmfile))
-        sys.exit(-1)
-    if os.path.isfile(trackfile):
-        print("File '{:}' already exists!".format(trackfile))
-        sys.exit(-1)
+    hmmdata = readInFile(hmmfile)
+    tracks,z = ctrack.readTrajectoriesFromFile(trackfile,minTrackLen=1)
+    print tracks[0].id
 
+    print len(hmmdata.hmm)
 
-    print("Reading Files")
-    sys.stdout.flush()
-    for i in xrange(len(hmmlist)):
-        drifttracks,driftlist = ctrack.readTrajectoriesFromFile(tracklist[i][1])
-        part_tracks,part_list = ctrack.readTrajectoriesFromFile(tracklist[i][0])
-        hmmdata,header = readHMMData(hmmlist[i])
+    print len(hmmdata.hmm[hmmdata.hmm['length'] > 100]['D1'])
 
-        
-        pt = dc.driftCorrection(part_tracks,drifttracks)
+    box = (0.05,0.2,2,5)
+    insideids = hmmdata.hmm#[hmmdata.hmm['D1'] < box[0]]#[ hmmdata.hmm['D1'] < box[1]][ hmmdata.hmm['D2'] > box[2]][ hmmdata.hmm['D2'] < box[3]]
+    insideids[0]['track_id'] = np.str_('hello')
+    print insideids[0]
+    print insideids[0]['track_id'].dtype
+    print np.str_("hi there")
 
-        list_of_tracks += list(pt)
-        list_of_hmmdata += list(hmmdata)
-    print("Done. \n")
-    sys.stdout.flush()
+'''
+    fig2 = plt.figure()
+    ax2 = fig2.add_subplot(111, aspect='equal')
+    ax2.loglog(hmmdata.hmm[hmmdata.hmm['length'] > 1]['D1'],hmmdata.hmm[hmmdata.hmm['length'] > 1]['D2'],'y+',zorder=1)
+    ax2.loglog(hmmdata.hmm[hmmdata.hmm['length'] > 10]['D1'],hmmdata.hmm[hmmdata.hmm['length'] > 10]['D2'],'b.',zorder=2)
+    ax2.loglog(hmmdata.hmm[hmmdata.hmm['length'] > 100]['D1'],hmmdata.hmm[hmmdata.hmm['length'] > 100]['D2'],'ro',zorder=3)
+    ax2.add_patch(
+            patches.Rectangle(
+                (box[0], box[2]),
+                box[1]-box[0],
+                box[3]-box[2],
+                fill=False,      # remove background
+                linewidth=3,
+                zorder=10
+                )
+            )
+    plt.show()
 
-    ctrack.writeTrajectories(list_of_tracks,filename=trackfile)
+'''
 
-    print("Adding Track-length.")
-    sys.stdout.flush()
-    print("HMM: {:}".format(len(list_of_hmmdata)))
-    print("Tracks: {:}".format(len(list_of_tracks)))
-    sys.stdout.flush()
-
-    counter = 0
-    for i in xrange(len(list_of_hmmdata)):
-        for j in xrange(len(list_of_tracks)):
-            if list_of_hmmdata[i][8] == list_of_tracks[j].id:
-                list_of_hmmdata[i].insert(8,trackLength(list_of_tracks[j]))
-                counter += 1
-    print counter
-
-    if counter != len(list_of_hmmdata):
-        print("Error in number of tracks and lengths!")
-        sys.exit(1)
-
-    outthetaf = open(hmmfile,'w')
-    outthetaf.write("#  D1 D2 p12 p21 stds: D1 D2 p12 p21 length  particle-ID\n")
-    for line in list_of_hmmdata:
-        for elem in line:
-            outthetaf.write("{:} ".format(elem))
-        outthetaf.write("\n")
-    outthetaf.close()
-
-
+    
     
