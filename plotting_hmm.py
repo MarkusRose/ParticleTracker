@@ -3,6 +3,7 @@ import AnalysisTools.driftCorrection as dc
 import AnalysisTools.hiddenMarkov as hmm
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+from matplotlib.collections import LineCollection
 
 import os
 import sys
@@ -11,7 +12,7 @@ import random
 
 
 
-path = "D:/Cellulases-Analysis/"
+path = "/media/markus/DataPartition/Cellulases-Analysis/"
 SR = 5
 Cel = "5A"
 trackfile = "foundTracks-Cel{0:}-SR{1:}.txt".format(Cel,SR)
@@ -36,19 +37,19 @@ class markovChain(object):
     def __init__(self, num_elements):
         self.hmm = np.empty(num_elements, 
                               dtype=self.struct_type)
-        self.id = np.empty(num_elements,dtype=np.str_)
+        self.id = np.empty(num_elements,dtype=(np.str_,16))
         
         for name in self.hmm.dtype.names:
-            if name == 'track_id':
-                self.hmm[name].fill("empty")
-            else:
-                self.hmm[name].fill(0)
+            self.hmm[name].fill(0)
+        self.id.fill('00000000')
 
     def readData(self,hmmlist):
         for i in xrange(len(hmmlist)):
             for j in xrange(len(hmmlist[i])):
-                break
-                #self.hmm[i][self.hmm.dtype.names[j]] = hmmlist[i][j]
+                if j ==9:
+                    self.id[i] = hmmlist[i][j]
+                else:
+                    self.hmm[i][self.hmm.dtype.names[j]] = hmmlist[i][j]
         return
         
 
@@ -110,14 +111,19 @@ if __name__=="__main__":
 
     print len(hmmdata.hmm[hmmdata.hmm['length'] > 100]['D1'])
 
-    box = (0.05,0.2,2,5)
-    insideids = hmmdata.hmm#[hmmdata.hmm['D1'] < box[0]]#[ hmmdata.hmm['D1'] < box[1]][ hmmdata.hmm['D2'] > box[2]][ hmmdata.hmm['D2'] < box[3]]
-    insideids[0]['track_id'] = np.str_('hello')
-    print insideids[0]
-    print insideids[0]['track_id'].dtype
-    print np.str_("hi there")
+    box = (0.12,0.13,0.1,0.3)
+    indeces = np.where(np.logical_and(hmmdata.hmm['length'] > 10,
+        np.logical_and(np.logical_and(hmmdata.hmm['D1'] > box[0], hmmdata.hmm['D1'] < box[1]),
+            np.logical_and(hmmdata.hmm['D2'] > box[2], hmmdata.hmm['D2'] < box[3]))))
 
-'''
+
+    print hmmdata.hmm[indeces[0][0]]
+    print hmmdata.id[indeces[0][0]]
+
+    print tracks[indeces[0][0]].id
+
+
+
     fig2 = plt.figure()
     ax2 = fig2.add_subplot(111, aspect='equal')
     ax2.loglog(hmmdata.hmm[hmmdata.hmm['length'] > 1]['D1'],hmmdata.hmm[hmmdata.hmm['length'] > 1]['D2'],'y+',zorder=1)
@@ -134,8 +140,21 @@ if __name__=="__main__":
                 )
             )
     plt.show()
-
-'''
-
     
-    
+
+    fig = plt.figure()
+    for i in xrange(len(indeces[0])):
+        tra = np.array(tracks[indeces[0][i]].track[np.invert(np.isnan(tracks[indeces[0][i]].track['x']))])
+        z = tra['frame']-tra[0]['frame']
+        x = tra['x']
+        y = tra['y']
+        points = np.array([x,y]).T.reshape(-1,1,2)
+        segments = np.concatenate([points[:-1],points[1:]],axis=1)
+        lc = LineCollection(segments, cmap=plt.get_cmap('Spectral'),norm=plt.Normalize(0,400))
+        lc.set_array(z)
+        lc.set_linewidth(1)
+        plt.gca().add_collection(lc)
+    plt.axis([0,400,0,400])
+    axcb = fig.colorbar(lc)
+    axcb.set_label('frame')
+    plt.show()
