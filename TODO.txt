@@ -1,0 +1,8 @@
+What needs to be done
+=====================
+
+- Feducial Drift Correction. Confirm tracks
+- D2 has too large values. Simulate...
+- Convergence of HMM
+- Output tracklist for a selected box
+
