@@ -15,7 +15,7 @@ import random
 path = "/media/markus/DataPartition/Cellulases-Analysis/"
 #path = "D:/Cellulases-Analysis/"
 SR = 1.5
-Cel = "5A"
+Cel = "6B"
 trackfile = "foundTracks-Cel{0:}-SR{1:}.txt".format(Cel,SR)
 hmmfile = "hmmAveragedData-Cel{0:}-SR{1:}.txt".format(Cel,SR)
 
@@ -158,14 +158,18 @@ def readInFile(filename):
 
 if __name__=="__main__":
 
+    #Theoretical upper and lower bounds
     Dmin = 0.01**2/(4*timestep)
     Dmax = (SR*pixel_size)**2/(4*timestep)
 
+    #Conversion factor
+    Dfactor = pixel_size*pixel_size/timestep
+
+    #Change directory to input paths
     if not os.path.isdir(path):
         os.mkdir(path)
     os.chdir(path)
 
-    Dfactor = pixel_size*pixel_size/timestep
 
 
     hmmdata = readInFile(hmmfile)
@@ -192,14 +196,6 @@ if __name__=="__main__":
     print("Plotting now")
     sys.stdout.flush()
 
-    fig8 = plt.figure()
-    ax8 = fig8.add_subplot(111)
-    ax8.hist(displ,50)
-    ax8.set_xlabel("step length (px)")
-    ax8.set_ylabel("count")
-    ax8.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
-    plt.draw()
-    
 
     savepng = os.path.join(path,"Tracks-Cel{:}-SR{:}".format(Cel,SR))
     if not os.path.isdir(savepng):
@@ -272,29 +268,52 @@ if __name__=="__main__":
     averages[6,3] = np.std(hmmdata.hmm[largehmm]['p12'])
     averages[7,3] = np.std(hmmdata.hmm[largehmm]['p21'])
 
+    #Plot dependence of D1, D2, p12,p21 on track length category
     fig4,axs = plt.subplots(nrows=2,ncols=2, sharex=True)
+    labels = ['all',r'$\Delta t<{:}s$'.format(small*timestep),r'${:}s < \Delta t < {:}s$'.format(small*timestep,large*timestep),r'$\Delta t>{:}s$'.format(large*timestep)]
     ax = axs[0,0]
     ax.errorbar(np.arange(4),averages[0],yerr=averages[0+4],fmt='o-',color='r')
-    ax.set_xlabel("Length Category")
     ax.set_ylabel(r"D1 in $\mu m^2s^{-1}$")
+    ax.set_xticks(np.arange(4))
+    ax.set_xticklabels(labels,rotation=40)
     ax2= axs[0,1]
     ax2.errorbar(np.arange(4),averages[1],yerr=averages[1+4],fmt='o-',color='r')
-    ax2.set_xlabel("Length Category")
     ax2.set_ylabel(r"D2 in $\mu m^2s^{-1}$")
+    ax2.set_xticks(np.arange(4))
+    ax2.set_xticklabels(labels,rotation=40)
     ax3= axs[1,0]
     ax3.errorbar(np.arange(4),averages[2],yerr=averages[2+4],fmt='o-',color='r')
-    ax3.set_xlabel("Length Category")
     ax3.set_ylabel(r"p12")
+    ax3.set_xticks(np.arange(4))
+    ax3.set_xticklabels(labels,rotation=40)
     ax4 = axs[1,1]
     ax4.errorbar(np.arange(4),averages[3],yerr=averages[3+4],fmt='o-',color='r')
-    ax4.set_xlabel("Length Category")
-    ax4.set_ylabel(r"")
-    plt.savefig("lengthsCel{:}SR{:}.png".format(Cel,SR))
+    ax4.set_ylabel(r"p21")
+    ax4.set_xticks(np.arange(4))
+    ax4.set_xticklabels(labels,rotation=40)
+    plt.xlabel("Length Category")
+    plt.tight_layout()
+    plt.savefig("valueDependenceCel{:}SR{:}.png".format(Cel,SR))
     plt.draw()
 
+    #Plot stepsize distribution
+    fig8 = plt.figure()
+    ax8 = fig8.add_subplot(111)
+    ax8.hist(displ,50)
+    ax8.set_xlabel("step length (px)")
+    ax8.set_ylabel("count")
+    ax8.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
+    plt.savefig("stepsCel{:}SR{:}.png".format(Cel,SR))
+    plt.draw()
+    
+
+    #Plot track length distribution
     fig6 = plt.figure()
     ax6 = fig6.add_subplot(111)
-    ax6.hist(hmmdata.hmm[largehmm]['length'],50)
+    ax6.hist(hmmdata.hmm[largehmm]['length']*timestep,50)
+    ax6.set_xlabel("track time (s)")
+    ax6.set_ylabel("count")
+    plt.savefig("lengthsCel{:}SR{:}.png".format(Cel,SR))
     plt.draw()
 
     fig2 = plt.figure()
@@ -360,6 +379,7 @@ if __name__=="__main__":
     userinput = raw_input("Create plots of Tracks? [y,N]  ") 
     num = 0
     plt.ioff()
+    plt.show()
 
     if userinput == 'y':
         num = 2
@@ -377,6 +397,7 @@ if __name__=="__main__":
                     print("Problem! {:}".format(hmmdata.id[indeces[i][0][j]]))
                     continue
                 fig3 = plt.figure()
+                ax3 = fig3.add_subplot(111, aspect='equal')
                 tra = np.array(tracks[indeces[i][0][j]+difference].track[np.invert(np.isnan(tracks[indeces[i][0][j]+difference].track['x']))])
                 if len(tra) == 0:
                     j+=1
@@ -391,19 +412,18 @@ if __name__=="__main__":
                 maxy = y.max()
                 points = np.array([x,y]).T.reshape(-1,1,2)
                 segments = np.concatenate([points[:-1],points[1:]],axis=1)
-                lc = LineCollection(segments, cmap=plt.get_cmap('Spectral'),norm=plt.Normalize(0,z.max()))
+                lc = LineCollection(segments, cmap=plt.get_cmap('Spectral'),norm=plt.Normalize(0,len(tracks[indeces[i][0][j]+difference].track['frame'])))#z.max()))
                 lc.set_array(z)
                 lc.set_linewidth(2)
-                plt.gca().add_collection(lc)
+                ax3.add_collection(lc)
                 plt.axis([minx-2*pixel_size,maxx+2*pixel_size,miny-2*pixel_size,maxy+2*pixel_size])
                 axcb = fig3.colorbar(lc)
                 axcb.set_label('time in $s$')
-                plt.xlabel(r'x in $\mu m$')
-                plt.ylabel(r'y in $\mu m$')
+                ax3.set_xlabel(r'x in $\mu m$')
+                ax3.set_ylabel(r'y in $\mu m$')
                 plt.savefig("temp{:}.png".format(j))
                 #plt.draw()
-                plt.close()
+                plt.close(fig3)
                 print("Done {:}-{:}".format(i,j))
                 j += 1
 
-    plt.show()
