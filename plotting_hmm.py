@@ -13,6 +13,7 @@ import random
 
 
 path = "/media/markus/DataPartition/Cellulases-Analysis/"
+#path = "D:/Cellulases-Analysis/"
 SR = 1.5
 Cel = "5A"
 trackfile = "foundTracks-Cel{0:}-SR{1:}.txt".format(Cel,SR)
@@ -169,12 +170,6 @@ if __name__=="__main__":
 
     hmmdata = readInFile(hmmfile)
     tracks,z = ctrack.readTrajectoriesFromFile(trackfile,minTrackLen=1)
-    print tracks[0].id
-
-    print len(hmmdata.hmm)
-
-    print len(hmmdata.hmm[hmmdata.hmm['length'] > 100]['D1'])
-
     indeces = []
     
     for box in [boxup,boxdown]:
@@ -183,17 +178,28 @@ if __name__=="__main__":
                 np.logical_and(hmmdata.hmm['D2'] > box[2]/Dfactor, hmmdata.hmm['D2'] < box[3]/Dfactor)))))
 
 
-    print hmmdata.hmm[indeces[0][0][0]]
-    print hmmdata.id[indeces[0][0][0]]
-
-    print tracks[indeces[0][0][0]].id
-
-
     smallhmm = np.logical_and(hmmdata.hmm['length'] <= small,hmmdata.hmm['length'] > 1)
     mediumhmm = np.logical_and(hmmdata.hmm['length'] <= large,hmmdata.hmm['length'] > small)
     largehmm = hmmdata.hmm['length'] > large
 
+    r2,leng = hmm.squaredDisplacements(tracks)
+    displ = []
+    for tr in r2:
+        displ += list(tr[0])
+    displ = np.sqrt(displ)
 
+    print("Maximum = {:} and Minimum = {:}".format(displ.max(),displ.min()))
+    print("Plotting now")
+    sys.stdout.flush()
+
+    fig8 = plt.figure()
+    ax8 = fig8.add_subplot(111)
+    ax8.hist(displ,50)
+    ax8.set_xlabel("step length (px)")
+    ax8.set_ylabel("count")
+    ax8.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
+    plt.draw()
+    
 
     savepng = os.path.join(path,"Tracks-Cel{:}-SR{:}".format(Cel,SR))
     if not os.path.isdir(savepng):
@@ -284,11 +290,12 @@ if __name__=="__main__":
     ax4.set_xlabel("Length Category")
     ax4.set_ylabel(r"")
     plt.savefig("lengthsCel{:}SR{:}.png".format(Cel,SR))
-    plt.show()
+    plt.draw()
 
-
-    plt.hist(hmmdata.hmm[largehmm]['length'],50)
-    plt.show()
+    fig6 = plt.figure()
+    ax6 = fig6.add_subplot(111)
+    ax6.hist(hmmdata.hmm[largehmm]['length'],50)
+    plt.draw()
 
     fig2 = plt.figure()
     ax2 = fig2.add_subplot(111, aspect='equal')
@@ -322,7 +329,7 @@ if __name__=="__main__":
     plt.ylabel(r"D2 in $\mu m^2 s^{-1}$")
     plt.title("Cel{0:}-SR{1:}".format(Cel,SR))
     plt.savefig("hmm-Cel{0:}-SR{1:}.png".format(Cel,SR))
-    plt.show(block=True)
+    plt.draw()
     
 
     '''
@@ -346,6 +353,10 @@ if __name__=="__main__":
     
 
     userinput = 'n'
+    if sys.platform == "win32": 
+        print("Create plots of Tracks? [y,N]  ")
+        sys.stdout.flush()
+
     userinput = raw_input("Create plots of Tracks? [y,N]  ") 
     num = 0
     plt.ioff()
@@ -390,8 +401,9 @@ if __name__=="__main__":
                 plt.xlabel(r'x in $\mu m$')
                 plt.ylabel(r'y in $\mu m$')
                 plt.savefig("temp{:}.png".format(j))
+                #plt.draw()
                 plt.close()
                 print("Done {:}-{:}".format(i,j))
                 j += 1
 
-
+    plt.show()
