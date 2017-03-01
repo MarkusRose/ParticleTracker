@@ -53,6 +53,15 @@ def readPositionsFromFile(filename):
     #print sorted(pos)
     return pos
 
+def writeParticleFile(positions,filename="foundParticles.txt"):
+    outfile = open(filename,'w')
+    for i in xrange(len(positions)):
+        detectParticles.writeDetectedParticles([positions[i],0.0],i+1,outfile)
+    outfile.close()
+    return
+
+
+
 def readDetectedParticles(filename):
     infile = open(filename,'r')
     particle_data=[]

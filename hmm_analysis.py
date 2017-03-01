@@ -91,7 +91,6 @@ def doHMM(filelist,montecarlo=10000,subfolder="SearchRadius1_5"):
     trackfile = filelist[0]
     driftfile = filelist[1]
 
-    drifttracks,driftlist = ctrack.readTrajectoriesFromFile(driftfile)
     part_tracks,part_list = ctrack.readTrajectoriesFromFile(trackfile)
 
     path = os.path.abspath(os.path.join(os.path.dirname(trackfile), '..', 'HiddenMarkov'))
@@ -104,11 +103,6 @@ def doHMM(filelist,montecarlo=10000,subfolder="SearchRadius1_5"):
 
     print path
     sys.stdout.flush()
-
-    print("Doing Drift Correction")
-    sys.stdout.flush()
-
-    pt = dc.driftCorrection(part_tracks,drifttracks)
 
     print("Running HMM")
     sys.stdout.flush()

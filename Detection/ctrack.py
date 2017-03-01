@@ -52,7 +52,7 @@ class ParticleTrack(object):
         for name in self.track.dtype.names:
             #TODO: FIX ERROR
             try:
-                self.track[name][frame] = getattr(particle, name)
+                self.track[name][frame-1] = getattr(particle, name)
             except:
                 pass
         return    
@@ -184,7 +184,7 @@ def readTrajectoriesFromFile(filename,minTrackLen=1):
 
 def link_particles(particle_data, max_displacement,
                    link_range=2, 
-                   min_track_len=10,
+                   min_track_len=1,
                    outfile="foundTracks.txt"):
     ''' Initialize Particle Tracking variables'''
     #Array Index Variables
@@ -219,7 +219,8 @@ def link_particles(particle_data, max_displacement,
     print('_'*52)
     sys.stdout.write("[")
     sys.stdout.flush()
-    for frame in range(num_frames - link_range):
+    for frame in range(num_frames - 1):
+        #print frame
         #TODO: DEBUG
         #print ("Image %s Processing" % (frame+1))
         aaa = int(frame * 50/(num_frames - link_range))
@@ -228,7 +229,7 @@ def link_particles(particle_data, max_displacement,
             sys.stdout.flush()
             count += aaa-count
         
-        cur_link_range = link_range
+        cur_link_range = min(link_range,num_frames-1-frame)
         num_particles = len(particle_data[frame])
         
         for link in range(cur_link_range):

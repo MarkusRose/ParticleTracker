@@ -22,6 +22,7 @@ def writeDetectedParticles(particles,frame,outfile):
     outfile.write('\n')
     return
 
+
 def outMarkedImages(image,partdata,out):
 
     markNoInit = markPosition.markPositionsFromList(image.shape,partdata[0])
