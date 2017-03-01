@@ -10,7 +10,8 @@ from time import strftime
 
 
 #System Parameter
-particle_file = "/home/markus/TestTracking/foundParticles.txt"
+particle_file = "Not Defined"
+'''
 filelist = [["L:/Cel5A-6-22-10/45C/OD06/Experiment1/C-1-AnalyzedData/foundParticles.txt",
         "L:/Cel5A-6-22-10/45C/OD06/Experiment1/C-2-AnalyzedData/foundParticles.txt"],
         ["L:/Cel5A-6-22-10/45C/OD06/Experiment2/C-1-AnalyzedData/foundParticles.txt",
@@ -27,8 +28,8 @@ filelist = [["L:/Cel5A-6-22-10/45C/OD06/Experiment1/C-1-AnalyzedData/foundPartic
         "L:/Cel9A-6-9-10/45C/OD06/Experiment1/C-2-AnalyzedData/foundParticles.txt"],
         ["L:/Cel9A-6-9-10/45C/OD06/Experiment2/C-1-AnalyzedData/foundParticles.txt",
         "L:/Cel9A-6-9-10/45C/OD06/Experiment2/C-2-AnalyzedData/foundParticles.txt"]]
-'''
 filelist = [["L:/Cel5A-6-22-10/45C/OD06/Experiment3/C-2-AnalyzedData/foundParticles.txt","L:/Cel5A-6-22-10/45C/OD06/Experiment3/C-2-AnalyzedData/foundParticles.txt"]]
+        '''
 filelist = [["L:/Cel5A-6-22-10/45C/OD06/Experiment1/C-2-AnalyzedData/foundParticles.txt",
         "L:/Cel5A-6-22-10/45C/OD06/Experiment1/C-2-AnalyzedData/foundParticles.txt"],
         ["L:/Cel5A-6-22-10/45C/OD06/Experiment2/C-2-AnalyzedData/foundParticles.txt",
@@ -45,7 +46,6 @@ filelist = [["L:/Cel5A-6-22-10/45C/OD06/Experiment1/C-2-AnalyzedData/foundPartic
         "L:/Cel9A-6-9-10/45C/OD06/Experiment1/C-2-AnalyzedData/foundParticles.txt"],
         ["L:/Cel9A-6-9-10/45C/OD06/Experiment2/C-2-AnalyzedData/foundParticles.txt",
         "L:/Cel9A-6-9-10/45C/OD06/Experiment2/C-2-AnalyzedData/foundParticles.txt"]]
-        '''
 
 #Tracking Parameter:
 searchRadius = 3
@@ -81,7 +81,7 @@ def doTrack(particle_file,searchRadius=searchRadius,minTracklen=minTracklen,link
 
     return tracks
 
-def doTrack_direct(particles, searchRadius=searchRadius,minTracklen=minTracklen,linkRange=linkRange,outfile="foundTracks.txt"):
+def doTrack_direct(particles, searchRadius=searchRadius,minTracklen=minTracklen,linkRange=linkRange,outfile="foundTracks.txt",infilename="Not Defined"):
     date = strftime("%Y%m%d-%H%M%S")
 
     tracks = ctrack.link_particles(particles,searchRadius,link_range=linkRange,min_track_len=minTracklen,outfile=outfile)#"foundTracks-SR{:}_{:}.txt".format(searchRadius,date))
@@ -92,7 +92,7 @@ def doTrack_direct(particles, searchRadius=searchRadius,minTracklen=minTracklen,
     outfile.write("Tracking Log File\n==================\n\n")
     outfile.write("Time:   {:}\n".format(timestr))
     outfile.write("\nSystem Parameters:\n------------------\n")
-    outfile.write("Particle File:   {:}\n".format(particle_file))
+    outfile.write("Particle File:   {:}\n".format(infilename))
     outfile.write("\nTracking Parameters:\n---------------------\n")
     outfile.write("Search Radius = {:}px\n".format(searchRadius))
     outfile.write("Link Range = {:} frames\n".format(linkRange))
@@ -107,25 +107,24 @@ def doTrack_direct(particles, searchRadius=searchRadius,minTracklen=minTracklen,
 
 def track_with_driftcorrect(fn):
     drifttracks = doTrack(fn[1],searchRadius=2)
-    pparts = dc.driftCorrection_particles(fn[0],drifttracks)
+    pparts = dc.driftCorrection_particles(fn[1],drifttracks)
+    path = os.path.dirname(fn[1])
+    os.chdir(path)
+    date = strftime("%Y%m%d-%H%M%S")
+    doTrack_direct(pparts,outfile="driftcorrectedTracks-SR{:}_{:}.txt".format(searchRadius,date),infilename=fn[0])
     path = os.path.dirname(fn[0])
     os.chdir(path)
+    pparts = dc.driftCorrection_particles(fn[0],drifttracks)
     conFiles.writeParticleFile(pparts,filename="driftlessParticles.txt")
     date = strftime("%Y%m%d-%H%M%S")
-    doTrack_direct(pparts,outfile="driftcorrectedTracks-SR{:}_{:}.txt".format(searchRadius,date))
+    doTrack_direct(pparts,outfile="driftcorrectedTracks-SR{:}_{:}.txt".format(searchRadius,date),infilename=fn[0])
     return
         
 
 
 def serial():
     for fn in filelist:
-        drifttracks = doTrack(fn[0])
-        pparts = dc.driftCorrection_particles(fn[1],drifttracks)
-        path = os.path.dirname(fn[1])
-        os.chdir(path)
-        conFiles.writeParticleFile(pparts,filename="driftlessParticles.txt")
-        date = strftime("%Y%m%d-%H%M%S")
-        doTrack_direct(pparts,outfile="driftcorrectedTracks-SR{:}_{:}.txt".format(searchRadius,date))
+        track_with_driftcorrect(fn)
     return
 
 def multiproc():

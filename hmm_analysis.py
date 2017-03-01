@@ -48,6 +48,7 @@ filelist = [
         "L:/Cel9A-6-9-10/45C/OD06/Experiment2/C-2-AnalyzedData/foundTracks-SR3_20170208-231115.txt"]
         ]
 '''
+'''
 filelist = [
         ["L:/Cel5A-6-22-10/45C/OD06/Experiment1/C-1-AnalyzedData/foundTracks-SR1.5_20170209-030447.txt",
             "L:/Cel5A-6-22-10/45C/OD06/Experiment1/C-2-AnalyzedData/foundTracks-SR1.5_20170209-030447.txt"],
@@ -66,6 +67,7 @@ filelist = [
         ["L:/Cel9A-6-9-10/45C/OD06/Experiment2/C-1-AnalyzedData/foundTracks-SR1.5_20170209-030458.txt",
             "L:/Cel9A-6-9-10/45C/OD06/Experiment2/C-2-AnalyzedData/foundTracks-SR1.5_20170209-030609.txt"]
         ]
+'''
 '''
 filelist = [
         ["L:/Cel5A-6-22-10/45C/OD06/Experiment1/C-1-AnalyzedData/foundTracks-SR5_20170209-160448.txt",
@@ -86,10 +88,18 @@ filelist = [
             "L:/Cel9A-6-9-10/45C/OD06/Experiment2/C-2-AnalyzedData/foundTracks-SR5_20170209-160608.txt"]
         ]
 '''
+filelist = [ 
+        "L:/Cel5A-6-22-10/45C/OD06/Experiment1/C-1-AnalyzedData/driftcorrectedTracks-SR3_20170224-183759.txt",
+        "L:/Cel5A-6-22-10/45C/OD06/Experiment2/C-1-AnalyzedData/driftcorrectedTracks-SR3_20170224-183759.txt",
+        "L:/Cel5A-6-22-10/45C/OD06/Experiment3/C-1-AnalyzedData/driftcorrectedTracks-SR3_20170224-183759.txt",
+        "L:/Cel6B-5-26-10/45C/OD1/Experiment1/C-1-AnalyzedData/driftcorrectedTracks-SR3_20170224-183800.txt",
+        "L:/Cel6B-5-26-10/45C/OD1/Experiment3/C-1-AnalyzedData/driftcorrectedTracks-SR3_20170224-183809.txt",
+        "L:/Cel6B-5-26-10/45C/OD1/Experiment4/C-1-AnalyzedData/driftcorrectedTracks-SR3_20170224-183801.txt",
+        "L:/Cel9A-6-9-10/45C/OD06/Experiment1/C-1-AnalyzedData/driftcorrectedTracks-SR3_20170224-183759.txt",
+        "L:/Cel9A-6-9-10/45C/OD06/Experiment2/C-1-AnalyzedData/driftcorrectedTracks-SR3_20170224-183759.txt"
+        ]
 
-def doHMM(filelist,montecarlo=10000,subfolder="SearchRadius1_5"):
-    trackfile = filelist[0]
-    driftfile = filelist[1]
+def doHMM(trackfile,montecarlo=10000,subfolder="SearchRadius1_5"):
 
     part_tracks,part_list = ctrack.readTrajectoriesFromFile(trackfile)
 
@@ -107,7 +117,7 @@ def doHMM(filelist,montecarlo=10000,subfolder="SearchRadius1_5"):
     print("Running HMM")
     sys.stdout.flush()
 
-    thetas = hmm.runHiddenMarkov(pt,MCMC=montecarlo)
+    thetas = hmm.runHiddenMarkov(part_tracks,MCMC=montecarlo)
     thetas = []
 
     return thetas
