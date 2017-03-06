@@ -61,6 +61,7 @@ def trackLength(track):
 def displacements(tracks):
     displacements = []
     lengths = []
+    part_ids = []
     for track in tracks:
         single_disp = []
         x = np.nan
@@ -83,19 +84,20 @@ def displacements(tracks):
                 time_dis += 1
         if len(single_disp) > 0:
             displacements.append([np.array(single_disp),part_id])
+            part_ids.append(part_id)
             lengths.append(trackLength(track))
-    return displacements,lengths
+    return displacements,lengths,part_ids
 
 
 def squaredDisplacements(tracks):
 
-    disps,length = displacements(tracks)
+    disps,length,part_ids = displacements(tracks)
     rsquared = []
     
     for tr in disps:
         rsquared.append([np.sum(tr[0]**2,axis=1),tr[1]])
     
-    return rsquared,length
+    return rsquared,length,part_ids
     
 
 
@@ -201,9 +203,9 @@ def doMetropolisOrig(dr2,particleID,MCsteps=10000):
     return theta, L, MCsteps
 
 
-def runHiddenMarkov(tracks,MCMC=10000):
+def runHiddenMarkov(tracks,MCMC=10000,searchRadius=3):
 
-    rsq,lengths = squaredDisplacements(tracks)
+    rsq,lengths,partid = squaredDisplacements(tracks)
     averagingStart = min(2000,MCMC)
     if averagingStart == MCMC:
         averagingStart /= 5
@@ -236,7 +238,8 @@ def runHiddenMarkov(tracks,MCMC=10000):
         for elem in statemap:
             trackout.write("{:}\n".format(elem))
         trackout.close()
-    outthetaf = open("hmmAveragedData.txt",'w')
+    date = strftime("%Y%m%d-%H%M%S")
+    outthetaf = open("hmmAveragedData-{:}_{:}.txt".format(SR,date),'w')
     outthetaf.write("#  D1 D2 p12 p21 stds: D1 D2 p12 p21 tracklength particle-ID\n")
     for i in xrange(len(Thetas)):
         counter = 0
@@ -244,7 +247,7 @@ def runHiddenMarkov(tracks,MCMC=10000):
             if counter != 8:
                 outthetaf.write("{:} ".format(elem))
             else:
-                outthetaf.write("{:} ".format(lengths[i]))
+                outthetaf.write("{:} {:}".format(lengths[i],partid[i]))
             counter += 1
         outthetaf.write("\n")
     outthetaf.close()

@@ -5,6 +5,8 @@ What needs to be done
 - D2 has too large values. Simulate...
 - Stepsize histogram
 - Convergence of HMM
-- Output tracklist for a selected box
+
+Done:
 - Drift Correction before Tracking better?
+- Output tracklist for a selected box
 

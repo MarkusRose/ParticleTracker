@@ -7,6 +7,7 @@ import AnalysisTools.driftCorrection as dc
 import AnalysisTools.hiddenMarkov as hmm
 import Detection.ctrack as ctrack
 
+SR = 3
 
 '''
 filelist = [
@@ -99,7 +100,7 @@ filelist = [
         "L:/Cel9A-6-9-10/45C/OD06/Experiment2/C-1-AnalyzedData/driftcorrectedTracks-SR3_20170224-183759.txt"
         ]
 
-def doHMM(trackfile,montecarlo=10000,subfolder="SearchRadius1_5"):
+def doHMM(trackfile,montecarlo=10000,subfolder="SearchRadius{:}".format(SR)):
 
     part_tracks,part_list = ctrack.readTrajectoriesFromFile(trackfile)
 
@@ -117,7 +118,7 @@ def doHMM(trackfile,montecarlo=10000,subfolder="SearchRadius1_5"):
     print("Running HMM")
     sys.stdout.flush()
 
-    thetas = hmm.runHiddenMarkov(part_tracks,MCMC=montecarlo)
+    thetas = hmm.runHiddenMarkov(part_tracks,MCMC=montecarlo,searchRadius=SR)
     thetas = []
 
     return thetas
