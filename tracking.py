@@ -106,12 +106,15 @@ def doTrack_direct(particles, searchRadius=searchRadius,minTracklen=minTracklen,
 
 
 def track_with_driftcorrect(fn):
+    #Create drift tracks from positions
     drifttracks = doTrack(fn[1],searchRadius=2)
+    #Apply drift correction to feducial markers for verification and save
     pparts = dc.driftCorrection_particles(fn[1],drifttracks)
     path = os.path.dirname(fn[1])
     os.chdir(path)
     date = strftime("%Y%m%d-%H%M%S")
-    doTrack_direct(pparts,outfile="driftcorrectedTracks-SR{:}_{:}.txt".format(searchRadius,date),infilename=fn[0])
+    doTrack_direct(pparts,outfile="driftcorrectedTracks-SR{:}_{:}.txt".format(searchRadius,date),infilename=fn[1])
+    #Apply drift correction to other channel and save
     path = os.path.dirname(fn[0])
     os.chdir(path)
     pparts = dc.driftCorrection_particles(fn[0],drifttracks)
@@ -119,7 +122,6 @@ def track_with_driftcorrect(fn):
     date = strftime("%Y%m%d-%H%M%S")
     doTrack_direct(pparts,outfile="driftcorrectedTracks-SR{:}_{:}.txt".format(searchRadius,date),infilename=fn[0])
     return
-        
 
 
 def serial():
