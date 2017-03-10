@@ -11,13 +11,14 @@ import numpy as np
 import random
 
 
-
-path = "/media/markus/DataPartition/Cellulases-Analysis/"
+path = "/media/markus/DataPartition/Cellulases-Analysis_2017-03-10/"
+#path = "/media/markus/DataPartition/Cellulases-Analysis/"
 #path = "D:/Cellulases-Analysis/"
-SR = 1.5
-Cel = "6B"
-trackfile = "foundTracks-Cel{0:}-SR{1:}.txt".format(Cel,SR)
-hmmfile = "hmmAveragedData-Cel{0:}-SR{1:}.txt".format(Cel,SR)
+SR = 3
+Cel = "5A"
+trackfile = "tracksCel{:}-SR3_2017-03-06.txt".format(Cel)
+dcfile = "driftsCel{:}-SR3_2017-03-06.txt".format(Cel)
+hmm_file = "hmmAveragedData-Cel{:}-SR3_2017-03-10.txt".format(Cel)
 
 small = 20
 large = 100
@@ -171,9 +172,10 @@ if __name__=="__main__":
     os.chdir(path)
 
 
-
-    hmmdata = readInFile(hmmfile)
+    #hmmdata = readInFile(hmmfile)
     tracks,z = ctrack.readTrajectoriesFromFile(trackfile,minTrackLen=1)
+    dctracks,z = ctrack.readTrajectoriesFromFile(dcfile,minTrackLen=1)
+    hmmdata = readInFile(hmm_file)
     indeces = []
     
     for box in [boxup,boxdown]:
@@ -186,11 +188,17 @@ if __name__=="__main__":
     mediumhmm = np.logical_and(hmmdata.hmm['length'] <= large,hmmdata.hmm['length'] > small)
     largehmm = hmmdata.hmm['length'] > large
 
-    r2,leng = hmm.squaredDisplacements(tracks)
+    r2,leng,idfromtracks = hmm.squaredDisplacements(tracks)
     displ = []
     for tr in r2:
         displ += list(tr[0])
     displ = np.sqrt(displ)
+
+    r2,leng,idfromtracks = hmm.squaredDisplacements(dctracks)
+    driftdispl = []
+    for tr in r2:
+        driftdispl += list(tr[0])
+    driftdispl = np.sqrt(displ)
 
     print("Maximum = {:} and Minimum = {:}".format(displ.max(),displ.min()))
     print("Plotting now")
@@ -306,6 +314,16 @@ if __name__=="__main__":
     plt.savefig("stepsCel{:}SR{:}.png".format(Cel,SR))
     plt.draw()
     
+    #Plot stepsize distribution
+    fig8 = plt.figure()
+    ax8 = fig8.add_subplot(111)
+    ax8.hist(driftdispl,50)
+    ax8.set_xlabel("step length (px)")
+    ax8.set_ylabel("count")
+    ax8.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
+    plt.savefig("driftstepsCel{:}SR{:}.png".format(Cel,SR))
+    plt.draw()
+    
 
     #Plot track length distribution
     fig6 = plt.figure()
@@ -349,12 +367,13 @@ if __name__=="__main__":
     plt.title("Cel{0:}-SR{1:}".format(Cel,SR))
     plt.savefig("hmm-Cel{0:}-SR{1:}.png".format(Cel,SR))
     plt.draw()
-    
 
-    '''
     fig = plt.figure()
     for index in indeces[0][0]:
         tra = np.array(tracks[index].track[np.invert(np.isnan(tracks[index].track['x']))])
+        if len(tra) == 0:
+            print "We have a problem here: long track length short"
+            continue
         z = tra['frame']-tra[0]['frame']
         x = tra['x']
         y = tra['y']
@@ -368,7 +387,6 @@ if __name__=="__main__":
     axcb = fig.colorbar(lc)
     axcb.set_label('frame')
     plt.show(block=True)
-    '''
     
 
     userinput = 'n'
@@ -427,3 +445,88 @@ if __name__=="__main__":
                 print("Done {:}-{:}".format(i,j))
                 j += 1
 
+        #drift
+        spng = os.path.join(savepng,"Drift")
+        if not os.path.isdir(spng):
+            os.mkdir(spng)
+        os.chdir(spng)
+        counter = 0
+        for track in dctracks:
+            counter += 1
+            fig3 = plt.figure()
+            ax3 = fig3.add_subplot(111, aspect='equal')
+            tra = np.array(track.track[np.invert(np.isnan(track.track['x']))])
+            if len(tra) == 0:
+                j+=1
+                print("Track of length 0???")
+                continue
+            z = tra['frame']#-tra[0]['frame']*timestep
+            x = tra['x']*pixel_size
+            y = tra['y']*pixel_size
+            minx = x.min()
+            miny = y.min()
+            maxx = x.max()
+            maxy = y.max()
+            points = np.array([x,y]).T.reshape(-1,1,2)
+            segments = np.concatenate([points[:-1],points[1:]],axis=1)
+            lc = LineCollection(segments, cmap=plt.get_cmap('Spectral'),norm=plt.Normalize(0,z.max()))
+            lc.set_array(z)
+            lc.set_linewidth(2)
+            ax3.add_collection(lc)
+            plt.axis([minx-2*pixel_size,maxx+2*pixel_size,miny-2*pixel_size,maxy+2*pixel_size])
+            axcb = fig3.colorbar(lc)
+            axcb.set_label('time in $s$')
+            ax3.set_xlabel(r'x in $\mu m$')
+            ax3.set_ylabel(r'y in $\mu m$')
+            plt.savefig("cd{:}.png".format(counter))
+            #plt.draw()
+            plt.close(fig3)
+            print("Done {:}-{:}".format(0,counter))
+
+
+
+    '''
+    #Print All Tracks and Drift Tracks
+    #================
+    plt.ioff()
+    plt.show()
+    
+    spng = os.path.join(path,"Tracks")
+    if not os.path.isdir(spng):
+        os.mkdir(spng)
+    os.chdir(spng)
+
+    #cellulases
+    counter = 0
+    for track in tracks:
+        counter += 1
+        fig3 = plt.figure()
+        ax3 = fig3.add_subplot(111, aspect='equal')
+        tra = np.array(track.track[np.invert(np.isnan(track.track['x']))])
+        if len(tra) == 0:
+            j+=1
+            print("Track of length 0???")
+            continue
+        z = tra['frame']#-tra[0]['frame']*timestep
+        x = tra['x']*pixel_size
+        y = tra['y']*pixel_size
+        minx = x.min()
+        miny = y.min()
+        maxx = x.max()
+        maxy = y.max()
+        points = np.array([x,y]).T.reshape(-1,1,2)
+        segments = np.concatenate([points[:-1],points[1:]],axis=1)
+        lc = LineCollection(segments, cmap=plt.get_cmap('Spectral'),norm=plt.Normalize(0,z.max()))
+        lc.set_array(z)
+        lc.set_linewidth(2)
+        ax3.add_collection(lc)
+        plt.axis([minx-2*pixel_size,maxx+2*pixel_size,miny-2*pixel_size,maxy+2*pixel_size])
+        axcb = fig3.colorbar(lc)
+        axcb.set_label('time in $s$')
+        ax3.set_xlabel(r'x in $\mu m$')
+        ax3.set_ylabel(r'y in $\mu m$')
+        plt.savefig("temp{:}.png".format(counter))
+        #plt.draw()
+        plt.close(fig3)
+        print("Done {:}-{:}".format(0,counter))
+        '''

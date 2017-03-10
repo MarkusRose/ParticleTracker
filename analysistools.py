@@ -11,25 +11,35 @@ import math
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 import sys
+import os
 
 
 #========================================
 # User Input Variables
 #========================================
+Cel="9A"
+SR=3
+
+frametime = 1
+pixelsize = 0.067
+Dfactor = pixelsize*pixelsize/frametime
 
 bCleanUpTracks = True
-bSingleTrackEndToEnd = False
-bSingleTrackMSDanalysis = False
+bSingleTrackEndToEnd = True
+bSingleTrackMSDanalysis = True
 bCombineTrack = True
 
 #combined Track input
-lenMSD_ct = 100
+lenMSD_ct = 1000
 plotlen = 5 #gives the range of the distribution plots
+numberofbins = 50
 
+path = "/media/markus/DataPartition/Cellulases-Analysis_2017-03-10/"
 infilename = "foundTrackscomb.txt"
+infilename = "tracksCel{:}-SR3_2017-03-06.txt".format(Cel)
 
 #single track analysis input
-minTrLength = 30
+minTrLength = 100
 
 #debugging variables:
 testing = False
@@ -40,7 +50,7 @@ testing = False
 #++++++++++++++++++++++++++++++++++++++++
 
 '''
-basic functions: Read in tracks, MSD, r^2-distribution, xy-stepsize-distribution
+basic functions: Read in tracks, MSD, r^2-distribution, xy-stpngize-distribution
 '''
 
 #read in Tracks
@@ -64,7 +74,7 @@ def readTracks(infile):
                 brt = True
                 track = []
             continue
-        track.append(np.array(map(float,line.split())))
+        track.append(np.array(map(float,line.split()[0:-1])))
 
     if len(track) > 0:
         tracks.append(np.array(track))
@@ -78,42 +88,42 @@ def cleanTracksFile(tracks):
     printMultiArrayToFile(tracks,outfile,head=head)
     return
 
-def relativeSteps(track):
-    relsteps = []
+def relativeStpng(track):
+    relstpng = []
 
     for i in xrange(1,len(track),1):
         saver = []
         for j in xrange(3):
             saver.append(track[i][j] - track[i-1][j])
-        relsteps.append(np.array(saver))
+        relstpng.append(np.array(saver))
 
-    return np.array(relsteps)
+    return np.array(relstpng)
 
-def r2distro(relsteps):
+def r2distro(relstpng):
     r2 = []
-    for i in xrange(min(20,len(relsteps))):
+    for i in xrange(min(20,len(relstpng))):
         saver = []
-        for j in xrange(len(relsteps)-i):
+        for j in xrange(len(relstpng)-i):
             dx = 0
             dy = 0
             for k in xrange(i+1):
-                dx += relsteps[j+k][1]/relsteps[j+k][0]
-                dy += relsteps[j+k][2]/relsteps[j+k][0]
+                dx += relstpng[j+k][1]/relstpng[j+k][0]
+                dy += relstpng[j+k][2]/relstpng[j+k][0]
             saver.append(dx**2+dy**2)
         r2.append(np.array(saver))
     return r2
 
 
-def displacementDistro(relsteps):
+def displacementDistro(relstpng):
     displ = []
-    for i in xrange(min(20,len(relsteps))):
+    for i in xrange(min(20,len(relstpng))):
         saver = []
-        for j in xrange(len(relsteps)-i):
+        for j in xrange(len(relstpng)-i):
             dx = 0
             dy = 0
             for k in xrange(i+1):
-                dx += relsteps[j+k][1]/relsteps[j+k][0]
-                dy += relsteps[j+k][2]/relsteps[j+k][0]
+                dx += relstpng[j+k][1]/relstpng[j+k][0]
+                dy += relstpng[j+k][2]/relstpng[j+k][0]
             saver.append(dx)
             saver.append(dy)
         displ.append(np.array(saver))
@@ -186,28 +196,29 @@ def printMultiArrayToFile(arr,fopen,sepword="Track",head=None):
         printArrayToFile(mem,fopen,head=head)
         fopen.write("\n\n")
 
-def plotTrack(track,title="Track",save=False):
+def plotTrack(track,title="Track",save=True):
     plt.plot(track[1],track[2],'k')
     plt.xlabel("x [px]")
     plt.ylabel("y [px]")
     if save:
-        plt.savefig(title+"-plot.eps",format="eps", dpi=600)
+        plt.savefig(title+"-plot.png",format="png", dpi=600)
     plt.title(title)
     plt.show()
     return
     
-def plotMSD(msd,D,title="Mean-Squared-Displacement",save=False):
+def plotMSD(msd,D,title="Mean-Squared-Displacement",save=True,labelname="labelname"):
     plt.plot(msd[:,0],msd[:,1],'ro')
     ran = np.arange(msd[-1,0])
-    plt.plot(ran,4*D*ran,'k')
-    plt.xlabel("time lag [frameinterval]")
-    plt.ylabel("MSD [px^2/frameinterval]")
+    plt.plot(ran,4*D*ran,'k',label=labelname)
+    plt.xlabel("time lag [s]")
+    plt.ylabel("MSD [um^2/s]")
     if save:
-        plt.savefig(title+"-plot.eps",format="eps", dpi=600)
+        plt.savefig(title+"-plot.png",format="png", dpi=600)
     plt.title(title)
+    plt.legend()
     plt.show()
 
-def plotDistro(distro,xlabel,title,save=False):
+def plotDistro(distro,xlabel,title,save=True):
     dbox = distro[1][1] - distro[1][0]
     xran = distro
     print xran
@@ -215,19 +226,19 @@ def plotDistro(distro,xlabel,title,save=False):
     plt.xlabel(xlabel)
     plt.ylabel("Normalized counts")
     if save:
-        plt.savefig(title+"-plot.eps",format="eps", dpi=600)
+        plt.savefig(title+"-plot.png",format="png", dpi=600)
     plt.title(title)
     plt.show()
     return
 
-def plotMultidistro(distarray,xlabel,title,save=False):
+def plotMultidistro(distarray,xlabel,title,save=True):
     for elem in distarray:
         dbox = elem[1][1]-elem[1][0]
         plt.plot(elem[1][:-1]+dbox*0.5,elem[0],'o')
     plt.xlabel(xlabel)
     plt.ylabel("Normalized counts")
     if save:
-        plt.savefig(title+"-plot.eps",format="eps", dpi=600)
+        plt.savefig(title+"-plot.png",format="png", dpi=600)
     plt.title(title)
     plt.show()
     return
@@ -302,15 +313,15 @@ def eedispllist(tracks):
     eedispl2 = map(endToEnd2,tracks)
     eedispl = np.sqrt(eedispl2)
     print "Analyzing the End-To-End distribution of " + str(len(tracks)) + " tracks."
-    histo = np.histogram(eedispl,bins=100,range=(0,10),density=True)
+    histo = np.histogram(eedispl,bins=numberofbins,range=(0,10),density=True)
     plt.plot(histo[1][1:]-(histo[1][1]-histo[1][0])/2,histo[0],'ro',histo[1][1:]-(histo[1][1]-histo[1][0])/2,histo[0],'-')
     #plt.axis([0,3,0,1])
     plt.title("End-To-End Track Length Distribution")
     plt.ylabel("relative Counts")
     plt.xlabel("End to end displacement (pixel)")
     plt.xscale('log')
-    plt.axis([0.05,12,0,0.8])
-    plt.savefig('EndToEndDistrib.eps', format='eps', dpi=600)
+    #plt.axis([0.05,12,0,1])
+    plt.savefig('EndToEndDistrib.png', format='png', dpi=600)
     plt.show()
 
     outarray = np.array([histo[1][1:]-(histo[1][1]-histo[1][0])/2,histo[0]]).transpose()
@@ -328,18 +339,19 @@ def diffConstDistrib(tracks):
     msdlist = map(msd,tracks)
     print "........(finding diffusion coefficient from all MSDs from list)"
     Dlist = findDiffConsts(msdlist)
-    print ">>>> The average diffusion coefficient is: " + str(Dlist.mean()) + " +- " + str(Dlist.std()) + " px^2/frame"
+    print ">>>> The average diffusion coefficient is: " + str(Dlist.mean()*Dfactor) + " +- " + str(Dlist.std()*Dfactor) + " um^2/s"
     print "........(finding the lengths of the single tracks)"
     lenList= np.array(map(len,tracks))
-    print ">>>> The average track length is: " + str(lenList.mean()) + " +- " + str(lenList.std()) + " px^2/frame"
+    print ">>>> The average track length is: " + str(lenList.mean()*frametime) + " +- " + str(lenList.std()*frametime) + " s"
     print "Showing: Diffusion coefficient distribution of " + str(len(tracks)) + " tracks."
-    histo = np.histogram(Dlist,bins=100,range=(0,10),density=True)
-    plt.plot(histo[1][1:]-(histo[1][1]-histo[1][0])/2,histo[0],'ro')
+    histo = np.histogram(Dlist,bins=numberofbins,density=True)
+    plt.plot(histo[1][1:]-(histo[1][1]-histo[1][0])/2,histo[0],'ro',label="{:} +- {:} um^2/s".format(Dlist.mean()*Dfactor,Dlist.std()*Dfactor))
     #plt.axis([0,10,0,1])
     plt.title("Diffusion Coefficient Distribution")
     plt.ylabel("relative Counts")
     plt.xlabel("Diffusion Constants (px^2*framerate)")
-    plt.savefig('DiffConstDistrib.eps', format='eps', dpi=600)
+    plt.legend()
+    plt.savefig('DiffConstDistrib.png', format='png', dpi=600)
     plt.show()
     
 
@@ -348,13 +360,13 @@ def diffConstDistrib(tracks):
     printArrayToFile(outarray,fo,head=["diffConst(pixel**2/frame)","relativeCounts"])
     
     print "Showing: Length of tracks distribution for " + str(len(tracks)) + " tracks."
-    lenhist = np.histogram(lenList,bins=100,density=True)
+    lenhist = np.histogram(lenList,bins=numberofbins,density=True)
     plt.plot(lenhist[1][1:]-(lenhist[1][1]-lenhist[1][0])/2,lenhist[0],'ro')
     #plt.axis([0,30,0,1])
     plt.title("Length Distribution of single tracks")
     plt.ylabel("relative Counts")
     plt.xlabel("Track length (frames)")
-    plt.savefig('lengthDistribution.eps', format='eps', dpi=600)
+    plt.savefig('lengthDistribution.png', format='png', dpi=600)
     plt.show()
     outarray = np.array([lenhist[1][1:]-(lenhist[1][1]-lenhist[1][0])/2,lenhist[0]]).transpose()
     fo = open("lengthDistro.txt",'w')
@@ -385,7 +397,7 @@ def diffConstDistrib(tracks):
     plt.title("Dependence of the diffusion coefficient on the track length")
     plt.ylabel("averaged diffusion constant (px^2*framerate")
     plt.xlabel("Track length (frames)")
-    plt.savefig('trLengthDiffConstDependence.eps', format='eps', dpi=600)
+    plt.savefig('trLengthDiffConstDependence.png', format='png', dpi=600)
     plt.show()
     outarray = np.array([Dmean[0],Dmean[2]]).transpose()
     fo = open("Length-Diffconst-Relation.txt",'w')
@@ -424,16 +436,16 @@ def analyzeCombinedTrack(tracks,lenMSD=500):
     print "Creating MSD for combined track."
     ct_msd = msd(ct,length=lenMSD)
     ct_diffconst = findDiffConsts([ct_msd])[0]
-    print ">>>> Found diffusion coefficient: " + str(ct_diffconst[1]) + " px^2/frameinterval"
+    print ">>>> Found diffusion coefficient: " + str(ct_diffconst[1]*Dfactor) + " um^2/s"
     of = open("MSD-combinedTrack.txt",'w')
-    printArrayToFile(ct_msd,of,head=["Stepsize","MSD"])
-    plotMSD(ct_msd,ct_diffconst[1])
+    printArrayToFile(ct_msd,of,head=["Stpngize","MSD"])
+    plotMSD(ct_msd,ct_diffconst[1],labelname="{:} um^2/s".format(ct_diffconst[1]*Dfactor))
     print "Starting Distribution Analysis"
     distributionAnalysis(ct,plotlen)
     return ct_diffconst
 
 def distributionAnalysis(track,plotlen):
-    dipllist = relativeSteps(track)
+    dipllist = relativeStpng(track)
     print "....Saving Displacements to file."
     outfile = open("combinedTrack-relativeXYDisplacements.txt",'w')
     printArrayToFile(dipllist,outfile,["Steppingtime","dx","dy"])
@@ -443,17 +455,17 @@ def distributionAnalysis(track,plotlen):
     histograms = []
     counter = 0
     for elr2 in r2:
-        histo = np.histogram(elr2,bins=100,range=(0,plotlen),density=True)
+        histo = np.histogram(elr2,bins=numberofbins,range=(0,plotlen),density=True)
         counter += 1
         histograms.append(list(histo))
     plotMultidistro([histograms[i] for i in [0,4,8,16]],xlabel="r^2 [px^2]",title="r2-Distribution-combTr")
     
-    print "....Creating distribution of stepsizes in x and y"
+    print "....Creating distribution of stpngizes in x and y"
     dispdist = displacementDistro(dipllist)
     histograms = []
     counter = 0
     for elr2 in dispdist:
-        histo = np.histogram(elr2,bins=100,range=(-plotlen,plotlen),density=True)
+        histo = np.histogram(elr2,bins=numberofbins,range=(-plotlen,plotlen),density=True)
         counter += 1
         histograms.append(list(histo))
     plotMultidistro([histograms[i] for i in [0,4,8,16]],xlabel="dx and dy [px]",title="xy-Distribution-combTr")
@@ -478,10 +490,19 @@ def testfunctions():
 #The big MAIN
 #====================================
 def main():
+    
     if (not bSingleTrackEndToEnd) and (not bSingleTrackMSDanalysis) and (not bCombineTrack):
         return
+
+    os.chdir(path)
     
     tracks = readTracks(infilename)
+
+    spng = os.path.join(path,"Tracks-Cel{:}-SR{:}".format(Cel,SR),"SingleStateAnalysis")
+    if not os.path.isdir(spng):
+        os.mkdir(spng)
+    os.chdir(spng)
+
     
     if bCleanUpTracks:
         print
@@ -572,7 +593,7 @@ def oldmain(tracks):
 
     
     fo = open("allMSD.txt",'w')
-    head = ["FrameSteps","MSD","err(MSD)"]
+    head = ["FrameStpng","MSD","err(MSD)"]
     printMultiArrayToFile(allmsds,fo,sepword="MSD",head=head)
 #===============================================
 
