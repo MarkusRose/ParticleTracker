@@ -96,6 +96,10 @@ def createSystemProperties():
                 print("Not a float, please try again.")
 
     Fileio.setSysProps(simValues)
+    return
+
 
 if __name__=="__main__":
     createSystemProperties()
+
+

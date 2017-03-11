@@ -89,6 +89,23 @@ def translationCorrection_particles(drifttracks):
         for i in xrange(tracklen):
             x = track.track[i]['x']
             y = track.track[i]['y']
+
+            #USING previous as reference
+            if np.isnan(x_start) and np.isnan(y_start):
+                x_start = x
+                y_start = y
+            else:
+                if x != np.nan and y != np.nan:
+                    if np.isnan(drift_displ.track[i]['x']) and np.isnan(drift_displ.track[i]['y']):
+                        drift_displ.track[i]['x'] = (x - x_start)
+                        drift_displ.track[i]['y'] = (y - y_start)
+                    else:
+                        drift_displ.track[i]['x'] += x - x_start
+                        drift_displ.track[i]['y'] += y - y_start
+                    contribnum[i] += 1
+
+            ''' 
+            #USING 0 AS REF
             if firstelement:
                 if not np.isnan(x) and not np.isnan(y):
                     x_start = x
@@ -105,6 +122,7 @@ def translationCorrection_particles(drifttracks):
                         drift_displ.track[i]['x'] += x - x_start
                         drift_displ.track[i]['y'] += y - y_start
                     contribnum[i] += 1
+            '''
 
     for i in xrange(len(contribnum)):
         drift_displ.track[i]['x'] /= contribnum[i]
@@ -127,14 +145,16 @@ def driftCorrection_particles(positionfile,drifttracks,rotcorrection=True):
     drift_displ = translationCorrection_particles(drifttracks)
     angle_change, rotcenter = rotationCorrection_particles(drifttracks)
 
+    
     for i in xrange(1,len(part_positions)):
+        count = 0
         for part in part_positions[i]:
             if not np.isnan(angle_change[i-1]) and rotcorrection:
-                l = np.sqrt((part.x - rotcenter[i-1]['x'])**2 + (part.y - rotcenter[i-1]['y'])**2)
-                phi = np.arctan((part.y - rotcenter[i-1]['y'])/(part.x - rotcenter[i-1]['x']))
-                factor = np.sign(part.x - rotcenter[i-1]['x'])
-                part.x = rotcenter[i-1]['x'] + factor * l * np.cos(phi - angle_change[i-1])
-                part.y = rotcenter[i-1]['y'] + factor * l * np.sin(phi - angle_change[i-1])
+                l = np.sqrt((part.x - rotcenter[i]['x'])**2 + (part.y - rotcenter[i]['y'])**2)
+                phi = np.arctan((part.y - rotcenter[i]['y'])/(part.x - rotcenter[i]['x']))
+                factor = np.sign(part.x - rotcenter[i]['x'])
+                part.x = rotcenter[i]['x'] + factor * l * np.cos(phi - angle_change[i-1])
+                part.y = rotcenter[i]['y'] + factor * l * np.sin(phi - angle_change[i-1])
             if not np.isnan(drift_displ.track[i]['x']) and not np.isnan(drift_displ.track[i]['y']):
                 part.x -= drift_displ.track[i]['x']
                 part.y -= drift_displ.track[i]['y']

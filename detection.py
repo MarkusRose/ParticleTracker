@@ -16,7 +16,8 @@ from time import strftime
 if __name__=="__main__":
 
     #System Parameters:
-    imagedir = "L:/Cel9A-6-9-10/45C/OD06/Experiment2/C-1"
+    #imagedir = "L:/Cel9A-6-9-10/45C/OD06/Experiment2/C-1"
+    imagedir = "/media/markus/DataPartition/SimulationData/Images"
     bit_depth  = 16
     pathway = "C-1-AnalyzedData"
     #Detection Parameters:

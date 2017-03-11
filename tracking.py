@@ -29,7 +29,6 @@ filelist = [["L:/Cel5A-6-22-10/45C/OD06/Experiment1/C-1-AnalyzedData/foundPartic
         ["L:/Cel9A-6-9-10/45C/OD06/Experiment2/C-1-AnalyzedData/foundParticles.txt",
         "L:/Cel9A-6-9-10/45C/OD06/Experiment2/C-2-AnalyzedData/foundParticles.txt"]]
 filelist = [["L:/Cel5A-6-22-10/45C/OD06/Experiment3/C-2-AnalyzedData/foundParticles.txt","L:/Cel5A-6-22-10/45C/OD06/Experiment3/C-2-AnalyzedData/foundParticles.txt"]]
-        '''
 filelist = [["L:/Cel5A-6-22-10/45C/OD06/Experiment1/C-2-AnalyzedData/foundParticles.txt",
         "L:/Cel5A-6-22-10/45C/OD06/Experiment1/C-2-AnalyzedData/foundParticles.txt"],
         ["L:/Cel5A-6-22-10/45C/OD06/Experiment2/C-2-AnalyzedData/foundParticles.txt",
@@ -46,6 +45,10 @@ filelist = [["L:/Cel5A-6-22-10/45C/OD06/Experiment1/C-2-AnalyzedData/foundPartic
         "L:/Cel9A-6-9-10/45C/OD06/Experiment1/C-2-AnalyzedData/foundParticles.txt"],
         ["L:/Cel9A-6-9-10/45C/OD06/Experiment2/C-2-AnalyzedData/foundParticles.txt",
         "L:/Cel9A-6-9-10/45C/OD06/Experiment2/C-2-AnalyzedData/foundParticles.txt"]]
+        '''
+
+filelist =  [["/media/markus/DataPartition/SimulationData/C-1-AnalyzedData/foundParticles.txt",
+    "/media/markus/DataPartition/SimulationData/C-1-AnalyzedData/foundParticles.txt"]]
 
 #Tracking Parameter:
 searchRadius = 3
@@ -113,7 +116,7 @@ def track_with_driftcorrect(fn):
     path = os.path.dirname(fn[1])
     os.chdir(path)
     date = strftime("%Y%m%d-%H%M%S")
-    doTrack_direct(pparts,outfile="driftcorrectedTracks-SR{:}_{:}.txt".format(searchRadius,date),infilename=fn[1])
+    doTrack_direct(pparts,outfile="driftcorrectedTracksFM-SR{:}_{:}.txt".format(searchRadius,date),infilename=fn[1])
     #Apply drift correction to other channel and save
     path = os.path.dirname(fn[0])
     os.chdir(path)

@@ -11,9 +11,9 @@ import tracking
 
 print("Hello World!")
 
-driftfile = "/media/markus/DataPartition/TRANSFERfolder/foundTracks-SR2_20170301-172811.txt"
-trackfile = "/media/markus/DataPartition/TRANSFERfolder/foundTracks-SR2_20170301-172811.txt"
-positionfile = "/media/markus/DataPartition/TRANSFERfolder/foundParticles.txt"
+driftfile = "/media/markus/DataPartition/SimulationData/C-1-AnalyzedData/foundTracks-SR2_20170310-231736.txt"
+trackfile = "/media/markus/DataPartition/SimulationData/C-1-AnalyzedData/foundTracks-SR2_20170310-231736.txt"
+positionfile = "/media/markus/DataPartition/SimulationData/C-1-AnalyzedData/foundParticles.txt"
 
 drifttracks,driftlist = ctrack.readTrajectoriesFromFile(driftfile)
 part_tracks,part_list = ctrack.readTrajectoriesFromFile(trackfile)
@@ -28,7 +28,7 @@ if not os.path.isdir(path):
     os.mkdir(path)
 os.chdir(path)
 
-tracks = tracking.doTrack_direct(pparts)
+tracks = tracking.doTrack_direct(pparts,searchRadius=5)
 conFiles.writeParticleFile(pparts,filename="driftlessParticles.txt")
 
 
@@ -73,5 +73,15 @@ for track in tracks:
     #plt.draw()
     plt.close(fig3)
     print("Done {:}-{:}".format(0,counter))
+
+    fig2 = plt.figure()
+    ax = fig2.add_subplot(111)
+    ax.plot(z,(x-x.mean())*1000,label="xcoord")
+    ax.plot(z,(y-y.mean())*1000,label="ycoord")
+    ax.set_xlabel(r'time in $s$')
+    ax.set_ylabel(r'movement in $nm$')
+    plt.legend()
+    plt.savefig("xydim{:}.png".format(counter))
+    plt.close(fig2)
 
 
