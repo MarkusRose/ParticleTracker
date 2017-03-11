@@ -4,6 +4,10 @@ import Detection.detectParticles as dpart
 import numpy as np
 import sys
 
+#correct for rotation of Sample on tracks
+def rotationCorrection_tracks(part_tracks,drifttracks):
+    return
+
 
 
 #create Drift correction on Trajectories
@@ -56,20 +60,27 @@ def driftCorrection_tracks(part_tracks,drifttracks):
 
     return part_tracks
 
-#create Drift correction on Particle Positions
-def driftCorrection_particles(positionfile,drifttracks):
-
-    part_positions = conFiles.readDetectedParticles(positionfile)
-
+#correct for rotation of Sample on particle positions
+def rotationCorrection_particles(drifttracks):
+    
     tracklen = len(drifttracks[0].track)
-    if len(part_positions) != tracklen:
-        print("Error: !!!Tracks don't have same length!!!")
-        sys.exit(1)
+    angles = np.zeros((len(drifttracks),tracklen),dtype=np.float)
+    for i in xrange(1,len(drifttracks),1):
+        for j in xrange(tracklen):
+            dx = drifttracks[i].track[j]['x'] - drifttracks[0].track[j]['x']
+            dy = drifttracks[i].track[j]['y'] - drifttracks[0].track[j]['y']
+            angles[i,j] = dy/dx
+    angles = np.arctan(angles)
+    anglecorrection = angles[1:,1:] - angles[1:,:-1]
 
+    return anglecorrection.mean(axis=0), drifttracks[0].track[['x', 'y']]
+
+def translationCorrection_particles(drifttracks):
+    tracklen = len(drifttracks[0].track)
     drift_displ = ctrack.ParticleTrack(id=1,num_elements=tracklen)
     contribnum = np.zeros(tracklen)
 
-    for track in drifttracks[:min(3,len(drifttracks))]:
+    for track in drifttracks[:min(1,len(drifttracks))]:
         x = np.nan
         x_start = np.nan
         y = np.nan
@@ -100,8 +111,30 @@ def driftCorrection_particles(positionfile,drifttracks):
         drift_displ.track[i]['y'] /= contribnum[i]
         drift_displ.track[i]['frame'] = i+1
 
+    return drift_displ
+
+
+#create Drift correction on Particle Positions
+def driftCorrection_particles(positionfile,drifttracks,rotcorrection=True):
+
+    part_positions = conFiles.readDetectedParticles(positionfile)
+
+    tracklen = len(drifttracks[0].track)
+    if len(part_positions) != tracklen:
+        print("Error: !!!Tracks don't have same length!!!")
+        sys.exit(1)
+
+    drift_displ = translationCorrection_particles(drifttracks)
+    angle_change, rotcenter = rotationCorrection_particles(drifttracks)
+
     for i in xrange(1,len(part_positions)):
         for part in part_positions[i]:
+            if not np.isnan(angle_change[i-1]) and rotcorrection:
+                l = np.sqrt((part.x - rotcenter[i-1]['x'])**2 + (part.y - rotcenter[i-1]['y'])**2)
+                phi = np.arctan((part.y - rotcenter[i-1]['y'])/(part.x - rotcenter[i-1]['x']))
+                factor = np.sign(part.x - rotcenter[i-1]['x'])
+                part.x = rotcenter[i-1]['x'] + factor * l * np.cos(phi - angle_change[i-1])
+                part.y = rotcenter[i-1]['y'] + factor * l * np.sin(phi - angle_change[i-1])
             if not np.isnan(drift_displ.track[i]['x']) and not np.isnan(drift_displ.track[i]['y']):
                 part.x -= drift_displ.track[i]['x']
                 part.y -= drift_displ.track[i]['y']
