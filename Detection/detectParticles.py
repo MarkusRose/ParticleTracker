@@ -210,7 +210,7 @@ def readLocalMax(inf):
     return local_max
 
 
-def setFittingROI(imageshape,lmpx,lmpy,boxsize=7):
+def setFittingROI(imageshape,lmpx,lmpy,boxsize=11):
 
     num_rows = imageshape[0]
     num_cols = imageshape[1]
@@ -302,8 +302,8 @@ def checkFit(fitdata,sigma,sigma_thresh,eccentricity_thresh,nunocon,nunoexc,nusi
         nusigma += 1
         return False, nunocon,nunoexc,nusigma
     '''
-    if ((fitdata[4]**2+fitdata[5]**2) > ((sigma_thresh+1) * sigma)**2 or 
-        (fitdata[4]**2+fitdata[5]**2) < (sigma / (sigma_thresh+1))**2):
+    if ((fitdata[4]**2+fitdata[5]**2) > 2*((sigma_thresh+1) * sigma)**2 or 
+        (fitdata[4]**2+fitdata[5]**2) < 2*(sigma / (sigma_thresh+1))**2):
         #Fit too unlike theoretical psf
         nusigma += 1
         #print("Fit too unlike theoretical psf "+ str(fitdata[4]**2+fitdata[5]**2) + ' ' + str(sigma))
@@ -329,8 +329,8 @@ def addParticleToList(particle_list,frame,row_min,row_max,col_min,col_max,fitdat
         #TODO: FIX THIS BUG (switching of x and y)
         p.y = fitdata[2] + row_min 
         p.x = fitdata[3] + col_min 
-        p.width_x = np.abs(fitdata[4])
-        p.width_y = np.abs(fitdata[5])
+        p.width_x = np.abs(fitdata[4])/np.sqrt(2)
+        p.width_y = np.abs(fitdata[5])/np.sqrt(2)
         p.volume = (2 * np.pi * p.amplitude * p.width_x * p.width_y)
         
         # normalized volume for intensity moment descrimination in
@@ -561,7 +561,7 @@ def findParticleAndAdd(image,frame,local_max_pixels,signal_power,sigma,backgroun
         #print i
         #print "setting ROI"
         #isIt = determineFittingROI(image.shape,local_max_pixels[0][i],local_max_pixels[1][i],signal_power,sigma)
-        isIt = setFittingROI(image.shape,local_max_pixels[0][i],local_max_pixels[1][i],7)
+        isIt = setFittingROI(image.shape,local_max_pixels[0][i],local_max_pixels[1][i],11)
         if isIt:
             row_min,row_max,col_min,col_max = isIt
         else:
