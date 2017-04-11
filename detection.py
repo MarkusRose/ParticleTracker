@@ -10,6 +10,7 @@ import Detection.det_and_track
 import numpy as np
 import sys
 from time import strftime
+from multiprocessing import Pool, freeze_support
 
 
 
@@ -18,13 +19,19 @@ if __name__=="__main__":
     #System Parameters:
     #imagedir = "L:/Cel9A-6-9-10/45C/OD06/Experiment2/C-1"
     #imagedir = "/media/markus/DataPartition/SimulationData/Images"
-    imagedir = "/home/markus/Desktop/anaDetect-Repair!!/Original"
+    #imagedir = "/home/markus/Desktop/anaDetect-Repair!!/Original"
+    #imagedir = "/media/markus/DataPartition/SimulationData/LI27/"
+    imagedir = "/media/markus/DataPartition/SimulationData/LI22/"
+    #imagedir = "/media/markus/DataPartition/SimulationData/LI30/"
+    #imagedir = "/media/markus/DataPartition/SimulationData/LI24/"
     bit_depth  = 16
-    pathway = "AnalyzedData"
+    #pathway = "AnalyzedData-Li24"
+    pathway = "AnalyzedData-Li22"
+    #pathway = "AnalyzedData-Li30"
     #Detection Parameters:
     sigma  = 1.7
     local_max_window  = 10
-    signal_power  = 2
+    signal_power  = 4
     eccentricity_thresh = 2
     sigma_thresh  = 2
     addUp = 1 
@@ -69,7 +76,7 @@ if __name__=="__main__":
         sys.exit(-1)
     
     
-    particle_data = dp.multiImageDetect(images,sigma,local_max_window,signal_power_range[power_index],bit_depth,eccentricity_thresh,sigma_thresh,addUp,local_max=None,output=True,lmmethod=notCentroid,imageOutput=False)
+    particle_data = dp.multiImageDetect(images,sigma,local_max_window,signal_power_range[power_index],bit_depth,eccentricity_thresh,sigma_thresh,addUp,local_max=None,output=False,lmmethod=notCentroid,imageOutput=False)
 
 
     outfile = open("detection.log",'w')

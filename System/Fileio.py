@@ -299,7 +299,7 @@ def makeImage(positions,framenumber,dirname,numPixels,pixsize,sigma,background,b
     data = np.zeros((numPixels,numPixels),np.uint16)
      
     def gauss(i,j,posx,posy,intensity,sig):
-        return math.exp(-(((i)-posx)**2+((j)-posy)**2)/(2.0*sig*sig))*intensity
+        return math.exp(-((i-posx)**2+(j-posy)**2)/(2.0*sig**2))*intensity
 
     def integauss(i,j,posx,posy,intensity,sig):
         #int_i^(i+1) int_j^(j+1) dx dy exp(-((i-posx)^2+(j-posy)^2)/2*sig^2) * intensity
@@ -317,9 +317,9 @@ def makeImage(positions,framenumber,dirname,numPixels,pixsize,sigma,background,b
         intensity += positions[k][5]
         #xnum = min(len(data)-1,px+10)-max(0,px-10)
         #ynum = min(len(data[0])-1,py+10)-max(0,py-10)
-        for i in xrange(max(0,px-5),min(len(data)-1,px+5),1):
-            for j in xrange(max(0,py-5),min(len(data[i]-1),py+5),1):
-                msig = gauss(i,j,px,py,positions[k][5],sigma)
+        for i in xrange(max(0,px-30),min(len(data)-1,px+30),1):
+            for j in xrange(max(0,py-30),min(len(data[i])-1,py+30),1):
+                msig = gauss(i*pixsize,j*pixsize,positions[k][1],positions[k][2],positions[k][5],sigma)
                 if msig >= 2**16:
                     msig = 2**16-1
                 elif msig < 0:

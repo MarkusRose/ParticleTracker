@@ -26,7 +26,7 @@ def simulateTracks(inVars=None):
         #else read from input
         sV = list(inVars)
     #Diff constants of 3 states
-    D = np.array([sV[1],sV[2],sV[3]]) 
+    D = np.array([sV[1],sV[2],sV[3]])*1e-12
     #Markov probability matrix for state switching
     p = np.array([[0,sV[4],sV[6]],[sV[5],0,sV[7]],[sV[8],sV[9],0]]) 
     #Number of frames
@@ -38,14 +38,15 @@ def simulateTracks(inVars=None):
     #Number of pixels (side of square)
     numPixels = int(sV[13])
     #Other properties
-    wavelength = sV[14]/1000.0
-    pixel_size = sV[15]
+    wavelength = sV[14]/1e9
+    pixel_size = sV[15]/1e6
+    print pixel_size
     numAperture = sV[16]
     mag = sV[17]
     background = sV[18]
     backnoise = sV[19]
     intensity = sV[20]
-    particle_size = 0.04 #micrometer
+    particle_size = 0.01/1e6 #meter
     
 
     #Initial probabilities for choosing state
@@ -130,10 +131,10 @@ def simulateTracks(inVars=None):
     Fileio.setTrackFile(atracks)
     frames = Fileio.tracksToFrames(atracks)
     Fileio.setDetection(frames)
-    print 0.61*wavelength/numAperture
     if particle_size < 0.61*wavelength/numAperture:
+        #TODO: additional factor for sigma = sigma*2
         Fileio.createImages("SimulatedImages",frames,numPixels,
-                            pixel_size/mag,(0.211*wavelength/numAperture*mag/(pixel_size)),background,backnoise)
+                            pixel_size/mag,2*0.211*wavelength/numAperture,background,backnoise)
     else:
         Fileio.createImages("SimulatedImages",frames,numPixels,
                             pixel_size/mag,(particle_size*0.5*mag/(pixel_size))**2,background,backnoise)

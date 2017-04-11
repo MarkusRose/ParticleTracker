@@ -12,23 +12,6 @@ from time import strftime
 #System Parameter
 particle_file = "Not Defined"
 '''
-filelist = [["L:/Cel5A-6-22-10/45C/OD06/Experiment1/C-1-AnalyzedData/foundParticles.txt",
-        "L:/Cel5A-6-22-10/45C/OD06/Experiment1/C-2-AnalyzedData/foundParticles.txt"],
-        ["L:/Cel5A-6-22-10/45C/OD06/Experiment2/C-1-AnalyzedData/foundParticles.txt",
-        "L:/Cel5A-6-22-10/45C/OD06/Experiment2/C-2-AnalyzedData/foundParticles.txt"],
-        ["L:/Cel5A-6-22-10/45C/OD06/Experiment3/C-1-AnalyzedData/foundParticles.txt",
-        "L:/Cel5A-6-22-10/45C/OD06/Experiment3/C-2-AnalyzedData/foundParticles.txt"],
-        ["L:/Cel6B-5-26-10/45C/OD1/Experiment1/C-1-AnalyzedData/foundParticles.txt",
-        "L:/Cel6B-5-26-10/45C/OD1/Experiment1/C-2-AnalyzedData/foundParticles.txt"],
-        ["L:/Cel6B-5-26-10/45C/OD1/Experiment3/C-1-AnalyzedData/foundParticles.txt",
-        "L:/Cel6B-5-26-10/45C/OD1/Experiment3/C-2-AnalyzedData/foundParticles.txt"],
-        ["L:/Cel6B-5-26-10/45C/OD1/Experiment4/C-1-AnalyzedData/foundParticles.txt",
-        "L:/Cel6B-5-26-10/45C/OD1/Experiment4/C-2-AnalyzedData/foundParticles.txt"],
-        ["L:/Cel9A-6-9-10/45C/OD06/Experiment1/C-1-AnalyzedData/foundParticles.txt",
-        "L:/Cel9A-6-9-10/45C/OD06/Experiment1/C-2-AnalyzedData/foundParticles.txt"],
-        ["L:/Cel9A-6-9-10/45C/OD06/Experiment2/C-1-AnalyzedData/foundParticles.txt",
-        "L:/Cel9A-6-9-10/45C/OD06/Experiment2/C-2-AnalyzedData/foundParticles.txt"]]
-filelist = [["L:/Cel5A-6-22-10/45C/OD06/Experiment3/C-2-AnalyzedData/foundParticles.txt","L:/Cel5A-6-22-10/45C/OD06/Experiment3/C-2-AnalyzedData/foundParticles.txt"]]
 filelist = [["L:/Cel5A-6-22-10/45C/OD06/Experiment1/C-2-AnalyzedData/foundParticles.txt",
         "L:/Cel5A-6-22-10/45C/OD06/Experiment1/C-2-AnalyzedData/foundParticles.txt"],
         ["L:/Cel5A-6-22-10/45C/OD06/Experiment2/C-2-AnalyzedData/foundParticles.txt",
@@ -47,11 +30,16 @@ filelist = [["L:/Cel5A-6-22-10/45C/OD06/Experiment1/C-2-AnalyzedData/foundPartic
         "L:/Cel9A-6-9-10/45C/OD06/Experiment2/C-2-AnalyzedData/foundParticles.txt"]]
         '''
 
-filelist =  [["/media/markus/DataPartition/SimulationData/C-1-AnalyzedData/foundParticles.txt",
-    "/media/markus/DataPartition/SimulationData/C-1-AnalyzedData/foundParticles.txt"]]
+#filelist =  [["/media/markus/DataPartition/SimulationData/C-1-AnalyzedData/foundParticles.txt",
+#    "/media/markus/DataPartition/SimulationData/C-1-AnalyzedData/foundParticles.txt"]]
+
+#pfile = "/media/markus/DataPartition/SimulationData/AnalyzedData-Li24/foundParticles.txt"
+pfile = "/media/markus/DataPartition/SimulationData/AnalyzedData-Li22/foundParticles.txt"
+#pfile = "/media/markus/DataPartition/SimulationData/AnalyzedData-Li27/foundParticles.txt"
+#pfile = "/media/markus/DataPartition/SimulationData/AnalyzedData-Li30/foundParticles.txt"
 
 #Tracking Parameter:
-searchRadius = 3
+searchRadius = 20
 minTracklen = 1
 linkRange = 2
 
@@ -143,6 +131,8 @@ def multiproc():
     return
 
 if __name__=="__main__":
-    multiproc()
+    #multiproc()
     #serial()
+    doTrack(pfile)
+
 

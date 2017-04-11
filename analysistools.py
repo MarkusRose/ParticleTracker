@@ -20,26 +20,57 @@ import os
 Cel="9A"
 SR=3
 
-frametime = 1
-pixelsize = 0.067
+frametime = 0.1
+pixelsize = 0.160
 Dfactor = pixelsize*pixelsize/frametime
 
-bCleanUpTracks = True
-bSingleTrackEndToEnd = True
-bSingleTrackMSDanalysis = True
+bCleanUpTracks = False
+bSingleTrackEndToEnd = False
+bSingleTrackMSDanalysis = False
 bCombineTrack = True
 
 #combined Track input
-lenMSD_ct = 1000
-plotlen = 5 #gives the range of the distribution plots
-numberofbins = 50
+lenMSD_ct = 50
+plotlen = 30 #gives the range of the distribution plots
+numberofbins = 200
 
-path = "/media/markus/DataPartition/Cellulases-Analysis_2017-03-10/"
-infilename = "foundTrackscomb.txt"
-infilename = "tracksCel{:}-SR3_2017-03-06.txt".format(Cel)
+LII = 22
+path = "/media/markus/DataPartition/SimulationData/AnalyzedData-Li{:}/".format(LII)
+SR = 20
+Cel = ""
+if LII == 22:
+    if SR == 20:
+        infilename = "foundTracks-SR20_20170411-045006.txt"
+elif LII == 24:
+    if SR == 10:
+        infilename = "foundTracks-SR10_20170411-020113.txt"
+    elif SR == 20:
+        infilename = "foundTracks-SR20_20170411-020152.txt"
+    elif SR == 30:
+        infilename = "foundTracks-SR30_20170411-020242.txt"
+elif LII == 27:
+    if SR == 10:
+        infilename = "foundTracks-SR10_20170411-020450.txt"
+    elif SR == 20:
+        infilename = "foundTracks-SR20_20170411-020530.txt"
+    elif SR == 30:
+        infilename = "foundTracks-SR30_20170411-020623.txt"
+elif LII == 30:
+    if SR == 10:
+        infilename = "foundTracks-SR10_20170411-015207.txt"
+    elif SR == 20:
+        infilename = "foundTracks-SR20_20170411-015803.txt"
+    elif SR == 30:
+        infilename = "foundTracks-SR30_20170411-020335.txt"
+
+small = 20
+large = 100
+
+pixel_size = 0.100 #um
+timestep = 0.1 #s
 
 #single track analysis input
-minTrLength = 100
+minTrLength = 40 
 
 #debugging variables:
 testing = False
@@ -212,10 +243,10 @@ def plotMSD(msd,D,title="Mean-Squared-Displacement",save=True,labelname="labelna
     plt.plot(ran,4*D*ran,'k',label=labelname)
     plt.xlabel("time lag [s]")
     plt.ylabel("MSD [um^2/s]")
+    plt.legend()
+    plt.title(title)
     if save:
         plt.savefig(title+"-plot.png",format="png", dpi=600)
-    plt.title(title)
-    plt.legend()
     plt.show()
 
 def plotDistro(distro,xlabel,title,save=True):
@@ -465,10 +496,10 @@ def distributionAnalysis(track,plotlen):
     histograms = []
     counter = 0
     for elr2 in dispdist:
-        histo = np.histogram(elr2,bins=numberofbins,range=(-plotlen,plotlen),density=True)
+        histo = np.histogram(elr2*pixelsize,bins=numberofbins,range=(-plotlen*pixelsize,plotlen*pixelsize),density=True)
         counter += 1
         histograms.append(list(histo))
-    plotMultidistro([histograms[i] for i in [0,4,8,16]],xlabel="dx and dy [px]",title="xy-Distribution-combTr")
+    plotMultidistro([histograms[i] for i in [0,4,8,16]],xlabel="dx and dy [um]",title="xy-Distribution-combTr")
     return
     
 #===========================================

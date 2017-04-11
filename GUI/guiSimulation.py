@@ -33,9 +33,9 @@ class Simulation_App(Tkinter.Frame):
         self.prob31.set("1.0")
         self.prob32.set("0.0")
         self.numframesVar = Tkinter.StringVar()
-        self.numframesVar.set("100")
+        self.numframesVar.set("10")
         self.numPartVar = Tkinter.StringVar()
-        self.numPartVar.set("1")
+        self.numPartVar.set("10")
         self.tauVar = Tkinter.StringVar()
         self.tauVar.set("0.1")
         self.frameLengthVar = Tkinter.StringVar()
@@ -51,9 +51,9 @@ class Simulation_App(Tkinter.Frame):
         self.backgroundVar = Tkinter.StringVar()
         self.backgroundVar.set("500")
         self.backnoiseVar = Tkinter.StringVar()
-        self.backnoiseVar.set("25")
+        self.backnoiseVar.set("100")
         self.intensityVar = Tkinter.StringVar()
-        self.intensityVar.set("10000")
+        self.intensityVar.set("1000")
 
     def checkVars(self):
         try:

@@ -11,14 +11,14 @@ import numpy as np
 import random
 
 
-path = "/media/markus/DataPartition/Cellulases-Analysis_2017-03-10/"
-#path = "/media/markus/DataPartition/Cellulases-Analysis/"
-#path = "D:/Cellulases-Analysis/"
-SR = 3
-Cel = "5A"
-trackfile = "tracksCel{:}-SR3_2017-03-06.txt".format(Cel)
-dcfile = "driftsCel{:}-SR3_2017-03-06.txt".format(Cel)
-hmm_file = "hmmAveragedData-Cel{:}-SR3_2017-03-10.txt".format(Cel)
+pfile = "/media/markus/DataPartition/SimulationData/AnalyzedData-Li24/"
+#pfile = "/media/markus/DataPartition/SimulationData/AnalyzedData-Li27/foundParticles.txt"
+#pfile = "/media/markus/DataPartition/SimulationData/AnalyzedData-Li30/foundParticles.txt"
+SR = 10
+Cel = ""
+trackfile = "foundTracks-SR10_20170411-015207.txt"
+trackfile = "foundTracks-SR20_20170411-015803.txt"
+trackfile = "foundTracks-SR30_20170411-020335.txt"
 
 small = 20
 large = 100
