@@ -98,4 +98,6 @@ if __name__=="__main__":
     outfile.write("Are Centroids Used?    {:}\n".format(not notCentroid))
     outfile.write(50*"-")
 
+    outfile.close()
+
 
