@@ -8,7 +8,6 @@ import time
 import threading
 import Queue
 
-import Detection.det_and_track as Detection
 import tracking
 
 class guiTracking(Tkinter.Frame):

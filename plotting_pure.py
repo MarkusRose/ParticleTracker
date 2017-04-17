@@ -13,6 +13,7 @@ import random
 
 LII = 22
 path = "/media/markus/DataPartition/SimulationData/AnalyzedData-Li{:}/".format(LII)
+path = "C:/Users/Markus/Desktop/Analysieded2/"
 SR = 20
 Cel = ""
 if LII == 22:
@@ -39,6 +40,8 @@ elif LII == 30:
         trackfile = "foundTracks-SR20_20170411-015803.txt"
     elif SR == 30:
         trackfile = "foundTracks-SR30_20170411-020335.txt"
+
+trackfile = "foundTracks.txt"
 
 small = 20
 large = 100

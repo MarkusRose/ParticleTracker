@@ -34,21 +34,14 @@ class guiDetection(Tkinter.Frame):
         ttk.Button(self.labelframe, text="Input Images", command = lambda:self.inImagesVar.set(tkFileDialog.askdirectory())).grid(column=1, row=1, sticky='W')
         ttk.Entry(self.labelframe, textvariable = self.inImagesVar).grid(column=2, row=1, sticky='W')
 
-        '''
-        self.initPosVar = Tkinter.StringVar()
-        self.initPosVar.set("")
-        ttk.Button(self.labelframe, text="Initial Positions File", command = lambda:self.initPosVar.set(tkFileDialog.askfilename())).grid(column=1, row=12, sticky='W')
-        ttk.Entry(self.labelframe, textvariable = self.initPosVar).grid(column=2, row=13, sticky='W')
-        '''
-
         self.outDirVar = Tkinter.StringVar()
         self.outDirVar.set(os.path.abspath(os.path.join(self.inImagesVar.get(), '..', 'Analysis')))
         ttk.Button(self.labelframe, text="Output Folder", command = lambda:self.outDirVar.set(tkFileDialog.askdirectory())).grid(column=1, row=13, sticky='W')
         ttk.Entry(self.labelframe, textvariable = self.outDirVar).grid(column=2, row=13, sticky='W')
 
-        dependency = ["Sigma", "Signal Power", "Image Bit Depth", "Maximumi Displacement",
+        dependency = ["Sigma", "Signal Power", "Image Bit Depth",
                 "Number of Images to add up", "Sigma Threshold",
-                "Eccentricity Threshold", "Local maximum window size", "Minimum track length"] 
+                "Eccentricity Threshold", "Local maximum window size"] 
         self.vars = []
 
         for i in xrange(len(dependency)):
@@ -58,14 +51,12 @@ class guiDetection(Tkinter.Frame):
             self.vars.append(var)
 
         self.vars[0].set("2")
-        self.vars[1].set("1")
+        self.vars[1].set("3")
         self.vars[2].set("16")
-        self.vars[3].set("3")
-        self.vars[4].set("1")
+        self.vars[3].set("1")
+        self.vars[4].set("2")
         self.vars[5].set("2")
-        self.vars[6].set("2")
-        self.vars[7].set("10")
-        self.vars[8].set("1")
+        self.vars[6].set("10")
 
         self.detMethVar = Tkinter.StringVar()
         ttk.Label(self.labelframe, text="Detection Method").grid(column=1, row=11, sticky='W')
@@ -116,11 +107,6 @@ class guiDetection(Tkinter.Frame):
 
         return outvars, filenames
             
-        '''
-        dependency = ["Sigma", "Signal Power", "Image Bit Depth", "Maximumi Displacement",
-                "Number of Images to add up", "Sigma Threshold",
-                "Eccentricity Threshold", "Local maximum window size", "Minimum track length"] 
-                '''
             
     def runDetection(self):
         if self.checkInputs():
@@ -157,7 +143,7 @@ class guiDetection(Tkinter.Frame):
                         os.mkdir(fn[1])
                     os.chdir(fn[1])
                     notCentroid = (outv[9] == 1)
-                    particle_data = Detection.detectParticles.multiImageDetect(images,outv[0],outv[7],outv[1],outv[2],outv[6],outv[5],int(outv[4]),local_max=None,output=False,lmmethod=notCentroid,imageOutput=False)
+                    particle_data = Detection.detectParticles.multiImageDetect(images,outv[0],outv[6],outv[1],outv[2],outv[5],outv[4],int(outv[3]),local_max=None,output=False,lmmethod=notCentroid,imageOutput=False)
                     on_main_thread(top.destroy)
                     on_main_thread(done_mssg)
                     on_main_thread(self.parent.destroy)
