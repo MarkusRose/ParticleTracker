@@ -98,9 +98,9 @@ def simulateTracks(inVars=None):
      
                 #choose new state
                 u = random.random()
-                s0 = track[-1][5]
-                s1 = (s0+1) % 3
-                s2 = (s0+2) % 3
+                s0 = int(track[-1][5])
+                s1 = int((s0+1) % 3)
+                s2 = int((s0+2) % 3)
                 if u < p[s0,s2]:
                     particle[5] = s2
                 elif u < (p[s0,s2] + p[s0,s1]):
@@ -109,8 +109,8 @@ def simulateTracks(inVars=None):
                     particle[5] = s0
      
             #Generate displacement in correct state
-            particle[1] = random.gauss(0,math.sqrt(2*D[particle[5]]*tau))
-            particle[2] = random.gauss(0,math.sqrt(2*D[particle[5]]*tau))
+            particle[1] = random.gauss(0,math.sqrt(2*D[int(particle[5])]*tau))
+            particle[2] = random.gauss(0,math.sqrt(2*D[int(particle[5])]*tau))
 
             #Set Intensity:
             particle[6] = intensity
@@ -128,9 +128,9 @@ def simulateTracks(inVars=None):
         atracks.append(track)
      
     #Print tracks to file
-    Fileio.setTrackFile(atracks)
+    Fileio.setTrackFile(atracks,filename="simulatedTracks.txt")
     frames = Fileio.tracksToFrames(atracks)
-    Fileio.setDetection(frames)
+    Fileio.setDetection(frames,filename="simulatedDetections.txt")
     if particle_size < 0.61*wavelength/numAperture:
         #TODO: additional factor for sigma = sigma*2
         Fileio.createImages("SimulatedImages",frames,numPixels,

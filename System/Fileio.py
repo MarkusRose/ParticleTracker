@@ -85,8 +85,8 @@ Particle1 = [frame, x, y, delta_x, delta_y, Intensity,
 So: All Frames = [[[],[],...],[[],[],...],....]
 '''
 #setter
-def setDetection(detParts):
-    outfile = open("DetectedParticles.txt",'w')
+def setDetection(detParts,filename="DetectedParticles.txt"):
+    outfile = open(filename,'w')
     outfile.write("#Frame-by-frame list of detected particles\n")
 
     for frame in xrange(len(detParts)):
@@ -137,8 +137,8 @@ Particle1 = [frame, dx, dy, x, y, state, Intensity,
  Background, sigma_x, sigma_y, Particle ID]
 '''
 #setter
-def setTrackFile(detTracks):
-    outfile = open("foundTracks.txt",'w')
+def setTrackFile(detTracks,filename="foundTracks.txt"):
+    outfile = open(filename,'w')
     outfile.write("#All found tracks\n")
 
     for track in xrange(len(detTracks)):
@@ -352,7 +352,7 @@ def makeImage(positions,framenumber,dirname,numPixels,pixsize,sigma,background,b
     
     h,w = data.shape
      
-    im = Image.fromstring('I;16',(w,h),data.tostring())
+    im = Image.frombytes('I;16',(w,h),data.tostring())
     im.save(dirname+'/frame{0:04d}.tif'.format(framenumber))
     
     return data

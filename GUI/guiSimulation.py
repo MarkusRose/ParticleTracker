@@ -1,7 +1,12 @@
 import Tkinter
 import tkMessageBox
+import tkFileDialog
 import System.Fileio
 import Simulation.enzymeDiffuser
+import time
+import threading
+import Queue
+import os
 
 class Simulation_App(Tkinter.Frame):
     
@@ -54,6 +59,8 @@ class Simulation_App(Tkinter.Frame):
         self.backnoiseVar.set("100")
         self.intensityVar = Tkinter.StringVar()
         self.intensityVar.set("1000")
+        self.saveDir = Tkinter.StringVar()
+        self.saveDir.set(".")
 
     def checkVars(self):
         try:
@@ -80,15 +87,15 @@ class Simulation_App(Tkinter.Frame):
                 tkMessageBox.showerror("D1 false", "First Diffusion coefficient does not match!")
                 return False
             if int(self.numStates.get()) == 2:
-                self.diff3Var.set("n/a")
+                self.diff3Var.set("0.0")
                 self.prob13.set("0.0")
                 self.prob23.set("0.0")
                 self.prob31.set("0.0")
                 self.prob32.set("0.0")
             
             if int(self.numStates.get()) == 1:
-                self.diff2Var.set("n/a")
-                self.diff3Var.set("n/a")
+                self.diff2Var.set("0.0")
+                self.diff3Var.set("0.0")
                 self.prob12.set("0.0")
                 self.prob21.set("1.0")
                 self.prob13.set("0.0")
@@ -258,6 +265,13 @@ class Simulation_App(Tkinter.Frame):
         intensityText = Tkinter.Entry(self, textvariable=self.intensityVar)
         intensityText.grid(column=1,row=14, sticky="EW")
 
+    
+        #output directory location
+        dirButton = Tkinter.Button(self, text="Output Location", command = lambda:self.saveDir.set(tkFileDialog.askdirectory()))
+        dirButton.grid(column=0, row=15, sticky='W')
+        directoryLabel = Tkinter.Entry(self,textvariable=self.saveDir)
+        directoryLabel.grid(column=1,row=15)
+
 
         #Save settings and run simulation or cancel with buttons
         runButton = Tkinter.Button(self, text=u"Save & Run", command=self.runcomm)
@@ -316,13 +330,13 @@ class Simulation_App(Tkinter.Frame):
                 prob32Text = Tkinter.Entry(fra, textvariable=self.prob32)
                 prob32Text.grid(column=3,row=6,sticky="EW")
             else:
-                self.diff3Var.set("n/a")
+                self.diff3Var.set("0.0")
                 self.prob13.set("0.0")
                 self.prob23.set("0.0")
                 self.prob31.set("0.0")
                 self.prob32.set("0.0")
         else:
-            self.diff2Var.set("n/a")
+            self.diff2Var.set("0.0")
             self.prob12.set("0.0")
             self.prob21.set("1.0")
             self.prob13.set("0.0")
@@ -342,34 +356,70 @@ class Simulation_App(Tkinter.Frame):
         outvar = []
         outvar.append(int(self.numStates.get()))
         outvar.append(float(self.diff1Var.get()))
-        outvar.append(str(self.diff2Var.get()))
-        outvar.append(str(self.diff3Var.get())) 
-        outvar.append(str(self.prob12.get())) 
-        outvar.append(str(self.prob21.get())) 
-        outvar.append(str(self.prob13.get())) 
-        outvar.append(str(self.prob23.get())) 
-        outvar.append(str(self.prob31.get())) 
-        outvar.append(str(self.prob32.get())) 
-        outvar.append(str(self.numframesVar.get())) 
-        outvar.append(str(self.numPartVar.get())) 
-        outvar.append(str(self.tauVar.get())) 
-        outvar.append(str(self.frameLengthVar.get())) 
-        outvar.append(str(self.lambdaVar.get())) 
-        outvar.append(str(self.pixsizeVar.get())) 
-        outvar.append(str(self.naVar.get())) 
-        outvar.append(str(self.magnifVar.get())) 
-        outvar.append(str(self.backgroundVar.get()))
-        outvar.append(str(self.backnoiseVar.get()))
-        outvar.append(str(self.intensityVar.get())) 
-        return outvar
+        outvar.append(float(self.diff2Var.get()))
+        outvar.append(float(self.diff3Var.get())) 
+        outvar.append(float(self.prob12.get())) 
+        outvar.append(float(self.prob21.get())) 
+        outvar.append(float(self.prob13.get())) 
+        outvar.append(float(self.prob23.get())) 
+        outvar.append(float(self.prob31.get())) 
+        outvar.append(float(self.prob32.get())) 
+        outvar.append(float(self.numframesVar.get())) 
+        outvar.append(float(self.numPartVar.get())) 
+        outvar.append(float(self.tauVar.get())) 
+        outvar.append(float(self.frameLengthVar.get())) 
+        outvar.append(float(self.lambdaVar.get())) 
+        outvar.append(float(self.pixsizeVar.get())) 
+        outvar.append(float(self.naVar.get())) 
+        outvar.append(float(self.magnifVar.get())) 
+        outvar.append(float(self.backgroundVar.get()))
+        outvar.append(float(self.backnoiseVar.get()))
+        outvar.append(float(self.intensityVar.get())) 
+        directory = str(self.saveDir.get())
+        return outvar,directory
 
         
     def runcomm(self):
         if self.checkVars():
             print "Everythings fine, running program now. Have to pass variables to Fileio.setSysProps with all the parameters given."
-            System.Fileio.setSysProps(self.giveToProgram())
-            self.destroy()
-            Simulation.enzymeDiffuser.simulateTracks()
+            top = Tkinter.Toplevel()
+            top.title("Simulation running")
+            Tkinter.Message(top, text="Running simulation now. This might take a while.", padx=20, pady=20).pack()
+            #System.Fileio.setSysProps(self.giveToProgram())
+            outvariable = self.giveToProgram()
+            q = Queue.Queue()
+            def on_main_thread(func):
+                q.put(func)
+
+            def check_queue():
+                while True:
+                    try:
+                        task = q.get(block=False)
+                    except Queue.Empty:
+                        break
+                    else:
+                        self.after_idle(task)
+                self.after(100,check_queue)
+
+            def done_mssg():
+                tkMessageBox.showinfo("Done!", "Simulation finished without problems.")
+
+            def add_task():
+                return 0
+
+            def handle_calc():
+                def run_sim():
+                    if not os.path.isdir(outvariable[1]):
+                        os.mkdir(outvariable[1])
+                    os.chdir(outvariable[1])
+                    Simulation.enzymeDiffuser.simulateTracks(outvariable[0])
+                    on_main_thread(top.destroy)
+                    on_main_thread(done_mssg)
+                    on_main_thread(self.parent.destroy)
+                t = threading.Thread(target=run_sim)
+                t.start()
+            self.after(1,handle_calc)
+            self.after(100,check_queue)
             print "Done"
         return
 
