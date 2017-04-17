@@ -30,7 +30,7 @@ class guiDetection(Tkinter.Frame):
         self.labelframe.grid(column=0, row=0)
 
         self.inImagesVar = Tkinter.StringVar()
-        self.inImagesVar.set("")
+        self.inImagesVar.set("Please select Image Folder")
         ttk.Button(self.labelframe, text="Input Images", command = lambda:self.inImagesVar.set(tkFileDialog.askdirectory())).grid(column=1, row=1, sticky='W')
         ttk.Entry(self.labelframe, textvariable = self.inImagesVar).grid(column=2, row=1, sticky='W')
 
@@ -42,7 +42,7 @@ class guiDetection(Tkinter.Frame):
         '''
 
         self.outDirVar = Tkinter.StringVar()
-        self.outDirVar.set(".")
+        self.outDirVar.set(os.path.abspath(os.path.join(self.inImagesVar.get(), '..', 'Analysis')))
         ttk.Button(self.labelframe, text="Output Folder", command = lambda:self.outDirVar.set(tkFileDialog.askdirectory())).grid(column=1, row=13, sticky='W')
         ttk.Entry(self.labelframe, textvariable = self.outDirVar).grid(column=2, row=13, sticky='W')
 
