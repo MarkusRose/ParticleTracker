@@ -34,8 +34,8 @@ lenMSD_ct = 50
 plotlen = 30 #gives the range of the distribution plots
 numberofbins = 200
 
-LII = 22
-path = "/media/markus/DataPartition/SimulationData/AnalyzedData-Li{:}/".format(LII)
+LII = 26
+path = "D:/LipidSD/AnalyzedData-Li{:}/".format(LII)
 SR = 20
 Cel = ""
 if LII == 22:
@@ -62,6 +62,8 @@ elif LII == 30:
         infilename = "foundTracks-SR20_20170411-015803.txt"
     elif SR == 30:
         infilename = "foundTracks-SR30_20170411-020335.txt"
+infilename = "foundTracks.txt"
+infilename = "foundTracks-SR20.0_20170423-014231.txt"
 
 small = 20
 large = 100
@@ -581,6 +583,7 @@ if __name__ == "__main__":
         testfunctions()
     else:
         main()
+    sys.stdout.flush()
 
 
 

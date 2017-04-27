@@ -11,9 +11,8 @@ import numpy as np
 import random
 
 
-LII = 22
-path = "/media/markus/DataPartition/SimulationData/AnalyzedData-Li{:}/".format(LII)
-path = "C:/Users/Markus/Desktop/Analysieded2/"
+LII = 26
+path = "D:/LipidSD/AnalyzedData-Li{:}/".format(LII)
 SR = 20
 Cel = ""
 if LII == 22:
@@ -42,6 +41,7 @@ elif LII == 30:
         trackfile = "foundTracks-SR30_20170411-020335.txt"
 
 trackfile = "foundTracks.txt"
+trackfile = "foundTracks-SR20.0_20170423-014231.txt"
 
 small = 20
 large = 100
