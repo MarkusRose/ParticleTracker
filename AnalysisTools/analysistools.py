@@ -36,49 +36,7 @@ numberofbins = 200
 
 LII = 30
 path = "D:/LipidSD/AnalyzedData-Li{:}/".format(LII)
-SR = 20
-Cel = ""
-if LII == 22:
-    if SR == 20:
-        infilename = "foundTracks-SR20_20170411-045006.txt"
-elif LII == 24:
-    if SR == 10:
-        infilename = "foundTracks-SR10_20170411-020113.txt"
-    elif SR == 20:
-        infilename = "foundTracks-SR20_20170411-020152.txt"
-    elif SR == 30:
-        infilename = "foundTracks-SR30_20170411-020242.txt"
-elif LII == 27:
-    if SR == 10:
-        infilename = "foundTracks-SR10_20170411-020450.txt"
-    elif SR == 20:
-        infilename = "foundTracks-SR20_20170411-020530.txt"
-    elif SR == 30:
-        infilename = "foundTracks-SR30_20170411-020623.txt"
-elif LII == 30:
-    if SR == 10:
-        infilename = "foundTracks-SR10_20170411-015207.txt"
-    elif SR == 20:
-        infilename = "foundTracks-SR20_20170411-015803.txt"
-    elif SR == 30:
-        infilename = "foundTracks-SR30_20170411-020335.txt"
-
-if LII == 22:
-    infilename = "foundTracks-SR20.0_20170427-161855.txt"
-elif LII == 23:
-    infilename = "foundTracks-SR20.0_20170427-071011.txt"
-elif LII == 24:
-    infilename = "foundTracks-SR20.0_20170427-161733.txt"
-elif LII == 25:
-    infilename = "foundTracks-SR20.0_20170427-070931.txt"
-elif LII == 26:
-    infilename = "foundTracks-SR20.0_20170427-070946.txt"
-elif LII == 27:
-    infilename = "foundTracks-SR20.0_20170427-161653.txt"
-elif LII == 28:
-    infilename = "foundTracks-SR20.0_20170427-071039.txt"
-elif LII == 30:
-    infilename = "foundTracks-SR20.0_20170427-192925.txt"
+infilename = ''
 
 
 small = 20

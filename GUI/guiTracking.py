@@ -15,6 +15,8 @@ class guiTracking(Tkinter.Frame):
         Tkinter.Frame.__init__(self,parent)
         self.parent = parent
         self.doSetup()
+        self.grab_set()
+        return
 
     def doSetup(self):
         self.mainframe = ttk.Frame(self)

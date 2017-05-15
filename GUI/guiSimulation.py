@@ -16,6 +16,8 @@ class Simulation_App(Tkinter.Frame):
         self.parent = parent
         self.initVars()
         self.initialyze()
+        self.grab_set()
+        return
 
     
     def initVars(self):

@@ -143,6 +143,7 @@ def multiImageDetect(img,
         #PB
     outfile.close()
     sys.stdout.write("#"*(50-aaa)+"]\n")
+    sys.stdout.flush()
     pd = []
     for fr in particle_data:
         pd.append(fr[0])

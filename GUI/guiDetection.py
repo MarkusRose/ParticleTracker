@@ -17,6 +17,8 @@ class guiDetection(Tkinter.Frame):
         self.parent = parent
         self.detMethod = ['Centroid','Local Maximum']
         self.doSetup()
+        self.grab_set()
+        return
 
 
     def doSetup(self):
@@ -142,7 +144,7 @@ class guiDetection(Tkinter.Frame):
                     if not os.path.isdir(fn[1]):
                         os.mkdir(fn[1])
                     os.chdir(fn[1])
-                    notCentroid = (outv[9] == 1)
+                    notCentroid = (outv[-1] == 1)
                     particle_data = Detection.detectParticles.multiImageDetect(images,outv[0],outv[6],outv[1],outv[2],outv[5],outv[4],int(outv[3]),local_max=None,output=False,lmmethod=notCentroid,imageOutput=False)
                     on_main_thread(top.destroy)
                     on_main_thread(done_mssg)

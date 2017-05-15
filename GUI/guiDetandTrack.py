@@ -20,6 +20,7 @@ class guiDetandTrack(Tkinter.Frame):
         self.parent = parent
         self.detMethod = ['Centroid','Local Maximum']
         self.doSetup()
+        self.grab_set()
         return
 
 

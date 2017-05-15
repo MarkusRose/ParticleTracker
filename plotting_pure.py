@@ -11,7 +11,7 @@ import numpy as np
 import random
 
 
-LII = 26
+LII = 30
 path = "D:/LipidSD/AnalyzedData-Li{:}/".format(LII)
 SR = 20
 Cel = ""
@@ -40,8 +40,23 @@ elif LII == 30:
     elif SR == 30:
         trackfile = "foundTracks-SR30_20170411-020335.txt"
 
-trackfile = "foundTracks.txt"
-trackfile = "foundTracks-SR20.0_20170423-014231.txt"
+if LII == 22:
+    trackfile = "foundTracks-SR20.0_20170427-161855.txt"
+elif LII == 23:
+    trackfile = "foundTracks-SR20.0_20170427-071011.txt"
+elif LII == 24:
+    trackfile = "foundTracks-SR20.0_20170427-161733.txt"
+elif LII == 25:
+    trackfile = "foundTracks-SR20.0_20170427-070931.txt"
+elif LII == 26:
+    trackfile = "foundTracks-SR20.0_20170427-070946.txt"
+elif LII == 27:
+    trackfile = "foundTracks-SR20.0_20170427-161653.txt"
+elif LII == 28:
+    trackfile = "foundTracks-SR20.0_20170427-071039.txt"
+elif LII == 30:
+    trackfile = "foundTracks-SR20.0_20170427-192925.txt"
+
 
 small = 20
 large = 100

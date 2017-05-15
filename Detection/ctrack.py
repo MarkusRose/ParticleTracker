@@ -157,7 +157,7 @@ def readTrajectoriesFromFile(filename,minTrackLen=1):
                     f,x,y,width_x,width_y,height,amplitude,sn,vol,part_id = line.split()
                     particle_track.id = part_id
                     particle = makeParticle(round(float(f)),float(x),float(y),float(width_x),float(width_y),float(height),float(amplitude),part_id)
-                    particle_track.insert_particle(particle, particle.frame)
+                    particle_track.insert_particle(particle, int(particle.frame))
                     partpos += 1
             frame += 1
         else:
@@ -299,6 +299,7 @@ def link_particles(particle_data, max_displacement,
             '''
     
     sys.stdout.write("#"*(50-aaa)+"]\n")
+    sys.stdout.flush()
     #######################################
     # At Last Frame all Trajectories End
     #######################################
