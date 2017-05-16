@@ -1,7 +1,11 @@
 import numpy as np
 import random
 import math
+import os
+
 import System.Fileio as Fileio
+import Detection.ctrack as ct
+import Detection.detectParticles as dP
 
 '''
 This program creates multiple tracks of gaussian random walks. 
@@ -17,7 +21,12 @@ Tracki = [Particle1, Particle2, ...]
 Particle1 = [frame, dx, dy, x, y, state, Intensity, 
  Background, sigma_x, sigma_y, Particle ID]
 '''
-def simulateTracks(inVars=None):
+
+
+def simulateTracks(inVars=None,path=".",imageoutput=True):
+
+    if not os.path.isdir(path):
+        os.mkdir(path)
 
     if inVars==None:
         #Read in Values from file
@@ -63,9 +72,12 @@ def simulateTracks(inVars=None):
      
     #output variable
     atracks = []
+    btracks = []
+    framelist = [ [] for i in range(frames)]
     for n in xrange(N):
         #one individual track
         track = []
+        trk = ct.ParticleTrack(id=n, num_elements=frames)
      
         for i in xrange(0,frames,1):
      
@@ -78,8 +90,8 @@ def simulateTracks(inVars=None):
             #first or not?
             if len(track)  == 0:
                 #initial position
-                particle[3] = random.uniform(0,(numPixels-1)*pixel_size/mag)
-                particle[4] = random.uniform(0,(numPixels-1)*pixel_size/mag)
+                particle[3] = random.uniform(0,(numPixels-1)*1.*pixel_size/mag)
+                particle[4] = random.uniform(0,(numPixels-1)*1.*pixel_size/mag)
      
                 #choose state
                 u = random.random()
@@ -123,21 +135,41 @@ def simulateTracks(inVars=None):
      
             #Append particle to track
             track.append(particle)
+            prtcl = ct.makeParticle(i+1,particle[3],particle[4],0,0,0,0,n)
+            framelist[i].append(prtcl)            
+            trk.insert_particle(prtcl,i+1)
+
      
         #Append Track to output var
         atracks.append(track)
+        btracks.append(trk)
+
      
     #Print tracks to file
-    Fileio.setTrackFile(atracks,filename="simulatedTracks.txt")
-    frames = Fileio.tracksToFrames(atracks)
-    Fileio.setDetection(frames,filename="simulatedDetections.txt")
-    if particle_size < 0.61*wavelength/numAperture:
-        #TODO: additional factor for sigma = sigma*2
-        Fileio.createImages("SimulatedImages",frames,numPixels,
-                            pixel_size/mag,2*0.211*wavelength/numAperture,background,backnoise)
-    else:
-        Fileio.createImages("SimulatedImages",frames,numPixels,
-                            pixel_size/mag,(particle_size*0.5*mag/(pixel_size))**2,background,backnoise)
+    #Fileio.setTrackFile(atracks,filename="simulatedTracks.txt")
+    ct.writeTrajectories(btracks,filename=path+"/simulatedTracks.txt")
+    #frames = Fileio.tracksToFrames(atracks)
+    #Fileio.setDetection(frames,filename="simulatedDetections.txt")
+    outframes = open(path+"/simulatedFrames.txt",'w')
+    count = 1
+    for frame in framelist:
+        dP.writeDetectedParticles([frame,0],count,outframes)
+        count += 1
 
+    if imageoutput:
+        if particle_size < 0.61*wavelength/numAperture:
+            #TODO: additional factor for sigma = sigma*2
+            Fileio.createImages("SimulatedImages",frames,numPixels,
+                                pixel_size/mag,2*0.211*wavelength/numAperture,background,backnoise)
+        else:
+            Fileio.createImages("SimulatedImages",frames,numPixels,
+                                pixel_size/mag,(particle_size*0.5*mag/(pixel_size))**2,background,backnoise)
 
-    return atracks
+    return framelist,btracks
+
+def simwrapper(D,N,F,p):
+    invars = [1,D*1e12,0,0,0,1,0,0,1,0,F,N,1,512,2000*1e6,1*1e6,1.45,1,1000,500,2000]
+    frames,tracks = simulateTracks(inVars=invars,path=p,imageoutput=False)
+    return frames,tracks
+
+    

@@ -34,7 +34,7 @@ filelist = [["L:/Cel5A-6-22-10/45C/OD06/Experiment1/C-2-AnalyzedData/foundPartic
 #    "/media/markus/DataPartition/SimulationData/C-1-AnalyzedData/foundParticles.txt"]]
 
 #pfile = "/media/markus/DataPartition/SimulationData/AnalyzedData-Li24/foundParticles.txt"
-pfile = "/media/markus/DataPartition/SimulationData/AnalyzedData-Li22/foundParticles.txt"
+#pfile = "/media/markus/DataPartition/SimulationData/AnalyzedData-Li22/foundParticles.txt"
 #pfile = "/media/markus/DataPartition/SimulationData/AnalyzedData-Li27/foundParticles.txt"
 #pfile = "/media/markus/DataPartition/SimulationData/AnalyzedData-Li30/foundParticles.txt"
 
@@ -44,17 +44,14 @@ minTracklen = 1
 linkRange = 2
 
 
-def doTrack(particle_file,searchRadius=searchRadius,minTracklen=minTracklen,linkRange=linkRange):
+def doTrack(particle_file,searchRadius=searchRadius,minTracklen=minTracklen,linkRange=linkRange,path="."):
     date = strftime("%Y%m%d-%H%M%S")
     path = os.path.dirname(particle_file)
-    if not os.path.isdir(path):
-        os.mkdir(path)
-    os.chdir(path)
     particles = conFiles.readDetectedParticles(particle_file)
 
-    tracks = ctrack.link_particles(particles,searchRadius,link_range=linkRange,min_track_len=minTracklen,outfile="foundTracks-SR{:}_{:}.txt".format(searchRadius,date))
+    tracks = ctrack.link_particles(particles,searchRadius,link_range=linkRange,min_track_len=minTracklen,outfile=path+"/foundTracks-SR{:}_{:}.txt".format(searchRadius,date))
 
-    outfile = open("tracking-SR{:}_{:}.log".format(searchRadius,date),'w')
+    outfile = open(path+"/tracking-SR{:}_{:}.log".format(searchRadius,date),'w')
     timestr = strftime("%Y-%m-%d %H:%M:%S")
 
     outfile.write("Tracking Log File\n==================\n\n")
@@ -72,12 +69,12 @@ def doTrack(particle_file,searchRadius=searchRadius,minTracklen=minTracklen,link
 
     return tracks
 
-def doTrack_direct(particles, searchRadius=searchRadius,minTracklen=minTracklen,linkRange=linkRange,outfile="foundTracks.txt",infilename="Not Defined"):
+def doTrack_direct(particles, searchRadius=searchRadius,minTracklen=minTracklen,linkRange=linkRange,outfile="foundTracks.txt",infilename="Not Defined",path="."):
     date = strftime("%Y%m%d-%H%M%S")
 
     tracks = ctrack.link_particles(particles,searchRadius,link_range=linkRange,min_track_len=minTracklen,outfile=outfile)#"foundTracks-SR{:}_{:}.txt".format(searchRadius,date))
 
-    outfile = open("tracking-SR{:}_{:}.log".format(searchRadius,date),'w')
+    outfile = open(path+"/tracking-SR{:}_{:}.log".format(searchRadius,date),'w')
     timestr = strftime("%Y-%m-%d %H:%M:%S")
 
     outfile.write("Tracking Log File\n==================\n\n")
@@ -96,23 +93,22 @@ def doTrack_direct(particles, searchRadius=searchRadius,minTracklen=minTracklen,
     return tracks
 
 
-def track_with_driftcorrect(fn):
+def track_with_driftcorrect(fn,searchRadius,link_range=2):
     #Create drift tracks from positions
-    drifttracks = doTrack(fn[1],searchRadius=2)
+    drifttracks = doTrack(fn[1],searchRadius=2,linkRange=link_range)
     #Apply drift correction to feducial markers for verification and save
     pparts = dc.driftCorrection_particles(fn[1],drifttracks)
     path = os.path.dirname(fn[1])
-    os.chdir(path)
     date = strftime("%Y%m%d-%H%M%S")
-    doTrack_direct(pparts,outfile="driftcorrectedTracksFM-SR{:}_{:}.txt".format(searchRadius,date),infilename=fn[1])
+    doTrack_direct(pparts,outfile=path+"/driftcorrectedTracksFM-SR{:}_{:}.txt".format(searchRadius,date),infilename=fn[1],linkRange=link_range)
     #Apply drift correction to other channel and save
     path = os.path.dirname(fn[0])
-    os.chdir(path)
     pparts = dc.driftCorrection_particles(fn[0],drifttracks)
-    conFiles.writeParticleFile(pparts,filename="driftlessParticles.txt")
+    conFiles.writeParticleFile(pparts,filename=path+"driftlessParticles.txt")
     date = strftime("%Y%m%d-%H%M%S")
-    doTrack_direct(pparts,outfile="driftcorrectedTracks-SR{:}_{:}.txt".format(searchRadius,date),infilename=fn[0])
-    return
+    t = doTrack_direct(pparts,outfile=path+"/driftcorrectedTracks-SR{:}_{:}.txt".format(searchRadius,date),infilename=fn[0],linkRange=link_range)
+    return t
+
 
 
 def serial():

@@ -181,11 +181,8 @@ if __name__=="__main__":
     pparts = driftCorrection_particles(part_positions,drifttracks)
 
     path = os.path.dirname(positionfile)
-    if not os.path.isdir(path):
-        os.mkdir(path)
-    os.chdir(path)
     
-    conFiles.writeParticleFile(pparts,filename="driftlessParticles.txt")
+    conFiles.writeParticleFile(pparts,filename=path+"/driftlessParticles.txt")
 
 
 
