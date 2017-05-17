@@ -63,19 +63,23 @@ def benchMarker(D,N,SR,rep):
     print falselinks
 
     fout = open(path+'/{:}-{:}-{:}-{:}/benchlog.txt'.format(D,N,SR,rep),'w')
-    fout.write("falselinks = {:}".format(falselinks))
+    fout.write("falselinks = {:}\n".format(falselinks))
     fout.close()
 
-    return falselinks
+    return D, N, SR, rep, 1000, falselinks
 
 if __name__=="__main__":
     D = [0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,2,3,4,5,6,7,8,9,10,20,30,40,50,60,70,80,90]
     N = [10,20,30,40,50,60,70,80,90,100]
     SR = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]
     repeats=10
+
+    fout = open(path+'summarybench.txt','w')
+    fout.write("#Dif,  numParts,   S/N,   Frames,   Falselinks\n ")
     for d in D:
         for n in N:
             for sr in SR:
                 for i in xrange(repeats):
-                    handler(d,n,sr,i+1)
-
+                    dif,num,sign,frames,falselinks = benchMarker(d,n,sr,i+1)
+                    fout.write("{:} {:} {:} {:} {:}\n".format(dif,num,sign,frames,falselinks))
+    fout.close()
