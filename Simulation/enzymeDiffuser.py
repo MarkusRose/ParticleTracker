@@ -2,6 +2,7 @@ import numpy as np
 import random
 import math
 import os
+import string
 
 import System.Fileio as Fileio
 import Detection.ctrack as ct
@@ -77,7 +78,9 @@ def simulateTracks(inVars=None,path=".",imageoutput=True):
     for n in xrange(N):
         #one individual track
         track = []
-        trk = ct.ParticleTrack(id=n, num_elements=frames)
+
+        track_id = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(8))
+        trk = ct.ParticleTrack(id=track_id, num_elements=frames)
      
         for i in xrange(0,frames,1):
      
@@ -135,7 +138,7 @@ def simulateTracks(inVars=None,path=".",imageoutput=True):
      
             #Append particle to track
             track.append(particle)
-            prtcl = ct.makeParticle(i+1,particle[3],particle[4],0,0,0,0,n)
+            prtcl = ct.makeParticle(i+1,particle[3],particle[4],0,0,0,0,track_id)
             framelist[i].append(prtcl)            
             trk.insert_particle(prtcl,i+1)
 

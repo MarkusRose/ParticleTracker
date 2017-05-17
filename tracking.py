@@ -72,7 +72,7 @@ def doTrack(particle_file,searchRadius=searchRadius,minTracklen=minTracklen,link
 def doTrack_direct(particles, searchRadius=searchRadius,minTracklen=minTracklen,linkRange=linkRange,outfile="foundTracks.txt",infilename="Not Defined",path="."):
     date = strftime("%Y%m%d-%H%M%S")
 
-    tracks = ctrack.link_particles(particles,searchRadius,link_range=linkRange,min_track_len=minTracklen,outfile=outfile)#"foundTracks-SR{:}_{:}.txt".format(searchRadius,date))
+    tracks = ctrack.link_particles(particles,searchRadius,link_range=linkRange,min_track_len=minTracklen,outfile=path+'/'+outfile)#"foundTracks-SR{:}_{:}.txt".format(searchRadius,date))
 
     outfile = open(path+"/tracking-SR{:}_{:}.log".format(searchRadius,date),'w')
     timestr = strftime("%Y-%m-%d %H:%M:%S")
