@@ -36,6 +36,14 @@ class guiDetection(Tkinter.Frame):
         ttk.Button(self.labelframe, text="Input Images", command = lambda:self.inImagesVar.set(tkFileDialog.askdirectory())).grid(column=1, row=1, sticky='W')
         ttk.Entry(self.labelframe, textvariable = self.inImagesVar).grid(column=2, row=1, sticky='W')
 
+        self.dcvar = Tkinter.IntVar()
+        self.dcvar.set(0)
+        Tkinter.Checkbutton(self.labelframe,text="Drift Correction",variable=self.dcvar).grid(column=1,row=14,sticky='W')
+        self.feducialVar = Tkinter.StringVar()
+        self.feducialVar.set(os.path.abspath(os.path.join(self.inImagesVar.get(), '..', 'Analysis')))
+        ttk.Button(self.labelframe, text="Fiducial Markers", command = lambda:self.feducialVar.set(tkFileDialog.askdirectory())).grid(column=1, row=15, sticky='W')
+        ttk.Entry(self.labelframe, textvariable = self.feducialVar).grid(column=2, row=15, sticky='W')
+
         self.outDirVar = Tkinter.StringVar()
         self.outDirVar.set(os.path.abspath(os.path.join(self.inImagesVar.get(), '..', 'Analysis')))
         ttk.Button(self.labelframe, text="Output Folder", command = lambda:self.outDirVar.set(tkFileDialog.askdirectory())).grid(column=1, row=13, sticky='W')
@@ -61,6 +69,7 @@ class guiDetection(Tkinter.Frame):
         self.vars[6].set("10")
 
         self.detMethVar = Tkinter.StringVar()
+        self.detMethVar.set(self.detMethod[1])
         ttk.Label(self.labelframe, text="Detection Method").grid(column=1, row=11, sticky='W')
         drop = Tkinter.OptionMenu(self.labelframe,self.detMethVar,*(self.detMethod))
         drop.grid(column=2,row=11,sticky="EW")

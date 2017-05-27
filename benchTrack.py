@@ -1,21 +1,50 @@
 import tracking
 import Simulation.enzymeDiffuser as eD
 import threading
+import Queue
+import time
 import os
 
 path = "D:/Benchmarking"
 
-def handler(D,N,SR,rep):
-    def calc():
-        benchMarker(D,N,SR,rep)
-    t = threading.Thread(target=calc)
-    t.start()
-    print("starting thread for {:}, {:}, {:}, {:}".format(D,N,SR,rep))
-    return
+exitFlag = 0
+workQueue = Queue.Queue(8)
+dataQueue = Queue.Queue(20)
+queueLock = threading.Lock()
+dataLock = threading.Lock()
+results = []
 
+class myThread(threading.Thread):
+    def __init__(self,threadID,name,q,dq):
+        threading.Thread.__init__(self)
+        self.threadID = threadID
+        self.name = name
+        self.q = q
+        self.dq = dq
+        return
 
+    def run(self):
+        print "Starting " + self.name
+        process_data(self.name, self.q,self.dq)
+        print "Exiting " + self.name
 
-def benchMarker(D,N,SR,rep):
+def process_data(threadName, q, dq):
+    while not exitFlag:
+        queueLock.acquire()
+        if not workQueue.emtpy():
+            data = q.get()
+            queueLock.release()
+            print "%s processing %s" % (threadName,data)
+            result = benchMarker(data)
+            dataLock.acquire()
+            dq.put(result)
+            dataLock.release()
+        else:
+            queueLock.release()
+        time.sleep(1)
+
+def benchMarker(data):
+    D,N,SR,rep = data
     #D,N,F,path
     if not os.path.isdir(path+"/{:}-{:}-{:}-{:}".format(D,N,SR,rep)):
         os.mkdir(path+"/{:}-{:}-{:}-{:}".format(D,N,SR,rep))
@@ -69,17 +98,49 @@ def benchMarker(D,N,SR,rep):
     return D, N, SR, rep, 1000, falselinks
 
 if __name__=="__main__":
-    D = [0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,2,3,4,5,6,7,8,9,10,20,30,40,50,60,70,80,90]
-    N = [10,20,30,40,50,60,70,80,90,100]
-    SR = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]
-    repeats=10
+    D = [0.1,0.5,1,5,10,50,90]
+    N = [10,20,40,80]
+    SR = [2,3,4,5,6,7,8,9,10,15,20,30]
+    repeats=5
 
-    fout = open(path+'summarybench.txt','w')
-    fout.write("#Dif,  numParts,   S/N,   Frames,   Falselinks\n ")
+    dataForThreads = []
     for d in D:
         for n in N:
             for sr in SR:
                 for i in xrange(repeats):
-                    dif,num,sign,frames,falselinks = benchMarker(d,n,sr,i+1)
-                    fout.write("{:} {:} {:} {:} {:}\n".format(dif,num,sign,frames,falselinks))
+                    dataForThreads.append([d,n,sr,i+1])
+
+    threads = []
+    for i in xrange(8):
+        thread = myThread(i+1,"Thread-{:}".format(i+1),workQueue,dataQueue)
+        thread.start()
+        threads.append(thread)
+
+    for data in dataForThreads:
+        while workQueue.full():
+            continue
+        queueLock.acquire()
+        workQueue.put(data)
+        queueLock.release()
+        if dataQueue.full():
+            dataLock.acquire()
+            while not dataQueue.emtpy():
+                results.append(dataQueue.get())
+            dataLock.release()
+
+    while not dataQueue.empty():
+        dataLock.acquire()
+
+
+
+    fout = open(path+'summarybench.txt','w')
+    fout.write("#Dif,  numParts,   S/N,   Frames, Reps,  Falselinks\n ")
+    for d in D:
+        for n in N:
+            for sr in SR:
+                for i in xrange(repeats):
+                    print
+                    print("starting {:}, {:}, {:}, {:}".format(d,n,sr,i))
+                    dif,num,sign,reps,frames,falselinks = benchMarker(d,n,sr,i+1)
+                    fout.write("{:} {:} {:} {:} {:} {:}\n".format(dif,num,sign,frames,reps,falselinks))
     fout.close()

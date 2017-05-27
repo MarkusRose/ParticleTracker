@@ -7,6 +7,7 @@ import time
 import threading
 import Queue
 import os
+import sys
 
 class Simulation_App(Tkinter.Frame):
     
@@ -382,10 +383,12 @@ class Simulation_App(Tkinter.Frame):
 
         
     def runcomm(self):
+        print(">>>>Starting Simulation")
         if self.checkVars():
             print "Everythings fine, running program now. Have to pass variables to Fileio.setSysProps with all the parameters given."
-            top = Tkinter.Toplevel()
+            top = Tkinter.Toplevel(self)
             top.title("Simulation running")
+            top.grab_set()
             Tkinter.Message(top, text="Running simulation now. This might take a while.", padx=20, pady=20).pack()
             #System.Fileio.setSysProps(self.giveToProgram())
             outvariable = self.giveToProgram()
@@ -404,6 +407,7 @@ class Simulation_App(Tkinter.Frame):
                 self.after(100,check_queue)
 
             def done_mssg():
+                top.grab_release()
                 tkMessageBox.showinfo("Done!", "Simulation finished without problems.")
 
             def add_task():
@@ -411,15 +415,17 @@ class Simulation_App(Tkinter.Frame):
 
             def handle_calc():
                 def run_sim():
-                    if not os.path.isdir(outvariable[1]):
-                        os.mkdir(outvariable[1])
-                    os.chdir(outvariable[1])
-                    Simulation.enzymeDiffuser.simulateTracks(outvariable[0])
+                    print "starting simulation"
+                    sys.stdout.flush()
+                    Simulation.enzymeDiffuser.simulateTracks(outvariable[0],outvariable[1])
+                    print ">>>>Finished Simulation"
+                    sys.stdout.flush()
                     on_main_thread(top.destroy)
                     on_main_thread(done_mssg)
                     on_main_thread(self.parent.destroy)
                 t = threading.Thread(target=run_sim)
                 t.start()
+                #run_sim()
             self.after(1,handle_calc)
             self.after(100,check_queue)
             print "Done"

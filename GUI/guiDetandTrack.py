@@ -28,8 +28,8 @@ class guiDetandTrack(Tkinter.Frame):
         self.mainframe = ttk.Frame(self)
         self.mainframe.grid(column=1, row=1)
 
-        ttk.Button(self, text="Run", command=self.runDetAndTrack).grid(column=2,row=2, sticky="SE")
-        ttk.Button(self, text="Cancel", command=self.parent.destroy).grid(column=2,row=3, sticky='E')
+        ttk.Button(self.mainframe, text="Run", command=self.runDetAndTrack).grid(column=2,row=2, sticky="SE")
+        ttk.Button(self.mainframe, text="Cancel", command=self.parent.destroy).grid(column=2,row=3, sticky='E')
         
         self.labelframe = ttk.Frame(self.mainframe)
         self.labelframe.grid(column=0, row=0)
@@ -38,6 +38,15 @@ class guiDetandTrack(Tkinter.Frame):
         self.inImagesVar.set("Please select Image Folder")
         ttk.Button(self.labelframe, text="Input Images", command = lambda:self.inImagesVar.set(tkFileDialog.askdirectory())).grid(column=1, row=1, sticky='W')
         ttk.Entry(self.labelframe, textvariable = self.inImagesVar).grid(column=2, row=1, sticky='W')
+
+        
+        self.dcvar = Tkinter.IntVar()
+        self.dcvar.set(0)
+        Tkinter.Checkbutton(self.labelframe,text="Drift Correction",variable=self.dcvar).grid(column=1,row=14,sticky='W')
+        self.feducialVar = Tkinter.StringVar()
+        self.feducialVar.set(os.path.abspath(os.path.join(self.inImagesVar.get(), '..', 'Analysis')))
+        ttk.Button(self.labelframe, text="Fiducial Markers", command = lambda:self.feducialVar.set(tkFileDialog.askdirectory())).grid(column=1, row=15, sticky='W')
+        ttk.Entry(self.labelframe, textvariable = self.feducialVar).grid(column=2, row=15, sticky='W')
 
         self.outDirVar = Tkinter.StringVar()
         self.outDirVar.set(os.path.abspath(os.path.join(self.inImagesVar.get(), '..', 'Analysis')))
@@ -68,6 +77,7 @@ class guiDetandTrack(Tkinter.Frame):
         self.vars[9].set("2")
 
         self.detMethVar = Tkinter.StringVar()
+        self.detMethVar.set(self.detMethod[1])
         ttk.Label(self.labelframe, text="Detection Method").grid(column=1, row=11, sticky='W')
         drop = Tkinter.OptionMenu(self.labelframe,self.detMethVar,*(self.detMethod))
         drop.grid(column=2,row=11,sticky="EW")

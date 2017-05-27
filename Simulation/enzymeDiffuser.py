@@ -3,6 +3,7 @@ import random
 import math
 import os
 import string
+import sys
 
 import System.Fileio as Fileio
 import Detection.ctrack as ct
@@ -23,8 +24,15 @@ Particle1 = [frame, dx, dy, x, y, state, Intensity,
  Background, sigma_x, sigma_y, Particle ID]
 '''
 
+def debug(stringin):
+    print(stringin)
+    sys.stdout.flush()
+    return
+
 
 def simulateTracks(inVars=None,path=".",imageoutput=True):
+    print(">>>Simulation starting")
+    sys.stdout.flush()
 
     if not os.path.isdir(path):
         os.mkdir(path)
@@ -56,7 +64,10 @@ def simulateTracks(inVars=None,path=".",imageoutput=True):
     background = sV[18]
     backnoise = sV[19]
     intensity = sV[20]
-    particle_size = 0.01/1e6 #meter
+    particle_size = 1e-9 #meter
+    print("Done with userInput")
+    sys.stdout.flush()
+    
     
 
     #Initial probabilities for choosing state
@@ -70,6 +81,8 @@ def simulateTracks(inVars=None,path=".",imageoutput=True):
     statProbs.append((sV[5]+sV[8])/sumprobs)
     statProbs.append((sV[4]+sV[9])/sumprobs)
     statProbs.append((sV[6]+sV[7])/sumprobs)
+
+    debug("Done probs init")
      
     #output variable
     atracks = []
@@ -129,46 +142,57 @@ def simulateTracks(inVars=None,path=".",imageoutput=True):
 
             #Set Intensity:
             particle[6] = intensity
+            particle[7] = 2*0.211*wavelength/numAperture
+            particle[8] = 2*0.211*wavelength/numAperture
      
             #Rest of particle variables
-            for k in xrange(7,10,1):
+            for k in xrange(9,10,1):
                 particle[k] = 0
-     
+
             particle[10] = n
      
             #Append particle to track
             track.append(particle)
-            prtcl = ct.makeParticle(i+1,particle[3],particle[4],0,0,0,0,track_id)
+            pfac = pixel_size/mag
+            prtcl = ct.makeParticle(i+1,particle[3]/pfac,particle[4]/pfac,particle[7]/pfac,particle[8]/pfac,background,particle[6],track_id)
             framelist[i].append(prtcl)            
             trk.insert_particle(prtcl,i+1)
 
-     
         #Append Track to output var
         atracks.append(track)
         btracks.append(trk)
-
      
     #Print tracks to file
     #Fileio.setTrackFile(atracks,filename="simulatedTracks.txt")
-    ct.writeTrajectories(btracks,filename=path+"/simulatedTracks.txt")
+    writeTracks(btracks,path+"/simulatedTracks.txt")
+    debug("Written trajectory file")
     #frames = Fileio.tracksToFrames(atracks)
     #Fileio.setDetection(frames,filename="simulatedDetections.txt")
-    outframes = open(path+"/simulatedFrames.txt",'w')
-    count = 1
-    for frame in framelist:
-        dP.writeDetectedParticles([frame,0],count,outframes)
-        count += 1
+    writeFrames(framelist,path+"/simulatedFrames.txt")
+    debug("Written particle file")
 
     if imageoutput:
         if particle_size < 0.61*wavelength/numAperture:
             #TODO: additional factor for sigma = sigma*2
-            Fileio.createImages("SimulatedImages",frames,numPixels,
-                                pixel_size/mag,2*0.211*wavelength/numAperture,background,backnoise)
+            Fileio.createImages(path+"/SimulatedImages",framelist,numPixels,
+                    2*0.211*wavelength/numAperture*mag/pixel_size,background,backnoise)
         else:
-            Fileio.createImages("SimulatedImages",frames,numPixels,
-                                pixel_size/mag,(particle_size*0.5*mag/(pixel_size))**2,background,backnoise)
+            pass
+    debug("Written output Images")
 
     return framelist,btracks
+
+def writeTracks(tracks,filename):
+    ct.writeTrajectories(tracks,filename=filename)
+    return
+
+def writeFrames(framelist,filename):
+    outframes = open(filename,'w')
+    count = 1
+    for frame in framelist:
+        dP.writeDetectedParticles([frame,0],count,outframes)
+        count += 1
+    return
 
 def simwrapper(D,N,F,p):
     invars = [1,D*1e12,0,0,0,1,0,0,1,0,F,N,1,512,2000*1e6,1*1e6,1.45,1,1000,500,2000]
