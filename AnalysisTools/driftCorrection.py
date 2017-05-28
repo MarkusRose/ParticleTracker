@@ -3,6 +3,8 @@ import Detection.convertFiles as conFiles
 import Detection.detectParticles as dpart
 import numpy as np
 import sys
+import os
+from time import strftime
 
 #correct for rotation of Sample on tracks
 def rotationCorrection_tracks(part_tracks,drifttracks):
@@ -133,9 +135,7 @@ def translationCorrection_particles(drifttracks):
 
 
 #create Drift correction on Particle Positions
-def driftCorrection_particles(positionfile,drifttracks,rotcorrection=True):
-
-    part_positions = conFiles.readDetectedParticles(positionfile)
+def driftCorrection_particles(part_positions,drifttracks,rotcorrection=True):
 
     tracklen = len(drifttracks[0].track)
     if len(part_positions) != tracklen:
@@ -160,6 +160,94 @@ def driftCorrection_particles(positionfile,drifttracks,rotcorrection=True):
                 part.y -= drift_displ.track[i]['y']
 
     return part_positions
+
+def doTrack(particle_file,searchRadius=2,minTracklen=1,linkRange=2):
+    date = strftime("%Y%m%d-%H%M%S")
+    path = os.path.dirname(particle_file)
+    particles = conFiles.readDetectedParticles(particle_file)
+
+    tracks = ctrack.link_particles(particles,searchRadius,link_range=linkRange,min_track_len=minTracklen,outfile=path+"/foundTracks-SR{:}_{:}.txt".format(searchRadius,date))
+
+    outfile = open(path+"/tracking-SR{:}_{:}.log".format(searchRadius,date),'w')
+    timestr = strftime("%Y-%m-%d %H:%M:%S")
+
+    outfile.write("Tracking Log File\n==================\n\n")
+    outfile.write("Time:   {:}\n".format(timestr))
+    outfile.write("\nSystem Parameters:\n------------------\n")
+    outfile.write("Particle File:   {:}\n".format(particle_file))
+    outfile.write("\nTracking Parameters:\n---------------------\n")
+    outfile.write("Search Radius = {:}px\n".format(searchRadius))
+    outfile.write("Link Range = {:} frames\n".format(linkRange))
+    outfile.write("Minimum Track Length = {:} frame(s)\n".format(minTracklen))
+    outfile.write("\n=== Track-IDs =================\n")
+    for track in tracks:
+        outfile.write("{:}\n".format(track.id))
+    outfile.close()
+
+    return tracks
+
+def doTrack_direct(particles, searchRadius=2,minTracklen=1,linkRange=2,outfile="foundTracks.txt",infilename="Not Defined",path="."):
+    date = strftime("%Y%m%d-%H%M%S")
+
+    tracks = ctrack.link_particles(particles,searchRadius,link_range=int(linkRange),min_track_len=minTracklen,outfile=path+'/'+outfile)#"foundTracks-SR{:}_{:}.txt".format(searchRadius,date))
+
+    outfile = open(path+"/tracking-SR{:}_{:}.log".format(searchRadius,date),'w')
+    timestr = strftime("%Y-%m-%d %H:%M:%S")
+
+    outfile.write("Tracking Log File\n==================\n\n")
+    outfile.write("Time:   {:}\n".format(timestr))
+    outfile.write("\nSystem Parameters:\n------------------\n")
+    outfile.write("Particle File:   {:}\n".format(infilename))
+    outfile.write("\nTracking Parameters:\n---------------------\n")
+    outfile.write("Search Radius = {:}px\n".format(searchRadius))
+    outfile.write("Link Range = {:} frames\n".format(linkRange))
+    outfile.write("Minimum Track Length = {:} frame(s)\n".format(minTracklen))
+    outfile.write("\n=== Track-IDs =================\n")
+    for track in tracks:
+        outfile.write("{:}\n".format(track.id))
+    outfile.close()
+
+    return tracks
+
+#Do driftcorrect on detected particles.
+def position_with_driftcorrect(fn,path='.'):
+    #Create drift tracks from positions
+    drifttracks = doTrack_direct(fn[1],searchRadius=2,linkRange=2,outfile='driftTracks.txt',path=path)
+    #Apply drift correction to feducial markers for verification and save
+    #pparts = driftCorrection_particles(fn[1],drifttracks)
+    #path = os.path.dirname(fn[1])
+    #date = strftime("%Y%m%d-%H%M%S")
+    #doTrack_direct(pparts,outfile=path+"/driftcorrectedTracksFM-SR{:}_{:}.txt".format(2,date),infilename=fn[1],linkRange=link_range)
+    #Apply drift correction to other channel and save
+    #path = os.path.dirname(fn[0])
+    print("Correcting for Drift now")
+    sys.stdout.flush()
+    pparts = driftCorrection_particles(fn[0],drifttracks)
+    conFiles.writeParticleFile(pparts,filename=path+"/driftlessParticles.txt")
+    print("Done!")
+    sys.stdout.flush()
+    return pparts
+
+#Do drift correct on detected particles and track them afterwards
+def track_with_driftcorrect(fn,searchRadius,link_range=2,path='.'):
+    #Create drift tracks from positions
+    drifttracks = doTrack_direct(fn[1],searchRadius=2,linkRange=2,outfile='driftTracks.txt',path=path)
+    #Apply drift correction to feducial markers for verification and save
+    '''
+    pparts = driftCorrection_particles(fn[1],drifttracks)
+    path = os.path.dirname(fn[1])
+    date = strftime("%Y%m%d-%H%M%S")
+    doTrack_direct(pparts,outfile=path+"/driftcorrectedTracksFM-SR{:}_{:}.txt".format(2,date),infilename=fn[1],linkRange=link_range)
+    #Apply drift correction to other channel and save
+    path = os.path.dirname(fn[0])
+    '''
+    print("Correcting for Drift now")
+    sys.stdout.flush()
+    pparts = driftCorrection_particles(fn[0],drifttracks)
+    conFiles.writeParticleFile(pparts,filename=path+"driftlessParticles.txt")
+    date = strftime("%Y%m%d-%H%M%S")
+    t = doTrack_direct(pparts,outfile="driftcorrectedTracks-SR{:}_{:}.txt".format(searchRadius,date),infilename=fn[0],linkRange=link_range,path=path)
+    return t
 
 
 

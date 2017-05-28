@@ -10,6 +10,7 @@ import Queue
 import os
 
 import Detection
+import AnalysisTools.driftCorrection as dc
 
 class guiDetection(Tkinter.Frame):
     def __init__(self,parent):
@@ -108,6 +109,7 @@ class guiDetection(Tkinter.Frame):
         filenames = []
         filenames.append(self.inImagesVar.get())
         filenames.append(self.outDirVar.get())
+        filenames.append(self.feducialVar.get())
 
         for elem in self.vars:
             outvars.append(float(elem.get()))
@@ -152,9 +154,14 @@ class guiDetection(Tkinter.Frame):
                     images = Detection.det_and_track.readImageList(fn[0])
                     if not os.path.isdir(fn[1]):
                         os.mkdir(fn[1])
-                    os.chdir(fn[1])
                     notCentroid = (outv[-1] == 1)
-                    particle_data = Detection.detectParticles.multiImageDetect(images,outv[0],outv[6],outv[1],outv[2],outv[5],outv[4],int(outv[3]),local_max=None,output=False,lmmethod=notCentroid,imageOutput=False)
+                    particle_data = Detection.detectParticles.multiImageDetect(images,outv[0],outv[6],outv[1],outv[2],outv[5],outv[4],int(outv[3]),local_max=None,output=False,lmmethod=notCentroid,imageOutput=False,path=fn[1])
+                    if self.dcvar.get():
+                        print("True")
+                        sys.stdout.flush()
+                        drift_images= Detection.det_and_track.readImageList(fn[2])
+                        drift_data = Detection.detectParticles.multiImageDetect(drift_images,outv[0],outv[6],outv[1]+2,outv[2],outv[5],outv[4],int(outv[3]),local_max=None,output=False,lmmethod=notCentroid,imageOutput=False,path=fn[1])
+                        pdata = dc.position_with_driftcorrect([particle_data,drift_data],path=fn[1])
                     on_main_thread(top.destroy)
                     on_main_thread(done_mssg)
                     on_main_thread(self.parent.destroy)

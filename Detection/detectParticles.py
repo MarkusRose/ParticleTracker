@@ -23,11 +23,11 @@ def writeDetectedParticles(particles,frame,outfile):
     return
 
 
-def outMarkedImages(image,partdata,out):
+def outMarkedImages(image,partdata,out,path='.'):
 
     markNoInit = markPosition.markPositionsFromList(image.shape,partdata[0])
-    markFromNoInit = markPosition.markPositionsSimpleList(image.shape,readLocalMax("foundLocalMaxima.txt"))
-    boxMarkings = markPosition.drawBox(image.shape,readBox("localBoxes.txt"))
+    markFromNoInit = markPosition.markPositionsSimpleList(image.shape,readLocalMax(path+"/foundLocalMaxima.txt"))
+    boxMarkings = markPosition.drawBox(image.shape,readBox(path+"/localBoxes.txt"))
     
     '''
     ofile = open("simNoInit.txt",'w')
@@ -40,7 +40,7 @@ def outMarkedImages(image,partdata,out):
     outar = markPosition.imposeWithColor(outar,markNoInit,'R')
     outar = markPosition.imposeWithColor(outar,boxMarkings,'G')
 
-    markPosition.saveRGBImage(outar,out)
+    markPosition.saveRGBImage(outar,path+'/'+out)
     return
 
 def multiImageDetect(img,
@@ -50,13 +50,13 @@ def multiImageDetect(img,
                     bit_depth,
                     eccentricity_thresh,
                      sigma_thresh,numAdder,local_max=None,output=False,lmmethod=False,
-                     imageOutput=False):
+                     imageOutput=False,path='.'):
     particle_data = []
     frame = 0
-    outfile2 = open("foundCentroids.txt",'w')
+    outfile2 = open(path+"/foundCentroids.txt",'w')
     outfile2.write("")
     outfile2.close()
-    outfile = open("foundParticles.txt",'w')
+    outfile = open(path+"/foundParticles.txt",'w')
     if not (local_max is None):
         #print "oh here we are"
         local_max_pixels = convertFiles.giveLocalMaxValues(convertFiles.convImageJTrack(local_max),len(img))
@@ -99,7 +99,7 @@ def multiImageDetect(img,
             a /= numAdder
             
         if output:
-            readImage.saveImageToFile(a,"01sanityCheck{:0004d}.png".format(frame))
+            readImage.saveImageToFile(a,path+"/01sanityCheck{:0004d}.png".format(frame))
 
         #print("\n==== Doing image no " + str(frame) + " ====")
         if local_max is None:
@@ -113,7 +113,8 @@ def multiImageDetect(img,
                     eccentricity_thresh,
                     sigma_thresh,
                     output=output,
-                    lmm=lmmethod)
+                    lmm=lmmethod,
+                    path=path)
         else:
             particles = detectParticles(
                     a,
@@ -126,10 +127,11 @@ def multiImageDetect(img,
                     sigma_thresh,
                     local_max_pixels=local_max_pixels[i],
                     output=output,
-                    lmm=lmmethod)
+                    lmm=lmmethod,
+                    path=path)
 
         if (imageOutput):
-            outMarkedImages(a,particles,"out{:0004d}.tif".format(frame))
+            outMarkedImages(a,particles,"out{:0004d}.tif".format(frame),path=path)
         a = np.zeros(image.shape)
         particle_data.append(particles)
 
@@ -201,9 +203,9 @@ def gaussian2d(height, amplitude, center_x,
             amplitude*np.exp(-(((center_x-x)/width_x)**2+((center_y-y)/width_y)**2)/2))
 
 
-def readLocalMax(inf):
+def readLocalMax(inf,path='.'):
     local_max = []
-    infile = open(inf,'r')
+    infile = open(path+'/'+inf,'r')
     for line in infile:
         (a,x,y) = line.split()
         local_max.append([0,int(float(x)+0.5),int(float(y)+0.5)])
@@ -347,7 +349,7 @@ def addParticleToList(particle_list,frame,row_min,row_max,col_min,col_max,fitdat
 
 
 def readBox(inf):
-    infile = open(inf,'r')
+    infile = open(path+'/'+inf,'r')
     boxList = []
     for line in infile:
         (xmin,xmax,ymin,ymax) = line.split()
@@ -545,7 +547,7 @@ def centroidMethod(gausFiltImage,cutoff,output):
     return local_max_pixels
 
 
-def findParticleAndAdd(image,frame,local_max_pixels,signal_power,sigma,background_mean,sigma_thresh,eccentricity_thresh,bit_depth):
+def findParticleAndAdd(image,frame,local_max_pixels,signal_power,sigma,background_mean,sigma_thresh,eccentricity_thresh,bit_depth,path='.'):
     
     particle_list = []
 
@@ -555,7 +557,7 @@ def findParticleAndAdd(image,frame,local_max_pixels,signal_power,sigma,backgroun
     nupart = 0
     nuedge = 0
 
-    outf = open("localBoxes.txt",'w')
+    outf = open(path+"/localBoxes.txt",'w')
     #print "local max pixels " + str(len(local_max_pixels[0]))
     #print "length is: ", len(local_max_pixels[0])
     for i in xrange(len(local_max_pixels[0])):
@@ -595,7 +597,7 @@ def findParticleAndAdd(image,frame,local_max_pixels,signal_power,sigma,backgroun
 ##################################
 
 
-def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,eccentricity_thresh,sigma_thresh,local_max_pixels=None,output=False,lmm=False):
+def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,eccentricity_thresh,sigma_thresh,local_max_pixels=None,output=False,lmm=False,path='.'):
     
     #Check if initial positions are given
     if (local_max_pixels is None):
@@ -606,8 +608,8 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
         cutoff = 0
     #print "               1"
 
-    outf = open("foundLocalMaxima.txt",'w')
-    saverf = open("foundCentroids.txt",'a')
+    outf = open(path+"/foundLocalMaxima.txt",'w')
+    saverf = open(path+"/foundCentroids.txt",'a')
     saverf.write("\n\n# frame    y    x\n")
     for i in xrange(len(local_max_pixels[0])):
         outf.write("{:} {:} {:}\n".format(frame,local_max_pixels[0][i],local_max_pixels[1][i]))
@@ -621,7 +623,7 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
     background_mean = median_img.mean()
 
     #Fit Gauss to Image and add to Particle list if ok
-    particle_list,nupart,nunocon,nunoexc,nusigma,nuedge = findParticleAndAdd(img,frame,local_max_pixels,signal_power,sigma,background_mean,sigma_thresh,eccentricity_thresh,bit_depth)
+    particle_list,nupart,nunocon,nunoexc,nusigma,nuedge = findParticleAndAdd(img,frame,local_max_pixels,signal_power,sigma,background_mean,sigma_thresh,eccentricity_thresh,bit_depth,path=path)
 
     #Check, that all possible positions were considered.
     sumparts = nunocon+nunoexc+nusigma+int(nuedge)+nupart

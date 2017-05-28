@@ -13,6 +13,7 @@ import Queue
 import Detection.det_and_track
 import Detection.detectParticles
 import tracking
+import AnalysisTools.driftCorrection as dc
 
 class guiDetandTrack(Tkinter.Frame):
     def __init__(self,parent):
@@ -116,6 +117,7 @@ class guiDetandTrack(Tkinter.Frame):
         filenames = []
         filenames.append(self.inImagesVar.get())
         filenames.append(self.outDirVar.get())
+        filenames.append(self.feducialVar.get())
 
         for elem in self.vars:
             outvars.append(float(elem.get()))
@@ -164,8 +166,13 @@ class guiDetandTrack(Tkinter.Frame):
                         os.mkdir(fn[1])
                     os.chdir(fn[1])
                     notCentroid = (outv[10] == 1)
-                    particle_data = Detection.detectParticles.multiImageDetect(images,outv[0],outv[6],outv[1],outv[2],outv[5],outv[4],int(outv[3]),local_max=None,output=False,lmmethod=notCentroid,imageOutput=False)
-                    tracking.doTrack_direct(particle_data, searchRadius=outv[7],minTracklen=int(outv[8]),linkRange=int(outv[9]),outfile="foundTracks.txt",infilename="Not Defined")
+                    particle_data = Detection.detectParticles.multiImageDetect(images,outv[0],outv[6],outv[1],outv[2],outv[5],outv[4],int(outv[3]),local_max=None,output=False,lmmethod=notCentroid,imageOutput=False,path=fn[1])
+                    if self.dcvar.get():
+                        drift_images = Detection.det_and_track.readImageList(fn[2])
+                        drift_data = Detection.detectParticles.multiImageDetect(drift_images,outv[0],outv[6],outv[1]+2,outv[2],outv[5],outv[4],int(outv[3]),local_max=None,output=False,lmmethod=notCentroid,imageOutput=False,path=fn[1])
+                        track_data = dc.track_with_driftcorrect([particle_data,drift_data],searchRadius=outv[7],link_range=outv[9],path=fn[1])
+                    else:     
+                        track_data = dc.doTrack_direct(particle_data, searchRadius=outv[7],minTracklen=int(outv[8]),linkRange=int(outv[9]),outfile="foundTracks.txt",infilename="Not Defined",path=fn[1])
                     on_main_thread(top.destroy)
                     on_main_thread(done_mssg)
                     on_main_thread(self.parent.destroy)
