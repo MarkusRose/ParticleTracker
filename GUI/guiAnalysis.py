@@ -82,8 +82,10 @@ class guiAnalysis(tk.Frame):
         ttk.Separator(self).pack(fill='x',expand=1)
         #----------------------------
 
-        tk.Button(self, text="Analyze", command=self.analyze).pack()
-        tk.Button(self, text="Cancel", command=self.exitWindow).pack()
+        self.anaButton = ttk.Button(self, text="Analyze", command=self.analyze)
+        self.anaButton.pack()
+        self.cancelButton = ttk.Button(self, text="Cancel", command=self.exitWindow)
+        self.cancelButton.pack()
         return
 
     def exitWindow(self):
@@ -93,6 +95,7 @@ class guiAnalysis(tk.Frame):
 
     def analyze(self):
         q = Queue.Queue()
+        self.states = [True,True,True,True]
         def on_main_thread(func):
             q.put(func)
             return
@@ -105,6 +108,9 @@ class guiAnalysis(tk.Frame):
                     break
                 else:
                     self.after_idle(task)
+            if self.states[0] and self.states[1] and self.states[2] and self.states[3]:
+                enableButton()
+                return
             self.after(100,check_queue)
             return
 
@@ -114,6 +120,7 @@ class guiAnalysis(tk.Frame):
             time.sleep(30)
             on_main_thread(top1.destroy)
             on_main_thread(done_mssg)
+            self.states[0] = True
             return
 
         def calc_comb_track():
@@ -122,6 +129,7 @@ class guiAnalysis(tk.Frame):
             time.sleep(10)
             on_main_thread(top2.destroy)
             on_main_thread(done_mssg)
+            self.states[1] = True
             return
 
         def calc_mcmc():
@@ -130,6 +138,7 @@ class guiAnalysis(tk.Frame):
             time.sleep(1)
             on_main_thread(top3.destroy)
             on_main_thread(done_mssg)
+            self.states[2] = True
             return
 
         def calc_sci():
@@ -138,9 +147,22 @@ class guiAnalysis(tk.Frame):
             time.sleep(20)
             on_main_thread(top4.destroy)
             on_main_thread(done_mssg)
+            self.states[3] = True
             return
 
+        def disableButton():
+            self.anaButton.state(['disabled'])
+            self.cancelButton.state(['disabled'])
+            return
+        def enableButton():
+            self.anaButton.state(['!disabled'])
+            self.cancelButton.state(['!disabled'])
+            return
+
+
+        disableButton()
         if int(self.f_individTrack.get()) == 1:
+            self.states[0] = False
             print("individual tracks")
             top1 = tk.Toplevel(self)
             top1.title("Individual Track")
@@ -149,6 +171,7 @@ class guiAnalysis(tk.Frame):
             t1 = threading.Thread(target=calc_indiv_track)
             t1.start()
         if int(self.f_combTrack.get()) == 1:
+            self.states[1] = False
             print("Combined Track")
             top2 = tk.Toplevel(self)
             top2.title("Combined Track")
@@ -157,6 +180,7 @@ class guiAnalysis(tk.Frame):
             t2 = threading.Thread(target=calc_comb_track)
             t2.start()
         if int(self.f_mcmc.get()) == 1:
+            self.states[2] = False
             print("Monte Carlo")
             top3 = tk.Toplevel(self)
             top3.title("Markov Chain Monte Carlo")
@@ -165,6 +189,7 @@ class guiAnalysis(tk.Frame):
             t3 = threading.Thread(target=calc_mcmc)
             t3.start()
         if int(self.f_sci.get()) == 1:
+            self.states[3] = False
             print("Speed Correlation Index")
             top4 = tk.Toplevel(self)
             top4.title("Speed Correlation Index")
@@ -173,6 +198,5 @@ class guiAnalysis(tk.Frame):
             t4 = threading.Thread(target=calc_sci)
             t4.start()
         self.after(100,check_queue)
-        sys.stdout.flush()
         return
 
