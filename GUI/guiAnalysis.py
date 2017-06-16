@@ -23,7 +23,7 @@ class guiAnalysis(tk.Frame):
         self.file_opt = options = {}
         options['defaultextension'] = '.txt'
         options['filetypes'] = [('text files', '.txt'),('all files', '.*')]
-        options['initialdir'] = os.environ["HOMEPATH"]+'\\Desktop\\'
+        options['initialdir'] = os.environ["HOME"]+'/Desktop/'
         options['parent'] = self
         options['title'] = 'Select Track File'
 
