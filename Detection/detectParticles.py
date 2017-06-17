@@ -50,13 +50,13 @@ def multiImageDetect(img,
                     bit_depth,
                     eccentricity_thresh,
                      sigma_thresh,numAdder,local_max=None,output=False,lmmethod=False,
-                     imageOutput=False,path='.'):
+                     imageOutput=False,path='.',pfilename="foundParticles.txt"):
     particle_data = []
     frame = 0
     outfile2 = open(path+"/foundCentroids.txt",'w')
     outfile2.write("")
     outfile2.close()
-    outfile = open(path+"/foundParticles.txt",'w')
+    outfile = open(path+"/"+pfilename,'w')
     if not (local_max is None):
         #print "oh here we are"
         local_max_pixels = convertFiles.giveLocalMaxValues(convertFiles.convImageJTrack(local_max),len(img))

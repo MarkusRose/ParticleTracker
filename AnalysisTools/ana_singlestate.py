@@ -9,6 +9,8 @@
 import numpy as np
 import math
 from scipy.optimize import curve_fit
+#import matplotlib
+#matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import sys
 import os
@@ -17,7 +19,7 @@ import os
 #========================================
 # User Input Variables
 #========================================
-
+'''
 frametime = 0.1
 pixelsize = 0.100
 Dfactor = pixelsize*pixelsize/frametime
@@ -40,7 +42,7 @@ minTrLength = 40
 
 #debugging variables:
 testing = False
-
+'''
 #========================================
 # Program functions
 #========================================
@@ -306,7 +308,7 @@ def endToEnd2(track):
 
 
 #=== Single Track Analysis ==============
-def eedispllist(tracks):
+def eedispllist(tracks,numberofbins=50,path='.'):
     eedispl2 = map(endToEnd2,tracks)
     eedispl = np.sqrt(eedispl2)
     print "Analyzing the End-To-End distribution of " + str(len(tracks)) + " tracks."
@@ -318,17 +320,17 @@ def eedispllist(tracks):
     plt.xlabel("End to end displacement (pixel)")
     plt.xscale('log')
     #plt.axis([0.05,12,0,1])
-    plt.savefig('EndToEndDistrib.png', format='png', dpi=600)
+    plt.savefig(path+'/EndToEndDistrib.png', format='png', dpi=600)
     plt.show()
 
     outarray = np.array([histo[1][1:]-(histo[1][1]-histo[1][0])/2,histo[0]]).transpose()
-    fo = open("end2EndDistro.txt",'w')
+    fo = open(path+"/end2EndDistro.txt",'w')
     printArrayToFile(outarray,fo,head=["displacement(pixel)","relativeCounts"])
     print "End-To-End Displacement has been saved to folder."
     return histo
     
 
-def diffConstDistrib(tracks,path='.'):
+def diffConstDistrib(tracks,pixelsize,frametime,Dfactor,numberofbins=50,path='.'):
 
     print "Starting Analysis of " + str(len(tracks)) + " single tracks."
     print "....This will take a while..."
@@ -405,7 +407,7 @@ def diffConstDistrib(tracks,path='.'):
 
 
 #=== Combined Tracks analysis =================
-def combineTracks(tracks):
+def combineTracks(tracks,path='.'):
     lastpart = np.zeros((len(tracks[0][0])))
     combtr = [np.array(lastpart)]
     for tr in tracks:
@@ -418,7 +420,7 @@ def combineTracks(tracks):
                 else:
                     outpart.append(tr[part][i])
             combtr.append(np.array(outpart))
-    outfile = open("combinedTrack.txt",'w')
+    outfile = open(path+"/combinedTrack.txt",'w')
     head = ["Step","x","y","widthx","widthy","height","amplitude","sn","volume"]
     printArrayToFile(combtr,outfile,head)
     return np.array(combtr)
@@ -426,9 +428,9 @@ def combineTracks(tracks):
 
 
 
-def analyzeCombinedTrack(tracks,lenMSD=500,path='.'):
+def analyzeCombinedTrack(tracks,pixelsize,frametime,Dfactor,lenMSD=500,numberofbins=50,plotlen=30,path='.'):
     print "Combining " + str(len(tracks)) + " tracks."
-    ct = combineTracks(tracks)
+    ct = combineTracks(tracks,path=path)
     plotTrack(ct.transpose(),path=path)
     print "Creating MSD for combined track."
     ct_msd = msd(ct,length=lenMSD)
@@ -438,10 +440,10 @@ def analyzeCombinedTrack(tracks,lenMSD=500,path='.'):
     printArrayToFile(ct_msd,of,head=["Stpngize","MSD"])
     plotMSD(ct_msd,ct_diffconst[1],labelname="{:} um^2/s".format(ct_diffconst[1]*Dfactor),path=path)
     print "Starting Distribution Analysis"
-    distributionAnalysis(ct,plotlen,path=path)
+    distributionAnalysis(ct,pixelsize,frametime,Dfactor,plotlen,numberofbins=numberofbins,path=path)
     return ct_diffconst
 
-def distributionAnalysis(track,plotlen,path='.'):
+def distributionAnalysis(track,pixelsize,frametime,Dfactor,plotlen,numberofbins=50,path='.'):
     dipllist = relativeStpng(track)
     print "....Saving Displacements to file."
     outfile = open(path+"/combinedTrack-relativeXYDisplacements.txt",'w')
@@ -474,9 +476,11 @@ def distributionAnalysis(track,plotlen,path='.'):
 #====================================
 #The big MAIN
 #====================================
-def doAnalysis(trackfile,bCleanUpTracks=True,bSingleTrackEndToEnd=True,bSingleTrackMSDanalysis=True,bCombineTrack=True):
+def doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,bCleanUpTracks=True,bSingleTrackEndToEnd=True,bSingleTrackMSDanalysis=True,bCombineTrack=True):
     #combined Track input
     #plotting parameters
+    Dfactor = pixelsize*pixelsize/frametime
+
     lenMSD_ct = 50
     plotlen = 30 #gives the range of the distribution plots
     numberofbins = 200
@@ -484,15 +488,14 @@ def doAnalysis(trackfile,bCleanUpTracks=True,bSingleTrackEndToEnd=True,bSingleTr
     large = 100
 
     #single track analysis input
-    minTrLength = 20 
+    minTrLength = 1
     
     if (not bSingleTrackEndToEnd) and (not bSingleTrackMSDanalysis) and (not bCombineTrack):
         return
 
-    os.chdir(path)
-    
     tracks = readTracks(trackfile)
 
+    path = os.path.dirname(trackfile)
     spng = os.path.join(path,"SingleStateAnalysis")
     if not os.path.isdir(spng):
         os.mkdir(spng)
@@ -501,7 +504,7 @@ def doAnalysis(trackfile,bCleanUpTracks=True,bSingleTrackEndToEnd=True,bSingleTr
         print
         print "Cleaning Track File from NAN"
         print "----------------------------"
-        cleanTracksFile(tracks,path+"cleanedTracks.txt")
+        cleanTracksFile(tracks,path+"/cleanedTracks.txt")
     
     considered = []
     for i in tracks:
@@ -509,14 +512,14 @@ def doAnalysis(trackfile,bCleanUpTracks=True,bSingleTrackEndToEnd=True,bSingleTr
             considered.append(i)
     if len(considered) == 0:
         print "Tracks are too short! Please adjust 'minTrackLen' to a lower value!"
-        raw_input("Please restart again...")
+        #raw_input("Please restart again...")
         return
     if bSingleTrackEndToEnd:
         print
         print
         print "Starting End-To-End Displacement Analysis for single tracks"
         print "-----------------------------------------------------------"
-        eehisto = eedispllist(considered)
+        eehisto = eedispllist(considered,numberofbins=numberofbins,path=spng)
     if len(considered) > 100:
         considered = considered[:]
     
@@ -525,21 +528,21 @@ def doAnalysis(trackfile,bCleanUpTracks=True,bSingleTrackEndToEnd=True,bSingleTr
         print
         print "Starting Diffusion Constant Analysis for single tracks"
         print "------------------------------------------------------"
-        diffChisto = diffConstDistrib(considered,path=spng)
+        diffChisto = diffConstDistrib(considered,pixelsize,frametime,Dfactor,numberofbins=numberofbins,path=spng)
     if bCombineTrack:
         print
         print
         print "Starting Combined Track Analysis"
         print "--------------------------------"
-        analyzeCombinedTrack(considered,lenMSD=lenMSD_ct,path=spng)
+        analyzeCombinedTrack(considered,pixelsize,frametime,Dfactor,lenMSD=lenMSD_ct,numberofbins=numberofbins,plotlen=plotlen,path=spng)
     return
 #=====================================
 
 
 
 if __name__ == "__main__":
-    main()
-    sys.stdout.flush()
+    trackfile = '/home/markus/Desktop/TestFiles/Analysis/foundTracks.txt'
+    doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,bCleanUpTracks=True,bSingleTrackEndToEnd=True,bSingleTrackMSDanalysis=True,bCombineTrack=True)
 
 
 

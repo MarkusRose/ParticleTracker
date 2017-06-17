@@ -169,7 +169,7 @@ class guiDetandTrack(Tkinter.Frame):
                     particle_data = Detection.detectParticles.multiImageDetect(images,outv[0],outv[6],outv[1],outv[2],outv[5],outv[4],int(outv[3]),local_max=None,output=False,lmmethod=notCentroid,imageOutput=False,path=fn[1])
                     if self.dcvar.get():
                         drift_images = Detection.det_and_track.readImageList(fn[2])
-                        drift_data = Detection.detectParticles.multiImageDetect(drift_images,outv[0],outv[6],outv[1]+2,outv[2],outv[5],outv[4],int(outv[3]),local_max=None,output=False,lmmethod=notCentroid,imageOutput=False,path=fn[1])
+                        drift_data = Detection.detectParticles.multiImageDetect(drift_images,outv[0],outv[6],outv[1]+2,outv[2],outv[5],outv[4],int(outv[3]),local_max=None,output=False,lmmethod=notCentroid,imageOutput=False,path=fn[1],pfilename='fiducialMarkers.txt')
                         track_data = dc.track_with_driftcorrect([particle_data,drift_data],searchRadius=outv[7],link_range=outv[9],path=fn[1])
                     else:     
                         track_data = dc.doTrack_direct(particle_data, searchRadius=outv[7],minTracklen=int(outv[8]),linkRange=int(outv[9]),outfile="foundTracks.txt",infilename="Not Defined",path=fn[1])
