@@ -100,33 +100,10 @@ filelist = [
         "L:/Cel9A-6-9-10/45C/OD06/Experiment2/C-1-AnalyzedData/driftcorrectedTracks-SR3_20170224-183759.txt"
         ]
 
-def doHMM(trackfile,montecarlo=10000,subfolder="SearchRadius{:}".format(SR)):
-
-    part_tracks,part_list = ctrack.readTrajectoriesFromFile(trackfile)
-
-    path = os.path.abspath(os.path.join(os.path.dirname(trackfile), '..', 'HiddenMarkov'))
-    subpath = os.path.abspath(os.path.join(path,subfolder))
-    if not os.path.isdir(path):
-        os.mkdir(path)
-    if not os.path.isdir(subpath):
-        os.mkdir(subpath)
-    os.chdir(subpath)
-
-    print path
-    sys.stdout.flush()
-
-    print("Running HMM")
-    sys.stdout.flush()
-
-    thetas = hmm.runHiddenMarkov(part_tracks,MCMC=montecarlo,searchRadius=SR)
-    thetas = []
-
-    return thetas
-
 
 def serial():
     for fn in filelist:
-        doHMM(fn)
+        hmm.doHMM(fn,montecarlo=10000,SR=SR)
     return
 
 def multiproc():
@@ -134,7 +111,7 @@ def multiproc():
     freeze_support()
     
     p = Pool(processes = 8)
-    results = p.map_async(doHMM,filelist)
+    results = p.map_async(hmm.doHMM,filelist)
     output = results.get()
 
     return

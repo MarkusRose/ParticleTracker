@@ -9,6 +9,8 @@ import threading
 import time
 
 import AnalysisTools.ana_singlestate as ANA
+import AnalysisTools.hiddenMarkov as HMM
+import AnalysisTools.speedCorrelationIndex as SCI
 
 
 
@@ -34,6 +36,7 @@ class guiAnalysis(tk.Frame):
             return
 
         #----------------------------
+        #individual tracks gui
         self.f_individTrack = tk.IntVar()
         tk.Checkbutton(self, text="MSD and step-size distribution - Multiple Tracks", variable=self.f_individTrack).pack(anchor='w')
         frame_iT = tk.Frame(self)
@@ -42,6 +45,7 @@ class guiAnalysis(tk.Frame):
         frame_iT.pack()
         ttk.Separator(self).pack(fill='x',expand=1)
         #----------------------------
+        #combined tracks gui
         self.f_combTrack = tk.IntVar()
         tk.Checkbutton(self, text="MSD and step-size distribution - Combined Track", variable=self.f_combTrack).pack(anchor='w')
         frame_CT = tk.Frame(self)
@@ -50,14 +54,22 @@ class guiAnalysis(tk.Frame):
         frame_CT.pack()
         ttk.Separator(self).pack(fill='x',expand=1)
         #----------------------------
+        #MCMC gui
         self.f_mcmc = tk.IntVar()
         tk.Checkbutton(self, text="Markov Chain Monte Carlo", variable=self.f_mcmc).pack(anchor='w')
         frame_MCMC = tk.Frame(self)
-        tk.Label(frame_MCMC, text="").grid(row=0,sticky='e')
-        tk.Label(frame_MCMC, text="").grid(row=1,sticky='e')
+        tk.Label(frame_MCMC, text="Monte Carlo Runs").grid(row=0,sticky='e')
+        self.v_montecarlo = tk.StringVar()
+        self.v_montecarlo.set('10000')
+        tk.Entry(frame_MCMC,textvariable=self.v_montecarlo).grid(row=0,column=1,sticky='e')
         frame_MCMC.pack()
+        tk.Label(frame_MCMC, text="Identifier").grid(row=1,sticky='e')
+        self.v_mcmcID = tk.StringVar()
+        self.v_mcmcID.set('')
+        tk.Entry(frame_MCMC,textvariable=self.v_mcmcID).grid(row=1,column=1,sticky='e')
         ttk.Separator(self).pack(fill='x',expand=1)
         #----------------------------
+        #SCI gui
         self.f_sci = tk.IntVar()
         tk.Checkbutton(self, text="Speed-Correlation Index",variable=self.f_sci).pack(anchor='w')
         frame_SCI = tk.Frame(self)
@@ -101,22 +113,33 @@ class guiAnalysis(tk.Frame):
                 print("Invalid Filename")
                 print(self.v_trackFile.get())
                 return False
-            if self.v_pixelSize.get() <= 0:
+            if float(self.v_pixelSize.get()) <= 0:
                 print("Invalid Pixelsize")
                 return False
-            if self.v_frameTime.get() <= 0:
+            if float(self.v_frameTime.get()) <= 0:
                 print("Invalid Frametime")
                 return False
+            if int(self.v_montecarlo.get()) <= 0:
+                print("Invalid number of Monte Carlo runs")
+                return False
+            #if self.v_mcmcID.get() <= 0:
+            #    print("Invalid search radius for MCMC")
+            #    return False
         except ValueError:
             print("ValueError")
+            return False
+        except TypeError:
+            print("TypeError")
             return False
         return True
 
     def analyze(self):
         if self.checkInput():
             trackfile = self.v_trackFile.get()
-            pxsize = self.v_pixelSize.get()
-            frameT = self.v_frameTime.get()
+            pxsize = float(self.v_pixelSize.get())
+            frameT = float(self.v_frameTime.get())
+            mcmcruns = int(self.v_montecarlo.get())
+            mcmcID = self.v_mcmcID.get()
             q = Queue.Queue()
             self.states = [True,True,True,True]
             def on_main_thread(func):
@@ -168,7 +191,7 @@ class guiAnalysis(tk.Frame):
             def calc_mcmc():
                 def done_mssg():
                     tkMessageBox.showinfo("Done!", "MCMC finished without problems.")
-                time.sleep(1)
+                HMM.doHMM(trackfile,montecarlo=mcmcruns,SR=3)
                 on_main_thread(top3.destroy)
                 on_main_thread(done_mssg)
                 self.states[2] = True
@@ -177,7 +200,7 @@ class guiAnalysis(tk.Frame):
             def calc_sci():
                 def done_mssg():
                     tkMessageBox.showinfo("Done!", "SCI finished without problems.",parent=self.parent)
-                time.sleep(20)
+                SCI.doSCI(trackfile)
                 on_main_thread(top4.destroy)
                 on_main_thread(done_mssg)
                 self.states[3] = True
@@ -242,8 +265,9 @@ class guiAnalysis(tk.Frame):
                 top4.title("Speed Correlation Index")
                 top4.geometry("150x150+500+50")
                 tk.Message(top4, text="Doing a speed correlation index analysis. This will take a while.", padx=20, pady=20).pack()
-                t4 = threading.Thread(target=calc_sci)
-                t4.start()
+                #t4 = threading.Thread(target=calc_sci)
+                #t4.start()
+                self.after(100,calc_sci)
             self.after(100,check_queue)
         else:
             tkMessageBox.showerror("Input Error!","Some inputs are invalid!")

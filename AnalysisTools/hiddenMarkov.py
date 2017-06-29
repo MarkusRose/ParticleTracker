@@ -15,6 +15,9 @@ import random
 import sys
 from time import gmtime, strftime
 import matplotlib.pyplot as plt
+import os
+
+import Detection.ctrack as ctrack
 
 # Function definitions
 
@@ -164,7 +167,7 @@ def segmentstate(theta, rsquared, particleID, tau=1.):
 
 
 # Usage
-def doMetropolisOrig(dr2,particleID,MCsteps=10000):
+def doMetropolisOrig(dr2,particleID,MCsteps=10000,path='.'):
 
     s = np.array([0.01,0.01,0.01,0.01])
     
@@ -175,7 +178,7 @@ def doMetropolisOrig(dr2,particleID,MCsteps=10000):
     theta.append(np.array(thetaprop))
     L.append(ll)
 
-    outf = open("hmmTrackAnalyzed-{:}.txt".format(particleID),'w')
+    outf = open(path+"/hmmTrackAnalyzed-{:}.txt".format(particleID),'w')
     outf.write("# L logD1 LogD2 p12 p21 n\n")
 
     for i in xrange(int(np.floor(MCsteps/4.))):
@@ -203,7 +206,7 @@ def doMetropolisOrig(dr2,particleID,MCsteps=10000):
     return theta, L, MCsteps
 
 
-def runHiddenMarkov(tracks,MCMC=10000,searchRadius=3):
+def runHiddenMarkov(tracks,MCMC=10000,ID=3,path='.'):
 
     rsq,lengths,partid = squaredDisplacements(tracks)
     averagingStart = min(2000,MCMC)
@@ -212,7 +215,7 @@ def runHiddenMarkov(tracks,MCMC=10000,searchRadius=3):
 
     Thetas = []
     for r2 in rsq:
-        theta, L, nurun = doMetropolisOrig(r2[0],r2[1],MCMC)
+        theta, L, nurun = doMetropolisOrig(r2[0],r2[1],MCMC,path=path)
         theta = np.array(theta)
         D1 = 10**theta[:,0]
         D2 = 10**theta[:,1]
@@ -234,12 +237,12 @@ def runHiddenMarkov(tracks,MCMC=10000,searchRadius=3):
         print thetaMean
         
         statemap = segmentstate(thetaMean, r2[0],r2[1])
-        trackout = open("hmmTrackstates-{:}.txt".format(r2[1]),'w')
+        trackout = open(path+"/hmmTrackstates-{:}.txt".format(r2[1]),'w')
         for elem in statemap:
             trackout.write("{:}\n".format(elem))
         trackout.close()
     date = strftime("%Y%m%d-%H%M%S")
-    outthetaf = open("hmmAveragedData-{:}_{:}.txt".format(SR,date),'w')
+    outthetaf = open(path+"/../hmmAveragedData-ID{:}_{:}.txt".format(ID,date),'w')
     outthetaf.write("#  D1 D2 p12 p21 stds: D1 D2 p12 p21 tracklength particle-ID\n")
     for i in xrange(len(Thetas)):
         counter = 0
@@ -253,5 +256,26 @@ def runHiddenMarkov(tracks,MCMC=10000,searchRadius=3):
     outthetaf.close()
     
     return Thetas
+
+def doHMM(trackfile,montecarlo=10000,SR=3):
+
+    part_tracks,part_list = ctrack.readTrajectoriesFromFile(trackfile)
+
+    path = os.path.abspath(os.path.join(os.path.dirname(trackfile), 'HiddenMarkov'))
+    subfolder="Identifier-{:}".format(SR)
+    subpath = os.path.abspath(os.path.join(path,subfolder))
+    if not os.path.isdir(path):
+        os.mkdir(path)
+    if not os.path.isdir(subpath):
+        os.mkdir(subpath)
+    print path
+    sys.stdout.flush()
+
+    print("Running HMM")
+    sys.stdout.flush()
+
+    thetas = runHiddenMarkov(part_tracks,MCMC=montecarlo,ID=SR,path=subpath)
+
+    return thetas
 
 

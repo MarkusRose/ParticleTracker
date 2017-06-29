@@ -1,5 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import sys
+
 
 #read in Tracks
 def readTracks(infile):
@@ -22,7 +24,7 @@ def readTracks(infile):
                 brt = True
                 track = []
             continue
-        track.append(np.array(map(float,line.split())))
+        track.append(np.array(map(float,line.split()[:-1])))
 
     if len(track) > 0:
         tracks.append(np.array(track))
@@ -51,7 +53,8 @@ def combineTracks(tracks):
 def sci(track,L):
     v = np.zeros((len(track)-1,3),dtype=np.float_)
     N = int(track[-1][0] - track[0][0])
-    #print N
+    print N
+    sys.stdout.flush()
     for i in xrange(1,len(track),1):
         dt = track[i][0] - track[i-1][0]
         dx = track[i][1] - track[i-1][1]
@@ -62,6 +65,8 @@ def sci(track,L):
     #print v    
     
     CofK = []
+    print("Starting")
+    sys.stdout.flush()
     for k in xrange(L):
         Uk = np.zeros((int((N-k)/L),2),dtype=np.float_)
         for j in xrange(len(Uk)):
@@ -89,15 +94,18 @@ def sci(track,L):
             j = int((i-k)/L)
             C_k.append((Uk[j]*Uk[j+1]).sum()/(np.linalg.norm(Uk[j])*np.linalg.norm(Uk[j+1])))
         CofK.append(np.array(C_k,dtype=np.float_))
+        print k
+        sys.stdout.flush()
     
-    CofK = np.array(CofK)
-    #print CofK
+    #CofK = np.array(CofK)
+    print CofK
+    sys.stdout.flush()
     return np.average(CofK,axis=0)
 
 
-def main():
-    tracks = readTracks("foundTracks.txt")
-    ct = combineTracks(tracks[:30])
+def doSCI(trackfile):
+    tracks = readTracks(trackfile)
+    ct = combineTracks(tracks[:])
     plt.plot(ct[:,1],ct[:,2],'k')
     plt.xlabel("x [px]")
     plt.ylabel("y [px]")
@@ -106,6 +114,7 @@ def main():
     print C
     plt.plot(C,'k')
     plt.show()
+    return
 
 if __name__=="__main__":
-    main()
+    doSCI()
