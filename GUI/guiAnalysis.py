@@ -40,8 +40,7 @@ class guiAnalysis(tk.Frame):
         self.f_individTrack = tk.IntVar()
         tk.Checkbutton(self, text="MSD and step-size distribution - Multiple Tracks", variable=self.f_individTrack).pack(anchor='w')
         frame_iT = tk.Frame(self)
-        tk.Label(frame_iT, text="Label1").grid(row=0)
-        tk.Label(frame_iT, text="Label2").grid(row=1,column=1)
+        tk.Label(frame_iT, text="").grid(row=1,column=0)
         frame_iT.pack()
         ttk.Separator(self).pack(fill='x',expand=1)
         #----------------------------

@@ -88,7 +88,7 @@ def sci(track,L):
                     istart += 1
             if counter != 0:
                 Uk[j] = vsum/counter
-        #print Uk
+        print Uk
         C_k = []
         for i in xrange(L-1,N-2*L+1,1):
             j = int((i-k)/L)
@@ -110,7 +110,7 @@ def doSCI(trackfile):
     plt.xlabel("x [px]")
     plt.ylabel("y [px]")
     plt.show()
-    C = sci(ct,90)
+    C = sci(ct,1)
     print C
     plt.plot(C,'k')
     plt.show()
@@ -118,3 +118,4 @@ def doSCI(trackfile):
 
 if __name__=="__main__":
     doSCI()
+    
