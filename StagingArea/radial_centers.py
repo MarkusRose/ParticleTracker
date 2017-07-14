@@ -6,6 +6,8 @@ from scipy import optimize
 from PIL import Image
 import sys
 
+import os
+
 def gauss1d(coord,mean,std,intensity):
     x = np.arange(len(coord))
     return np.exp(-(x-1.*mean)**2/(2.*std**2))
@@ -90,7 +92,7 @@ def radial_center(I):
             u = I[i+1,j+1]-I[i,j]
             v = I[i,j+1]-I[i+1,j]
             #print u-v
-            print i,j,k
+            #print i,j,k
             divI[k] = u**2 + v**2
             if u-v == 0:
                 m[k] = 1e10
@@ -113,7 +115,6 @@ def radial_center(I):
     for k in xrange((len(I)-1)*(len(I[0])-1)):
         i = int(1.*k/(len(I[0])-1))
         j = k % (len(I[0])-1)
-        print i,j
         w[k] = divI[k]/d_kc[k]
         W += w[k]/(m[k]**2 + 1)
         M += m[k]*w[k]/(m[k]**2 + 1)
@@ -128,16 +129,43 @@ def radial_center(I):
     return xc, yc, np.reshape(divI,(len(I)-1,len(I[0])-1)),np.reshape(origar,(len(I)-1,len(I[0])-1))
 
 
+def makeFigures(arraylist):
+    
+    figs = []
+    for i in xrange(len(arraylist)):
+        figs.append(plt.figure(i+1))
+        plt.imshow(arraylist[i])
+    plt.show()
 
-if __name__=="__main__":
+    return
+
+def saveFigures(arraylist,varind,sn,ind):
+
+    if not os.path.isdir('Figures-{:}'.format(varind)):
+        os.mkdir('Figures-{:}'.format(varind))
+    if not os.path.isdir('Figures-{:}/Images-{:}'.format(varind,sn)):
+        os.mkdir('Figures-{:}/Images-{:}'.format(varind,sn))
+
+    
+    figs = []
+    for i in xrange(len(arraylist)):
+        figs.append(plt.figure(i+1))
+        plt.imshow(arraylist[i])
+        plt.savefig('Figures-{:}/Images-{:}/fig-{:}-{:}.png'.format(varind,sn,ind,i))
+        plt.close()
+
+    return
+
+
+def normalRun():
 
     size = 10
 
     mean = np.array([size/2.,size/2.])
-    mean += np.random.random((2))*size/5. - size/10.
+    #mean += np.random.random((2))*size/5. - size/10.
     std = 3
     intens = 100
-    SNR = 100
+    SNR = 3
     Background = 100
 
     I = np.zeros((size,size),dtype=np.float_)
@@ -162,20 +190,123 @@ if __name__=="__main__":
     imDivI = Image.fromarray(np.uint8(cm.gist_earth((divI-np.min(divI))/(np.max(divI)-np.min(divI)))*255))
     imODI =  Image.fromarray(np.uint8(cm.gist_earth((oDI-np.min(oDI))/(np.max(oDI)-np.min(oDI)))*255))
 
+    makeFigures([imI,imDivI,imODI])
 
-    f = plt.figure(1)
-    plt.imshow(imI)
+    return
+
+
+def benchmark(constlist,varindex,start,stop,incr,numTries=10,output=False):
+
+    constlist[varindex] = start
+
+    bm_differences = []
+
+    for i in xrange(int(1.*(stop-start)/incr) + 1):
+
+        size = constlist[0]
+        mean = np.array([size/2.,size/2.])
+        mean += np.random.random((2))*size/5. - size/10.
+        std = constlist[1]
+        intens = constlist[2]
+        SNR = constlist[3]
+        Background = constlist[4]
+        print
+        print constlist[varindex]
+
+        differences = []
+
+        for tries in xrange(numTries):
+            I = np.zeros((size,size),dtype=np.float_)
+            I = gauss2d(I,mean,std,intens)
+            I += addNoise(I,SNR)
+            I += Background
+            I[I<0] = 0
+
+            xc,yc,divI,oDI = radial_center(I)
+
+            param = fitgaussian2d(I, Background)
+            if output:
+                print "-------"
+                print "Try {:}".format(tries)
+                print xc,yc
+                print param[2],param[3]
+                print mean
+                print np.array([xc,yc]) - np.array(mean)
+                print np.array([param[2],param[3]]) - np.array(mean)
+
+            d_rsc = np.sqrt((xc-mean[0])**2+(yc-mean[1])**2)
+            d_lsq = np.sqrt((param[2]-mean[0])**2+(param[3]-mean[1])**2)
+
+            differences.append([d_rsc,d_lsq])
+
+            if tries == numTries-1:
+                if output:
+                    print "-------"
+                sys.stdout.flush()
+                imI = Image.fromarray(np.uint8(cm.gist_earth((I-np.min(I))/(np.max(I)-np.min(I)))*255))
+                imDivI = Image.fromarray(np.uint8(cm.gist_earth((divI-np.min(divI))/(np.max(divI)-np.min(divI)))*255))
+                imODI =  Image.fromarray(np.uint8(cm.gist_earth((oDI-np.min(oDI))/(np.max(oDI)-np.min(oDI)))*255))
+
+                #makeFigures([imI,imDivI,imODI])
+                if varindex == 0:
+                    saveFigures([imI,imDivI,imODI],varindex,'{:}'.format(int(SNR)),i)
+                else:
+                    saveFigures([imI,imDivI,imODI],varindex,'{:}'.format(int(size)),i)
+        
+        av = np.mean(differences,axis=0)
+        var = np.std(differences,axis=0)
+        bm_differences.append([constlist[varindex]]+list(av)+list(var))
+
+        constlist[varindex] += incr
+
+    return np.array(bm_differences)
+
+if __name__=="__main__":
+    size = 10
+    std = 3
+    intens = 100
+    SNR = 20
+    Background = 100
+    nt = 100
+
+    varindex = 0
+    start = 10
+    stop = 50
+    incr = 5
+
+    for SNR in xrange(2,51,1):
+        if varindex == 0:
+            print "----"
+            print SNR
+            print "----"
+        elif varindex == 3:
+            print "----"
+            print size
+            print "----"
+        constlist = [size,std,intens,SNR,Background]
+        result = benchmark(constlist,varindex,start,stop,incr,numTries=nt)
+
+        print result
+
+        fig1 = plt.figure()
+        plt.errorbar(result[:,0],result[:,1],yerr=result[:,3]/np.sqrt(nt),color='b',label='radial centers')
+        plt.errorbar(result[:,0],result[:,2],yerr=result[:,3]/np.sqrt(nt),color='#ff9922',label='least squares')
+        if varindex == 0:
+            plt.xlabel('box size in px')
+            plt.title('SNR = {:}'.format(SNR))
+        elif varindex == 3:
+            plt.xlabel('Signal to Noise Ratio')
+            plt.title('size = {:}'.format(size))
+        plt.ylabel('difference to real value in px')
+        plt.legend()
+        if not os.path.isdir("Figures-{:}".format(varindex)):
+            os.mkdir("Figures-{:}".format(varindex))
+        if varindex == 0:
+            plt.savefig("Figures-{:}/bm-{:}.png".format(varindex,SNR))
+        elif varindex == 3:
+            plt.savefig("Figures-{:}/bm-{:}.png".format(varindex,size))
+        plt.close()
+
     
-    '''
-    f2 = plt.figure(2)
-    plt.imshow(imODI)
-    '''
 
-    f1 = plt.figure(3)
-    plt.imshow(imDivI)
-
-    #g = plt.figure(4)
-    #plt.plot(I[int(mean[0])])
-
-    #plt.show()
 
