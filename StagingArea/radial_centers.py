@@ -269,10 +269,12 @@ if __name__=="__main__":
     Background = 100
     nt = 100
 
-    varindex = 0
+    varindex = 7
     start = 10
     stop = 50
     incr = 5
+
+    namelist = ["Size","STD","Intensity","SNR","Background"]
 
     for SNR in xrange(2,51,1):
         if varindex == 0:
