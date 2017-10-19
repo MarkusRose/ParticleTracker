@@ -261,7 +261,7 @@ def benchmark(constlist,varindex,start,stop,incr,numTries=10,output=False):
 
     return np.array(bm_differences)
 
-if __name__=="__main__":
+def multibench():
     size = 10
     std = 3
     intens = 100
@@ -269,14 +269,15 @@ if __name__=="__main__":
     Background = 100
     nt = 100
 
-    varindex = 7
-    start = 10
+
+    varindex = 3
+    start = 2
     stop = 50
-    incr = 5
+    incr = 1
 
     namelist = ["Size","STD","Intensity","SNR","Background"]
 
-    for SNR in xrange(2,51,1):
+    for size in xrange(4,11,1):
         if varindex == 0:
             print "----"
             print SNR
@@ -309,6 +310,11 @@ if __name__=="__main__":
             plt.savefig("Figures-{:}/bm-{:}.png".format(varindex,size))
         plt.close()
 
+    return
+
+if __name__=="__main__":
+    multibench()
+    
     
 
 
