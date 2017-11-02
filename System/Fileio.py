@@ -36,19 +36,19 @@ def setSysProps(paramArray):
     outfile.write(str(paramArray[0])+"\n\n")
 
     outfile.write("#Diffusion constants [D1, D2, D3] (um^2/s)\n")
-    for i in xrange(1,4,1):
+    for i in range(1,4,1):
         outfile.write(str(paramArray[i])+" ")
     outfile.write("\n\n#Transition probabilities [p12, p21, p13, p23, p31, p32]\n")
-    for i in xrange(4,10,1):
+    for i in range(4,10,1):
         outfile.write(str(paramArray[i])+" ")
     outfile.write("\n\n#Imaging properties [numFrames, numParticles, tau (ms), numPixels-1d]\n")
-    for i in xrange(10,14,1):
+    for i in range(10,14,1):
         outfile.write(str(paramArray[i])+" ")
     outfile.write("\n\n#Camera Properties [lambda (nm), pixel size (um)]\n")
-    for i in xrange(14,16,1):
+    for i in range(14,16,1):
         outfile.write(str(paramArray[i])+" ")
     outfile.write("\n\n#Microscope Properties [NA, magnification, Background, Backnoise, Intensity (#photons)\n")
-    for i in xrange(16,21,1):
+    for i in range(16,21,1):
         outfile.write(str(paramArray[i])+" ")
     outfile.write("\n\n#EOF\n")
     
@@ -69,7 +69,7 @@ def getSysProps():
             for i in k:
                 if i == "n/a":
                     pA.append(-1)
-                    print "n/a found"
+                    print("n/a found")
                 else:
                     pA.append(float(i))
     return pA
@@ -89,7 +89,7 @@ def setDetection(detParts,filename="DetectedParticles.txt"):
     outfile = open(filename,'w')
     outfile.write("#Frame-by-frame list of detected particles\n")
 
-    for frame in xrange(len(detParts)):
+    for frame in range(len(detParts)):
         outfile.write("\n")
         outfile.write("#Frame "+str(frame+1)+":\n")
         outfile.write("#Frame  X_pos  Y_pos  X_err  Y_err  Intensity  Background  sigma_X  sigma_Y  ParticleID\n")
@@ -141,7 +141,7 @@ def setTrackFile(detTracks,filename="foundTracks.txt"):
     outfile = open(filename,'w')
     outfile.write("#All found tracks\n")
 
-    for track in xrange(len(detTracks)):
+    for track in range(len(detTracks)):
         outfile.write("\n")
         outfile.write("#Track "+str(track+1)+":\n")
         outfile.write("#Frame  dX  dY  X_pos  Y_pos  State  Intensity  Background  sigma_X  sigma_Y  ParticleID\n")
@@ -195,12 +195,12 @@ def readTrackCSV(tracks):
         csvreader = csv.reader(csvfile,delimiter=',')
         alltracks = []
         inarray = []
-        csvreader.next()
+        next(csvreader)
         for row in csvreader:
-            inarray.append(np.array(map(float,row)))
+            inarray.append(np.array(list(map(float,row))))
 
         part_id = inarray[0][-1]
-        print part_id
+        print(part_id)
         track = []
         for part in inarray:
             if part[-1] != part_id:
@@ -220,18 +220,18 @@ def readTrackCSV(tracks):
 #------------------------
 def tracksToFrames(alltracks):
     max = len(alltracks[0])
-    for i in xrange(1,len(alltracks),1):
+    for i in range(1,len(alltracks),1):
         if max < len(alltracks[i]):
             max = len(alltracks[i])
     
     allframes = []
-    for k in xrange(max):
+    for k in range(max):
         frame = []
-        for i in xrange(len(alltracks)):
-            for j in xrange(len(alltracks[i])):
+        for i in range(len(alltracks)):
+            for j in range(len(alltracks[i])):
                 if alltracks[i][j][0] == k:
                     part = []
-                    for v in xrange(len(alltracks[i][j])):
+                    for v in range(len(alltracks[i][j])):
                         if v in [0,3,4,6,7,8,9,10]:
                             part.append(alltracks[i][k][v])
                             if v == 4:
@@ -276,8 +276,8 @@ def adjustRange(image,bit_depth):
     print(image.min())
     print
     '''
-    for i in xrange(len(image)):
-        for j in xrange(len(image[i])):
+    for i in range(len(image)):
+        for j in range(len(image[i])):
             if image[i,j] < 0:
                 #print(image.min())
                 image[i,j] = 65536 + image[i,j]
@@ -289,7 +289,7 @@ def adjustRange(image,bit_depth):
     return image/(1.0*(2**bit_depth))
 
 def setImages():
-    print "Hello World!"
+    print("Hello World!")
 
 #getter
 def getImages():
@@ -311,14 +311,14 @@ def makeImage(positions,framenumber,dirname,numPixels,sigma,background,backnoise
         return random.gauss(background,backnoise)
 
     intensity = 0
-    for k in xrange(len(positions)):
+    for k in range(len(positions)):
         px = int(round(positions[k].x))
         py = int(round(positions[k].y))
         intensity += positions[k].amplitude
         #xnum = min(len(data)-1,px+10)-max(0,px-10)
         #ynum = min(len(data[0])-1,py+10)-max(0,py-10)
-        for i in xrange(max(0,px-30),min(len(data)-1,px+30),1):
-            for j in xrange(max(0,py-30),min(len(data[i])-1,py+30),1):
+        for i in range(max(0,px-30),min(len(data)-1,px+30),1):
+            for j in range(max(0,py-30),min(len(data[i])-1,py+30),1):
                 msig = gauss(i,j,positions[k].x,positions[k].y,positions[k].amplitude,sigma)
                 if msig >= 2**16:
                     msig = 2**16-1
@@ -336,8 +336,8 @@ def makeImage(positions,framenumber,dirname,numPixels,sigma,background,backnoise
             msig = np.random.normal(loc=background,scale=backnoise,size=data.shape)
             np.clip(data+msig,0,2**16-1,data)
         else:
-            for i in xrange(len(data)):
-                for j in xrange(len(data[i])):
+            for i in range(len(data)):
+                for j in range(len(data[i])):
                     msig = np.random.normal(background,backnoise)
                     if msig >= 2**16:
                         msig = 2**16 -1
@@ -368,9 +368,9 @@ def createImages(dirname,frames,numPixels,sigma,background,backnoise):
             os.mkdir(dirname)
     except:
         pass
-    print "creating images now"
+    print("creating images now")
     sys.stdout.flush()
-    for i in xrange(len(frames)):
+    for i in range(len(frames)):
         makeImage(frames[i],i,dirname,numPixels,sigma,background,backnoise)
     return
     
@@ -384,5 +384,5 @@ the rest works
 
 if __name__=="__main__":
     tracks = readTrackCSV("foundTracks.csv")
-    print len(tracks[0])
+    print(len(tracks[0]))
 

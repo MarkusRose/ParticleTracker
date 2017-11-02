@@ -1,9 +1,10 @@
-import readImage
+from . import readImage
 
 window = 10
 
 
-def readXYValue(img,(x,y)):
+def readXYValue(img, xxx_todo_changeme):
+    (x,y) = xxx_todo_changeme
     image = readImage.readImage(img)
 
     #read Value from Array
@@ -50,8 +51,8 @@ def writeOutput(img,pos,outfile):
         yexp = pos[1]
 
     out.write("# Pixelx Pixely Value\n")
-    for i in xrange(xexp*2+1):
-        for j in xrange(yexp*2+1):
+    for i in range(xexp*2+1):
+        for j in range(yexp*2+1):
             a = pos[0]-xexp+i
             b = pos[1]-yexp+j
             out.write("{:} {:} {:}\n".format(a,b,image[a,b]))

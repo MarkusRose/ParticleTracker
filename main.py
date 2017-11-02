@@ -1,6 +1,6 @@
-import GUI.guiMain
+from GUI import guiMain
 
-app = GUI.guiMain.mainWindow(None)
+app = guiMain.mainWindow(None)
 app.title("MainWindow")
 app.mainloop()
 

@@ -1,12 +1,23 @@
-import Tkinter as tk
-import ttk
+
 import sys
-import tkFileDialog
-import tkMessageBox
 import os
-import Queue
 import threading
 import time
+try:
+    import tkinter as tk
+except ImportError:
+    import tkinter as tk
+try:
+    import tkinter.ttk
+    import tkinter.filedialog
+    import tkMessagebox
+    import queue
+except ImportError:
+    from tkinter import ttk
+    from tkinter import filedialog
+    from tkinter import messagebox
+    import queue as Queue
+    
 
 import AnalysisTools.ana_singlestate as ANA
 import AnalysisTools.hiddenMarkov as HMM
@@ -32,7 +43,7 @@ class guiAnalysis(tk.Frame):
         options['title'] = 'Select Track File'
 
         def fileSelect():
-            self.v_trackFile.set( tkFileDialog.askopenfilename(**self.file_opt))
+            self.v_trackFile.set( filedialog.askopenfilename(**self.file_opt))
             return
 
         #----------------------------
@@ -42,7 +53,7 @@ class guiAnalysis(tk.Frame):
         frame_iT = tk.Frame(self)
         tk.Label(frame_iT, text="").grid(row=1,column=0)
         frame_iT.pack()
-        ttk.Separator(self).pack(fill='x',expand=1)
+        tkinter.ttk.Separator(self).pack(fill='x',expand=1)
         #----------------------------
         #combined tracks gui
         self.f_combTrack = tk.IntVar()
@@ -51,7 +62,7 @@ class guiAnalysis(tk.Frame):
         tk.Label(frame_CT, text="").grid(sticky='e')
         tk.Label(frame_CT, text="").grid(sticky='e')
         frame_CT.pack()
-        ttk.Separator(self).pack(fill='x',expand=1)
+        tkinter.ttk.Separator(self).pack(fill='x',expand=1)
         #----------------------------
         #MCMC gui
         self.f_mcmc = tk.IntVar()
@@ -66,7 +77,7 @@ class guiAnalysis(tk.Frame):
         self.v_mcmcID = tk.StringVar()
         self.v_mcmcID.set('')
         tk.Entry(frame_MCMC,textvariable=self.v_mcmcID).grid(row=1,column=1,sticky='e')
-        ttk.Separator(self).pack(fill='x',expand=1)
+        tkinter.ttk.Separator(self).pack(fill='x',expand=1)
         #----------------------------
         #SCI gui
         self.f_sci = tk.IntVar()
@@ -75,11 +86,11 @@ class guiAnalysis(tk.Frame):
         tk.Label(frame_SCI, text="").grid(sticky='e')
         tk.Label(frame_SCI, text="").grid(sticky='e')
         frame_SCI.pack()
-        ttk.Separator(self).pack(fill='x',expand=1)
+        tkinter.ttk.Separator(self).pack(fill='x',expand=1)
         #----------------------------
         tk.Label(self, text="General properties").pack(anchor='w')
         frame_GP = tk.Frame(self)
-        tk.Label(frame_GP, text=u"Pixel Size [um]").grid(row=0,sticky='w')
+        tk.Label(frame_GP, text="Pixel Size [um]").grid(row=0,sticky='w')
         self.v_pixelSize = tk.StringVar()
         self.v_pixelSize.set("0.1")
         tk.Entry(frame_GP, textvariable=self.v_pixelSize).grid(row=0,column=1,sticky='ew')
@@ -92,12 +103,12 @@ class guiAnalysis(tk.Frame):
         tk.Button(frame_GP, text="Track File",command=fileSelect).grid(row=2,sticky='w')
         tk.Entry(frame_GP, textvariable=self.v_trackFile).grid(row=2,column=1,sticky='ew')
         frame_GP.pack()
-        ttk.Separator(self).pack(fill='x',expand=1)
+        tkinter.ttk.Separator(self).pack(fill='x',expand=1)
         #----------------------------
 
-        self.anaButton = ttk.Button(self, text="Analyze", command=self.analyze)
+        self.anaButton = tkinter.ttk.Button(self, text="Analyze", command=self.analyze)
         self.anaButton.pack()
-        self.cancelButton = ttk.Button(self, text="Cancel", command=self.exitWindow)
+        self.cancelButton = tkinter.ttk.Button(self, text="Cancel", command=self.exitWindow)
         self.cancelButton.pack()
         return
 
@@ -110,7 +121,7 @@ class guiAnalysis(tk.Frame):
         try:
             if not os.path.isfile(self.v_trackFile.get()):
                 print("Invalid Filename")
-                print(self.v_trackFile.get())
+                print((self.v_trackFile.get()))
                 return False
             if float(self.v_pixelSize.get()) <= 0:
                 print("Invalid Pixelsize")
@@ -139,7 +150,7 @@ class guiAnalysis(tk.Frame):
             frameT = float(self.v_frameTime.get())
             mcmcruns = int(self.v_montecarlo.get())
             mcmcID = self.v_mcmcID.get()
-            q = Queue.Queue()
+            q = queue.Queue()
             self.states = [True,True,True,True]
             def on_main_thread(func):
                 q.put(func)
@@ -149,7 +160,7 @@ class guiAnalysis(tk.Frame):
                 while True:
                     try:
                         task = q.get(block=False)
-                    except Queue.Empty:
+                    except queue.Empty:
                         break
                     else:
                         self.after_idle(task)
@@ -161,7 +172,7 @@ class guiAnalysis(tk.Frame):
 
             def calc_tracks_all():
                 def done_mssg():
-                    tkMessageBox.showinfo("Done!", "All single-state Track Analysis finished without problems.")
+                    messagebox.showinfo("Done!", "All single-state Track Analysis finished without problems.")
                 ANA.doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,bCleanUpTracks=True,bSingleTrackEndToEnd=True,bSingleTrackMSDanalysis=True,bCombineTrack=True)
                 on_main_thread(top1.destroy)
                 on_main_thread(done_mssg)
@@ -171,7 +182,7 @@ class guiAnalysis(tk.Frame):
 
             def calc_indiv_track():
                 def done_mssg():
-                    tkMessageBox.showinfo("Done!", "Individual Track Analysis finished without problems.")
+                    messagebox.showinfo("Done!", "Individual Track Analysis finished without problems.")
                 ANA.doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,bCleanUpTracks=True,bSingleTrackEndToEnd=True,bSingleTrackMSDanalysis=True,bCombineTrack=False)
                 on_main_thread(top1.destroy)
                 on_main_thread(done_mssg)
@@ -180,7 +191,7 @@ class guiAnalysis(tk.Frame):
 
             def calc_comb_track():
                 def done_mssg():
-                    tkMessageBox.showinfo("Done!", "Combined Track Analysis finished without problems.")
+                    messagebox.showinfo("Done!", "Combined Track Analysis finished without problems.")
                 ANA.doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,bCleanUpTracks=True,bSingleTrackEndToEnd=False,bSingleTrackMSDanalysis=False,bCombineTrack=True)
                 on_main_thread(top1.destroy)
                 on_main_thread(done_mssg)
@@ -189,7 +200,7 @@ class guiAnalysis(tk.Frame):
 
             def calc_mcmc():
                 def done_mssg():
-                    tkMessageBox.showinfo("Done!", "MCMC finished without problems.")
+                    messagebox.showinfo("Done!", "MCMC finished without problems.")
                 HMM.doHMM(trackfile,montecarlo=mcmcruns,SR=3)
                 on_main_thread(top3.destroy)
                 on_main_thread(done_mssg)
@@ -198,7 +209,7 @@ class guiAnalysis(tk.Frame):
 
             def calc_sci():
                 def done_mssg():
-                    tkMessageBox.showinfo("Done!", "SCI finished without problems.",parent=self.parent)
+                    messagebox.showinfo("Done!", "SCI finished without problems.",parent=self.parent)
                 SCI.doSCI(trackfile)
                 on_main_thread(top4.destroy)
                 on_main_thread(done_mssg)
@@ -269,6 +280,6 @@ class guiAnalysis(tk.Frame):
                 self.after(100,calc_sci)
             self.after(100,check_queue)
         else:
-            tkMessageBox.showerror("Input Error!","Some inputs are invalid!")
+            messagebox.showerror("Input Error!","Some inputs are invalid!")
         return
 

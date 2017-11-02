@@ -23,7 +23,7 @@ def importTracks(filename):
     with open(filename) as f:
         csvdata = csv.reader(f)
         next(csvdata, None) # skip header
-        return np.array( [map(float, row) for row in csvdata] )
+        return np.array( [list(map(float, row)) for row in csvdata] )
 
 #read in Tracks
 def readSimTrack(infile):
@@ -48,7 +48,7 @@ def readSimTrack(infile):
                 brt = True
                 track = []
             continue
-        track.append(np.array(map(float,line.split())))
+        track.append(np.array(list(map(float,line.split()))))
 
     if len(track) > 0:
         tracks.append(np.array(track))
@@ -77,7 +77,7 @@ def readTracks(infile):
                 brt = True
                 track = []
             continue
-        track.append(np.array(map(float,line.split())))
+        track.append(np.array(list(map(float,line.split()))))
 
     if len(track) > 0:
         tracks.append(np.array(track))
@@ -92,14 +92,14 @@ def readTracks(infile):
         poy = 0
         prevx = t[0][1]
         prevy = t[0][2]
-        for i in xrange(1,len(t),1):
+        for i in range(1,len(t),1):
             dx = t[i][1]-prevx
             prevx = t[i][1]
             dy = t[i][2]-prevy
             prevy = t[i][2]
             outtrack.append([t[i][0],dx,dy,count])
         outtracks.append(np.array(outtrack))
-    print len(outtracks)
+    print(len(outtracks))
     return np.array(outtracks)
 
 
@@ -143,8 +143,8 @@ def loglikelihood(theta, rsquared, tau):
   # Compute forward variable alpha (algorithm 2 - Das et al)
   logalpha = np.empty_like(loglike)
   logalpha[0,:] = logstatprob + loglike[0,:]
-  for j in xrange(1, nsteps):
-    logalpha[j,:] = map(logsum, logalpha[j-1,0] + logtransprob[0,:], logalpha[j-1,1] + logtransprob[1,:]) + loglike[j, :]
+  for j in range(1, nsteps):
+    logalpha[j,:] = list(map(logsum, logalpha[j-1,0] + logtransprob[0,:], logalpha[j-1,1] + logtransprob[1,:])) + loglike[j, :]
   return logsum(logalpha[-1,0], logalpha[-1, 1])
 
 def segmentstate(theta, allTracks, particleID, tau=1.):
@@ -164,18 +164,18 @@ def segmentstate(theta, allTracks, particleID, tau=1.):
     # Compute forward variable alpha (algorithm 2 - Das et al)
     logalpha = np.empty_like(loglike)
     logalpha[0,:] = logstatprob + loglike[0,:]
-    for j in xrange(1, nsteps):
-        logalpha[j,:] = map(logsum, logalpha[j-1,0] + logtransprob[0,:], logalpha[j-1,1] + logtransprob[1,:]) + loglike[j, :]
+    for j in range(1, nsteps):
+        logalpha[j,:] = list(map(logsum, logalpha[j-1,0] + logtransprob[0,:], logalpha[j-1,1] + logtransprob[1,:])) + loglike[j, :]
     # Compute backward variable beta (algorithm 5 - Das et al)
     logbeta = np.empty_like(loglike)
     logbeta[nsteps-1,:] = [0,0]
-    for j in xrange(1,nsteps,1):
-        logbeta[nsteps-1-j,:] = map(logsum, logtransprob[:,0] + logbeta[nsteps-j,0] + loglike[nsteps-j,0], logtransprob[:,1] + logbeta[nsteps-j,1] + loglike[nsteps-j,1])
+    for j in range(1,nsteps,1):
+        logbeta[nsteps-1-j,:] = list(map(logsum, logtransprob[:,0] + logbeta[nsteps-j,0] + loglike[nsteps-j,0], logtransprob[:,1] + logbeta[nsteps-j,1] + loglike[nsteps-j,1]))
     stateprob = np.empty_like(loglike)
-    for j in xrange(nsteps):
+    for j in range(nsteps):
         stateprob[j,:] = logalpha[j,:] * logbeta[j,:]
     statemap = np.zeros((nsteps))
-    for j in xrange(nsteps):
+    for j in range(nsteps):
         if stateprob[j,0] < stateprob[j,1]:
             statemap[j] = 1
     return statemap
@@ -202,10 +202,10 @@ def doMetropolisOrig(allTracks,folder,particleID):
     outf = open("Anaout{:04d}.txt".format(particleID),'w')
     outf.write("# L logD1 LogD2 p12 p21 n\n")
 
-    for i in xrange(int(np.floor(n/4.))):
-        for k in xrange(4):
+    for i in range(int(np.floor(n/4.))):
+        for k in range(4):
             l = 4*i + k
-            print l
+            print(l)
             dtheta = random.gauss(0,s[k])
             thetaprop = np.array(theta[-1])
             thetaprop[k] += dtheta
@@ -266,12 +266,12 @@ def doMetropolis3(allTracks,folder,particleID):
         props = []
         props.append([Lmax, theta[-1][0], theta[-1][1], theta[-1][2], theta[-1][3]])
         j = 0
-        #for j in xrange(100):
+        #for j in range(100):
         while j < 100 or Lmax <= L[-1]:
             nuruns += 1
             dtheta = np.zeros((4))
             #proptheta = theta[-1]
-            for l in xrange(4):
+            for l in range(4):
                 if l in [2,3]:
                     while dtheta[l] == 0. or (theta[-1][l] + dtheta[l] < 0 or theta[-1][l] + dtheta[l] > 1):
                         dtheta[l] = random.gauss(0,vartheta[l])
@@ -286,7 +286,7 @@ def doMetropolis3(allTracks,folder,particleID):
             #Ltest = sum(llcombined)
         
             props.append([Ltest, proptheta[0], proptheta[1], proptheta[2], proptheta[3]])
-            for l in xrange(len(props[-1])):
+            for l in range(len(props[-1])):
                 outpropsf.write(str(props[-1][l])+' ')
             outpropsf.write("\n")
             if Lmax < Ltest:
@@ -303,16 +303,16 @@ def doMetropolis3(allTracks,folder,particleID):
         #print i
         i += 1
         outfile.write(str(L[-1]))
-        for k in xrange(4):
+        for k in range(4):
             outfile.write(' ' + str(theta[-1][k]))
-        for k in xrange(4):
+        for k in range(4):
             outfile.write(' ' + str(vartheta[k]))
         outfile.write(' ' + str(nuruns))
         outfile.write('\n')
         #print L[-1], 10**theta[-1][0], 10**theta[-1][1], theta[-1][2], theta[-1][3]
         flag = False
         if breakout:
-            for l in xrange(len(vartheta)):
+            for l in range(len(vartheta)):
                 if l in [2,3]:
                     vartheta[l] /= scalingfactor
                 else:
@@ -326,8 +326,8 @@ def doMetropolis3(allTracks,folder,particleID):
         if vartheta[0] < (0.01/np.log(10)) and vartheta[1] < (0.01/np.log(10)):
             break
     outfile.close()
-    print "              RESULTS:"
-    print "          ", Lmax, 10**theta[-1][0], 10**theta[-1][1], theta[-1][2], theta[-1][3]
+    print("              RESULTS:")
+    print("          ", Lmax, 10**theta[-1][0], 10**theta[-1][1], theta[-1][2], theta[-1][3])
     
     return theta, L, nuruns
 
@@ -347,7 +347,7 @@ def main(folder,reps):
     outtheta = []
     runs = []
     counter = 1
-    print numparts
+    print(numparts)
     rawout = open("rawDataout.txt", 'w')
     rawout.write("# Analysis of Cel5A \n# D1  D2   p12  p21  nuruns\n")
     sumout = open("avHmmData.txt",'w')
@@ -357,8 +357,8 @@ def main(folder,reps):
         rawout.write("# Track {:}\n".format(counter))
         avTheta = []
         avNuruns = []
-        for k in xrange(reps):
-            print "    Run {:},{:}".format(counter,k+1)
+        for k in range(reps):
+            print("    Run {:},{:}".format(counter,k+1))
             theta,L,nuruns = doMetropolis3(anaTr,folder,counter)
             if theta[-1][0] > theta[-1][1]:
                 results = np.array([theta[-1][1],theta[-1][0],theta[-1][3],theta[-1][2]])
@@ -396,7 +396,7 @@ def testerFunction1(folder,runs):
     allTracks = allTracks2.reshape(sha[0]*sha[1],sha[2])
     '''
     Thetas = []
-    for i in xrange(max(runs,anaTr[-1:-1])):
+    for i in range(max(runs,anaTr[-1:-1])):
         theta, L, nurun = doMetropolisOrig(anaTr,folder,i)
         theta = np.array(theta)
         theta1 = 10**theta[:,0]
@@ -415,7 +415,7 @@ def testerFunction1(folder,runs):
         thetaMean = [np.mean(theta1[1000:]),np.mean(theta2[1000:]),np.mean(p12[1000:]), np.mean(p21[1000:])]
         thetaSTD = [np.std(theta1[1000:]),np.std(theta2[1000:]),np.std(p12[1000:]), np.std(p21[1000:])]
         Thetas.append([np.array(thetaMean),np.array(thetaSTD)])
-        print thetaMean
+        print(thetaMean)
         
         statemap = segmentstate(thetaMean, anaTr, i)
         trackout = open("trackstates{:04d}.txt".format(0),'w')

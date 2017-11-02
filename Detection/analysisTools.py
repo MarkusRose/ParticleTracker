@@ -5,8 +5,8 @@
 
 import numpy as np
 import cmath
-import convertFiles
-import ctrack
+from . import convertFiles
+from . import ctrack
 
 def sortOutTrack(track):
     outtrack = []
@@ -80,9 +80,9 @@ def calcMSD(track,fileident=""):
         numofdata = 0
         sum = 0
 
-        for j in xrange(len(track)-delta):
+        for j in range(len(track)-delta):
             notfound = False
-            for i in xrange(j+1,j+delta+1,1):
+            for i in range(j+1,j+delta+1,1):
                 if (track[i][0] < delta + track[j][0]):
                     continue
                 elif (track[i][0] > delta + track[j][0]):
@@ -122,22 +122,22 @@ def calcSCF(track,fileident=""):
     vels = []
 
     v=0
-    for i in xrange(len(track)-1):
+    for i in range(len(track)-1):
         dx = track[i+1][1]-track[i][1]
         dy = track[i+1][2]-track[i][2]
         v = cmath.sqrt(dx*dx+dy*dy)/(track[i+1][0]-track[i][0])
         vels.append(v)
     vels.append(v)
     if len(track) != len(vels):
-        print "Velocities don't match track."
+        print("Velocities don't match track.")
     
     return
 
-    for j in xrange(L):
+    for j in range(L):
         k = j
         while k < (track[-1][0]-track[0][0]-L):
             v = 0
-            for i in xrange(k,k+L,1):
+            for i in range(k,k+L,1):
                 dx = track[i+1][1]-track[i][1]
                 dy = track[i+1][2]-track[i][2]
                 v += cmath.sqrt(dx*dx + dy*dy)/(track[i+1][0]-track[i][0])
@@ -148,5 +148,5 @@ def calcSCF(track,fileident=""):
 if __name__=="__main__":
     #tracks = convertFiles.convImageJTrack("/data/AnalysisTracks/2014-10-26_Mito-Lipid_Tracks/Mito_DiD001-2-HandTracks/VisTrack01.xls")
     tracks = convertFiles.readTrajectoryFromFile("addUpTracks.txt")
-    print len(tracks)
+    print(len(tracks))
     calcMSD(tracks)

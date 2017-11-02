@@ -1,7 +1,7 @@
 
 
 def giveInitialFitting(image,tracks,signal_power,sigma,sigma_thresh,eccentricity_thresh,bit_depth,oname):
-    print "Start with initial position given"
+    print("Start with initial position given")
     partlist = []
     for part in tracks:
         median_img = ndimage.filters.median_filter(image, (21,21))
@@ -10,7 +10,7 @@ def giveInitialFitting(image,tracks,signal_power,sigma,sigma_thresh,eccentricity
         if isIt:
             rmin,rmax,cmin,cmax = isIt
         else:
-            print("Missed frame {:}".format(part[0]))
+            print(("Missed frame {:}".format(part[0])))
             continue
 
         fitdata = fitgaussian2d(image[rmin:rmax,cmin:cmax],background_mean)
@@ -27,15 +27,15 @@ def giveInitialFitting(image,tracks,signal_power,sigma,sigma_thresh,eccentricity
     for p in partlist:
         outfile.write("{:} {:} {:}\n".format(p.frame,p.x,p.y))
     outfile.close()
-    print "end with initial pos"
+    print("end with initial pos")
     return partlist
 
 
         
 def printPictures(tracks,numtrack):
     position = pysm.new_cython.TempParticle()
-    for i in xrange(1,40):
-        print("# {:} =====================".format(i))
+    for i in range(1,40):
+        print(("# {:} =====================".format(i)))
         image = readImage.readImage(img[i-1])
         position.x= tracks[numtrack-1].track[i]['x']
         position.y= tracks[numtrack-1].track[i]['y']
@@ -43,14 +43,14 @@ def printPictures(tracks,numtrack):
         markedlines = markPosition.connectPositions(image.shape,tracks[numtrack-1].track[1:i+1])
         markPosition.justsuper(image,markings,markedlines,"marked"+str(i)+".tif")
         #markPosition.superimpose(image,markings,"marked"+str(i)+".tif")
-        print ""
+        print("")
 
 def testTracks(tracks):        
     print("Done creating tracks")
-    print('ChooChoo! Track 29: \n' + str(tracks[29].track))
+    print(('ChooChoo! Track 29: \n' + str(tracks[29].track)))
     print("Boy, you can give me a schein")
     for name in tracks[29].track.dtype.names:
-        print(name + ": " + str(tracks[29].track[name]))
+        print((name + ": " + str(tracks[29].track[name])))
     return   
 
 def compareInitNoInit(image,data,out):

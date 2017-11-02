@@ -28,7 +28,7 @@ Thresholding functions:
     * otsu(): Otsu method
 '''
 
-from __future__ import division
+
 import numpy as np
 __all__ = [
         'otsu',
@@ -66,7 +66,7 @@ def otsu(img, bitdepth, ignore_zeros=False):
     best = nB[0]*nO[0]*(mu_B-mu_O)*(mu_B-mu_O)
     bestT = 0
 
-    for T in xrange(1, Ng):
+    for T in range(1, Ng):
         if nB[T] == 0: continue
         if nO[T] == 0: break
         mu_B = (mu_B*nB[T-1] + T*hist[T]) / nB[T]

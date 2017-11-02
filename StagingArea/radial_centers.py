@@ -86,8 +86,8 @@ def radial_center(I):
     
     #print range(len(I)-1)
     #print range(len(I[0])-1)
-    for i in xrange(len(I)-1):
-        for j in xrange(len(I[0])-1):
+    for i in range(len(I)-1):
+        for j in range(len(I[0])-1):
             k = j + i*(len(I[0])-1)
             u = I[i+1,j+1]-I[i,j]
             v = I[i,j+1]-I[i+1,j]
@@ -112,7 +112,7 @@ def radial_center(I):
     m = m.flatten()
     '''
 
-    for k in xrange((len(I)-1)*(len(I[0])-1)):
+    for k in range((len(I)-1)*(len(I[0])-1)):
         i = int(1.*k/(len(I[0])-1))
         j = k % (len(I[0])-1)
         w[k] = divI[k]/d_kc[k]
@@ -132,7 +132,7 @@ def radial_center(I):
 def makeFigures(arraylist):
     
     figs = []
-    for i in xrange(len(arraylist)):
+    for i in range(len(arraylist)):
         figs.append(plt.figure(i+1))
         plt.imshow(arraylist[i])
     plt.show()
@@ -148,7 +148,7 @@ def saveFigures(arraylist,varind,sn,ind):
 
     
     figs = []
-    for i in xrange(len(arraylist)):
+    for i in range(len(arraylist)):
         figs.append(plt.figure(i+1))
         plt.imshow(arraylist[i])
         plt.savefig('Figures-{:}/Images-{:}/fig-{:}-{:}.png'.format(varind,sn,ind,i))
@@ -178,11 +178,11 @@ def normalRun():
 
     param = fitgaussian2d(I, Background)
 
-    print xc,yc
-    print param[2],param[3]
-    print mean
-    print np.array([xc,yc]) - np.array(mean)
-    print np.array([param[2],param[3]]) - np.array(mean)
+    print(xc,yc)
+    print(param[2],param[3])
+    print(mean)
+    print(np.array([xc,yc]) - np.array(mean))
+    print(np.array([param[2],param[3]]) - np.array(mean))
 
     sys.stdout.flush()
 
@@ -201,7 +201,7 @@ def benchmark(constlist,varindex,start,stop,incr,numTries=10,output=False):
 
     bm_differences = []
 
-    for i in xrange(int(1.*(stop-start)/incr) + 1):
+    for i in range(int(1.*(stop-start)/incr) + 1):
 
         size = constlist[0]
         mean = np.array([size/2.,size/2.])
@@ -210,12 +210,12 @@ def benchmark(constlist,varindex,start,stop,incr,numTries=10,output=False):
         intens = constlist[2]
         SNR = constlist[3]
         Background = constlist[4]
-        print
-        print constlist[varindex]
+        print()
+        print(constlist[varindex])
 
         differences = []
 
-        for tries in xrange(numTries):
+        for tries in range(numTries):
             I = np.zeros((size,size),dtype=np.float_)
             I = gauss2d(I,mean,std,intens)
             I += addNoise(I,SNR)
@@ -226,13 +226,13 @@ def benchmark(constlist,varindex,start,stop,incr,numTries=10,output=False):
 
             param = fitgaussian2d(I, Background)
             if output:
-                print "-------"
-                print "Try {:}".format(tries)
-                print xc,yc
-                print param[2],param[3]
-                print mean
-                print np.array([xc,yc]) - np.array(mean)
-                print np.array([param[2],param[3]]) - np.array(mean)
+                print("-------")
+                print("Try {:}".format(tries))
+                print(xc,yc)
+                print(param[2],param[3])
+                print(mean)
+                print(np.array([xc,yc]) - np.array(mean))
+                print(np.array([param[2],param[3]]) - np.array(mean))
 
             d_rsc = np.sqrt((xc-mean[0])**2+(yc-mean[1])**2)
             d_lsq = np.sqrt((param[2]-mean[0])**2+(param[3]-mean[1])**2)
@@ -241,7 +241,7 @@ def benchmark(constlist,varindex,start,stop,incr,numTries=10,output=False):
 
             if tries == numTries-1:
                 if output:
-                    print "-------"
+                    print("-------")
                 sys.stdout.flush()
                 imI = Image.fromarray(np.uint8(cm.gist_earth((I-np.min(I))/(np.max(I)-np.min(I)))*255))
                 imDivI = Image.fromarray(np.uint8(cm.gist_earth((divI-np.min(divI))/(np.max(divI)-np.min(divI)))*255))
@@ -276,19 +276,19 @@ def multibench():
 
     namelist = ["Size","STD","Intensity","SNR","Background"]
 
-    for size in xrange(4,11,1):
+    for size in range(4,11,1):
         if varindex == 0:
-            print "----"
-            print SNR
-            print "----"
+            print("----")
+            print(SNR)
+            print("----")
         elif varindex == 3:
-            print "----"
-            print size
-            print "----"
+            print("----")
+            print(size)
+            print("----")
         constlist = [size,std,intens,SNR,Background]
         result = benchmark(constlist,varindex,start,stop,incr,numTries=nt)
 
-        print result
+        print(result)
 
         fig1 = plt.figure()
         plt.errorbar(result[:,0],result[:,1],yerr=result[:,3]/np.sqrt(nt),color='b',label='radial centers')

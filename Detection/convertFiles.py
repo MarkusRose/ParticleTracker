@@ -3,10 +3,10 @@
 ======================================'''
 
 import numpy as np
-import detectParticles
-import analysisTools
-import pysm.new_cython
-import markPosition
+from Detection import detectParticles
+from Detection import analysisTools
+from Detection.pysm import new_cython
+from Detection import markPosition
 
 
 #Read Trajectory from file
@@ -36,7 +36,7 @@ def readPositionsFromFile(filename):
     line = infile.readline()
     frame = line.split()[1]
     #print frame
-    for i in xrange(3):
+    for i in range(3):
         infile.readline()
     line = infile.readline()
 
@@ -55,7 +55,7 @@ def readPositionsFromFile(filename):
 
 def writeParticleFile(positions,filename="foundParticles.txt"):
     outfile = open(filename,'w')
-    for i in xrange(len(positions)):
+    for i in range(len(positions)):
         detectParticles.writeDetectedParticles([positions[i],0.0],i+1,outfile)
     outfile.close()
     return
@@ -77,7 +77,7 @@ def readDetectedParticles(filename):
             emptycounter += 1
             if len(oneframe) != 0:
                 if len(oneframe) != partnum:
-                    print "Number of particles and Frame content don't match!"
+                    print("Number of particles and Frame content don't match!")
                     raise
                 particle_data.append(list(oneframe))
                 oneframe = []
@@ -97,14 +97,14 @@ def readDetectedParticles(filename):
             b = []
             for k in line.split():
                 b.append(float(k))
-            p = pysm.new_cython.TempParticle()        
+            p = new_cython.TempParticle()        
             p.frame = frame
             p.x,p.y,p.width_x,p.width_y,p.height,p.amplitude,p.sn,p.volume = b
             oneframe.append(p)
     if len(oneframe) > 0:
         particle_data.append(list(oneframe))
         if len(oneframe) != partnum:
-            print "Number of particles and Frame content don't match!"
+            print("Number of particles and Frame content don't match!")
             raise
         del oneframe
 
@@ -130,7 +130,7 @@ def readDetectedParticles(filename):
             b = []
             for k in a:
                 b.append(float(k))
-            p = pysm.new_cython.TempParticle()        
+            p = new_cython.TempParticle()        
             p.frame = frame
             p.x,p.y,p.width_x,p.width_y,p.height,p.amplitude,p.sn,p.volume = b
             particle_oneframe.append(p)
@@ -158,7 +158,7 @@ def sortPositionFile(filename):
     outfile = open(filename,'r')
     line = ""
     outfile.readline()
-    for i in xrange(3):
+    for i in range(3):
         line += outfile.readline()
     outfile.close()
 
@@ -236,11 +236,11 @@ def convertTrajectories(infile,minTrackLen):
             frame += 1
 
         else:
-            print "else"
+            print("else")
             if not boo:
                 if partpos >= minTrackLen:
                     liste.append(i)
-                print frame
+                print(frame)
                 frame = -2
                 partpos = 0
                 outfile.close()
@@ -300,5 +300,5 @@ def giveLocalMaxValues(track,length):
 
 if __name__=="__main__":
     loc = giveLocalMaxValues(convImageJTrack("testterer.txt"),7)
-    print loc
+    print(loc)
     

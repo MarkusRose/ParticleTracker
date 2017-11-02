@@ -58,7 +58,7 @@ def simulateTracks(inVars=None,path=".",imageoutput=True):
     #Other properties
     wavelength = sV[14]/1e9
     pixel_size = sV[15]/1e6
-    print pixel_size
+    print(pixel_size)
     numAperture = sV[16]
     mag = sV[17]
     background = sV[18]
@@ -88,14 +88,14 @@ def simulateTracks(inVars=None,path=".",imageoutput=True):
     atracks = []
     btracks = []
     framelist = [ [] for i in range(frames)]
-    for n in xrange(N):
+    for n in range(N):
         #one individual track
         track = []
 
         track_id = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(8))
         trk = ct.ParticleTrack(id=track_id, num_elements=frames)
      
-        for i in xrange(0,frames,1):
+        for i in range(0,frames,1):
      
             #particle in one frame
             particle = np.zeros((11))
@@ -146,7 +146,7 @@ def simulateTracks(inVars=None,path=".",imageoutput=True):
             particle[8] = 2*0.211*wavelength/numAperture
      
             #Rest of particle variables
-            for k in xrange(9,10,1):
+            for k in range(9,10,1):
                 particle[k] = 0
 
             particle[10] = n

@@ -30,7 +30,7 @@ def driftCorrection_tracks(part_tracks,drifttracks):
         y = np.nan
         y_start = np.nan
         firstelement = True
-        for i in xrange(tracklen):
+        for i in range(tracklen):
             x = track.track[i]['x']
             y = track.track[i]['y']
             if firstelement:
@@ -50,12 +50,12 @@ def driftCorrection_tracks(part_tracks,drifttracks):
                         drift_displ.track[i]['y'] += y - y_start
                     contribnum[i] += 1
 
-    for i in xrange(len(contribnum)):
+    for i in range(len(contribnum)):
         drift_displ.track[i]['x'] /= contribnum[i]
         drift_displ.track[i]['y'] /= contribnum[i]
 
     for track in part_tracks:
-        for i in xrange(len(track.track)):
+        for i in range(len(track.track)):
             if not np.isnan(drift_displ.track[i]['x']) and not np.isnan(drift_displ.track[i]['y']):
                 track.track[i]['x'] -= drift_displ.track[i]['x']
                 track.track[i]['y'] -= drift_displ.track[i]['y']
@@ -67,8 +67,8 @@ def rotationCorrection_particles(drifttracks):
     
     tracklen = len(drifttracks[0].track)
     angles = np.zeros((len(drifttracks),tracklen),dtype=np.float)
-    for i in xrange(1,len(drifttracks),1):
-        for j in xrange(tracklen):
+    for i in range(1,len(drifttracks),1):
+        for j in range(tracklen):
             dx = drifttracks[i].track[j]['x'] - drifttracks[0].track[j]['x']
             dy = drifttracks[i].track[j]['y'] - drifttracks[0].track[j]['y']
             angles[i,j] = dy/dx
@@ -88,7 +88,7 @@ def translationCorrection_particles(drifttracks):
         y = np.nan
         y_start = np.nan
         firstelement = True
-        for i in xrange(tracklen):
+        for i in range(tracklen):
             x = track.track[i]['x']
             y = track.track[i]['y']
 
@@ -126,7 +126,7 @@ def translationCorrection_particles(drifttracks):
                     contribnum[i] += 1
             '''
 
-    for i in xrange(len(contribnum)):
+    for i in range(len(contribnum)):
         drift_displ.track[i]['x'] /= contribnum[i]
         drift_displ.track[i]['y'] /= contribnum[i]
         drift_displ.track[i]['frame'] = i+1
@@ -146,7 +146,7 @@ def driftCorrection_particles(part_positions,drifttracks,rotcorrection=True):
     angle_change, rotcenter = rotationCorrection_particles(drifttracks)
 
     
-    for i in xrange(1,len(part_positions)):
+    for i in range(1,len(part_positions)):
         count = 0
         for part in part_positions[i]:
             if not np.isnan(angle_change[i-1]) and rotcorrection:

@@ -1,11 +1,11 @@
-import detectParticles
-import readImage
-import ctrack
-import markPosition
-import convertFiles
-import analysisTools
+from . import detectParticles
+from . import readImage
+from . import ctrack
+from . import markPosition
+from . import convertFiles
+from . import analysisTools
 
-import pysm
+from . import pysm
 import sys
 import os
 import glob
@@ -47,7 +47,7 @@ class detectAndTrack():
         #self.img = self.img[:10]
         self.particles = self.makeDetectionsAndMark()
         self.tracks = self.makeTracks()
-        print len(self.tracks)
+        print(len(self.tracks))
 
     def runDetection(self):
         # Read in setup file and sort
@@ -64,10 +64,10 @@ class detectAndTrack():
         self.readConfig("setupTracking.txt",innum)
         #self.img = readImageList(self.imagedir)
         #self.img = sorted(self.img)
-        print "Got to here"
+        print("Got to here")
         self.particles = convertFiles.readDetectedParticles(self.lm)
         self.tracks = self.makeTracks()
-        print len(self.tracks)
+        print(len(self.tracks))
 
     def readConfig(self,filename,innumber):
         
@@ -76,7 +76,7 @@ class detectAndTrack():
         counter = 0
         for line in infile:
             counter += 1
-            if counter in xrange(5,43,3):
+            if counter in range(5,43,3):
                 a.append(line.split()[0])
                 continue
         if len(a) < innumber:
@@ -106,7 +106,7 @@ class detectAndTrack():
             if self.imagedir != "Please select Folder containing Images":
                 chPath(self.imagedir+"/../"+self.pathway)
             else:
-                print "Didn't Work, please restart!"
+                print("Didn't Work, please restart!")
                 sys.exit(1)
         return
         
@@ -144,10 +144,10 @@ def chPath(path):
 
 def readImageList(path):
     if not os.path.isdir(path):
-        print "No path named " + path
-        raise ValueError, "No path named " + path
+        print("No path named " + path)
+        raise ValueError("No path named " + path)
     img = glob.glob(os.path.join(path, '*.tif'))
-    print "Number of images found: " + str(len(img))
+    print("Number of images found: " + str(len(img)))
     return img
 
 def dataCorrect(particle_data,addUp):
@@ -183,7 +183,7 @@ def makeDetectionFromFile():
     print("\n==== Series of all location pictures read from file ====")
     particle_data = convertFiles.readDetectedParticles("foundParticles.txt")
     pd = particle_data[:1]
-    for i in xrange(len(pd)):
+    for i in range(len(pd)):
         image = readImage.readImage(img[i])
         markings = markPosition.markPositionsFromList(image.shape,particle_data[i])
         markPosition.superimpose(image,markings,"06mark-{:0004d}".format(i)+".png")
@@ -198,11 +198,11 @@ def compileMultiTracks(img,tr):
     print("Mark tracks in images")
     image = markPosition.autoScale(readImage.readImage(img[0]))
     posmark = np.zeros(image.shape)
-    print('_'*52)
+    print(('_'*52))
     count = 0
     sys.stdout.write("[")
     sys.stdout.flush()
-    for i in xrange(len(img)):
+    for i in range(len(img)):
         a = int(i * 50/len(img))
         if a > count:
             sys.stdout.write("#"*(a-count))
@@ -233,11 +233,11 @@ def drawAllFoundTracks(img,tr):
     m = np.zeros(image.shape)
     if len(tr) == 0:
         return
-    print('_'*52)
+    print(('_'*52))
     count = 0
     sys.stdout.write("[")
     sys.stdout.flush()
-    for t in xrange(len(tr)):
+    for t in range(len(tr)):
         a = int(t * 50/len(tr))
         if a > count:
             sys.stdout.write("#"*(a-count))
@@ -253,9 +253,9 @@ def drawAllFoundTracks(img,tr):
 # Main
 #==============================
 def leftovers():
-    print("\n    ==================================\n"
+    print(("\n    ==================================\n"
             +"    = Welcome! Starting the Program. =\n"
-            +"    ==================================\n")
+            +"    ==================================\n"))
     '''
     print("Switching path and copying setup file.")
 
@@ -269,12 +269,12 @@ def leftovers():
     img = sorted(img)
     img = img[:10]
     
-    print("{:} images selected for analysis.".format(len(img)))
+    print(("{:} images selected for analysis.".format(len(img))))
     
     firstImageFLAG = False
     if firstImageFLAG:
         makeFirstImage(img)
-        print("Done! See first image at " + pathway + ".")
+        print(("Done! See first image at " + pathway + "."))
         return
 
     print('\n==== Start Localization and Detection ====')

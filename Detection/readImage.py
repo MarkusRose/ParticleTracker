@@ -6,8 +6,8 @@ from PIL import Image
 
 import numpy as np
 import matplotlib.pyplot as plt
-import pysm.thresholding
-import pysm.new_cython
+from .pysm import thresholding
+from .pysm import new_cython
 from scipy import ndimage
 from scipy.misc import imsave
 
@@ -41,8 +41,8 @@ def adjustRange(image,bit_depth):
     print(image.min())
     print
     '''
-    for i in xrange(len(image)):
-        for j in xrange(len(image[i])):
+    for i in range(len(image)):
+        for j in range(len(image[i])):
             if image[i,j] < 0:
                 #print(image.min())
                 image[i,j] = 65536 + image[i,j]
@@ -73,7 +73,7 @@ def determineCutoff(image):
 Determine cutoff via the Otsu Method
 '''
 def otsuMethod(image):
-    return pysm.thresholding.otsu(image,16)
+    return thresholding.otsu(image,16)
 
 
 '''
@@ -106,10 +106,10 @@ def detectParticlePosition(inImage,outImage,cutoffMethod):
     cutI = cutImage(image,cutoffMethod)
     outI = Image.fromarray((cutI*2**16).astype("uint16"),'I;16')
     outI.save(outImage)
-    cutI2 = pysm.new_cython.gaussian_filter_image(image,0.2)
+    cutI2 = new_cython.gaussian_filter_image(image,0.2)
     outI = Image.fromarray((cutI2*2**16).astype("uint16"),'I;16')
     outI.save("gaussfit-"+outImage)
-    cutI3 = pysm.new_cython.local_maximum(cutI2)
+    cutI3 = new_cython.local_maximum(cutI2)
     outI = Image.fromarray((cutI3*2**16).astype("uint16"),'I;16')
     outI.save("localmax-"+outImage)
 
@@ -117,15 +117,15 @@ def detectParticlePosition(inImage,outImage,cutoffMethod):
     outI = Image.fromarray((median_img*2**16).astype("uint16"),'I;16')
     outI.save("median-"+outImage)
 
-    (background_mean, background_std) = pysm.new_cython.estimate_background_median(image,(21,21))
-    print background_mean, background_std
+    (background_mean, background_std) = new_cython.estimate_background_median(image,(21,21))
+    print(background_mean, background_std)
 
     oo = Image.fromarray((image*2**16).astype("uint16"),'I;16')
     oo.save("test0001.tif")
     saveImageToFile(image,"test0003.tif")
 
     listOfParticles = []
-#    listOfParticles = pysm.new_cython.detect_particles_deflation(cutI)
+#    listOfParticles = new_cython.detect_particles_deflation(cutI)
     print(listOfParticles)
     
     return

@@ -24,7 +24,7 @@ logtau = math.log(4*math.pi*tau)
 logten = math.log(10)
 
 dr2 = np.zeros((len(dr)))
-for i in xrange(len(dr)):
+for i in range(len(dr)):
     dr2[i] = dr[i,0]*dr[i,0] + dr[i,1]*dr[i,1]
 '''
 print dr2
@@ -54,7 +54,7 @@ def logLikelyhood(theta):
     l = []
     for step in dr2:
         elem = []
-        for i in xrange(2):
+        for i in range(2):
             elem.append(0 - step/(4*D[i]*tau) - logten * theta[i] - logtau)
         l.append(elem[:])
         
@@ -67,11 +67,11 @@ def logLikelyhood(theta):
         anew.append(math.log(pi[0])+l[0][0])
         anew.append(math.log(pi[1])+l[0][1])
     except ValueError:
-        print("pi is "+str(pi[0])+ ' ' + str(pi[1]))
+        print(("pi is "+str(pi[0])+ ' ' + str(pi[1])))
         sys.exit(1)
     alogs.append(anew[:])
 
-    for j in xrange(1,len(dr2)):
+    for j in range(1,len(dr2)):
         #print j
         anew[0] = logsum(alogs[-1][0]+math.log(1-theta[2]), alogs[-1][1]+math.log(theta[3])) + l[j][0]
         anew[1] = logsum(alogs[-1][0]+math.log(theta[2]), alogs[-1][1]+math.log(1-theta[3])) + l[j][1]
@@ -85,7 +85,7 @@ def likelihood(theta):
     l = []
     for step in dr2:
         elem = np.zeros((2),dtype=np.float64)
-        for i in xrange(len(D)):
+        for i in range(len(D)):
             elem[i] = math.exp(-step/(4*D[i]*tau))/(4*math.pi*D[i]*tau)
         l.append(elem[:])
 
@@ -96,7 +96,7 @@ def likelihood(theta):
     anew[1] = (pi[1]*l[0][1])
     anolog.append(1.0*anew[:])
 
-    for j in xrange(1,len(dr2)):
+    for j in range(1,len(dr2)):
         anew = np.zeros((2),dtype=np.float64)
         anew[0] = ( anolog[-1][0]*(1-theta[2]) + anolog[-1][1]*theta[3] ) * l[j][0]
         #print anew[0].dtype
@@ -105,7 +105,7 @@ def likelihood(theta):
 
     #print D
     #print theta
-    #for k in xrange(len(l)):
+    #for k in range(len(l)):
     #    if l[k][0] > 1 or l[k][0] < 0:
     #        print 0, dr2[k], l[k][0]
     #    if l[k][1] > 1 or l[k][1] < 0:
@@ -128,11 +128,11 @@ def doMetropolis(logLikelyhood):
     outfile.write("#Hidden Markov Chain Monte Carlo\n")
     outfile.write("# LogLikelyhood   log10(D1)  log10(D2)   p12   p21\n")
 
-    for i in xrange(int(N/4)):
-        for k in xrange(4):
+    for i in range(int(N/4)):
+        for k in range(4):
             dt = np.zeros((4))
             l = 4 * i + k
-            print l
+            print(l)
             dt[k] = random.gauss(0, vartheta[k])
             if k in [2,3]:
                 while proptheta[k] + dt[k] <= 0 or proptheta[k] + dt[k] > 1:
@@ -159,7 +159,7 @@ def doMetropolis(logLikelyhood):
                                #method, but ensuring more stability
                                #towards the maximum!!!!
             outfile.write(str(L[-1]))
-            for k in xrange(4):
+            for k in range(4):
                 outfile.write(' ' + str(theta[-1][k]))
             outfile.write('\n')
             #print L[-1], theta[-1][0], theta[-1][1], theta[-1][2], theta[-1][3]
@@ -184,13 +184,13 @@ def doMetropolis2(logLikelyhood):
     outpropsf = open("proposedHMM.txt",'w')
     outpropsf.write("# LogLikelyhood   x   y\n")
 
-    for i in xrange(N):
+    for i in range(N):
         Lmax = -100000
         index = 0
         props = []
-        for j in xrange(100):
+        for j in range(100):
             dt = np.zeros((4))
-            for l in xrange(4):
+            for l in range(4):
                 while dt[l] <= 0:
                     dt[l] = random.gauss(0,vartheta[l])
                     if l in [2,3]:
@@ -202,7 +202,7 @@ def doMetropolis2(logLikelyhood):
             Ltest = logLikelyhood(proptheta)
         
             props.append([Ltest, proptheta[0], proptheta[1], proptheta[2], proptheta[3]])
-            for l in xrange(len(props[-1])):
+            for l in range(len(props[-1])):
                 outpropsf.write(str(props[-1][l])+' ')
             outpropsf.write("\n")
             if Lmax < Ltest:
@@ -211,12 +211,12 @@ def doMetropolis2(logLikelyhood):
         outpropsf.write("\n\n")
         theta.append(np.array([props[index][1],props[index][2],props[index][3],props[index][4]]))
         L.append(props[index][0])
-        print i
+        print(i)
 
         
 
         outfile.write(str(L[-1]))
-        for k in xrange(2):
+        for k in range(2):
             outfile.write(' ' + str(theta[-1][k]))
         outfile.write('\n')
         #print L[-1], theta[-1][0], theta[-1][1], theta[-1][2], theta[-1][3]
@@ -231,6 +231,6 @@ if __name__=="__main__":
     #doMetropolis(logLikelyhood)
     doMetropolis2(likelihood)
     #doMetropolis2(logLikelyhood)
-    print
-    print "#"+str( logLikelyhood([-2,-1,0.1,0.05]))
-    print "#"+str( likelihood([3,2,0.1,0.05]) )
+    print()
+    print(("#"+str( logLikelyhood([-2,-1,0.1,0.05]))))
+    print(("#"+str( likelihood([3,2,0.1,0.05]) )))

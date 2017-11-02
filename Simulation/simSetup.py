@@ -49,21 +49,21 @@ def createSystemProperties():
     numD = 1
     while True:
         try: 
-            a = raw_input("How many states can the particles occupy? [1] ")
+            a = input("How many states can the particles occupy? [1] ")
             if a == "":
                 break
             else:
                 a = int(a)
                 numD = a
                 if numD > 3 or numD < 1:
-                    print "Not a valid state please select an integer between 1 and 3"
+                    print("Not a valid state please select an integer between 1 and 3")
                     continue
                 break
         except ValueError:
-            print "Not an integer, please try again."
+            print("Not an integer, please try again.")
 
 
-    for i in xrange(len(querries)):
+    for i in range(len(querries)):
         if numD == 1:
             if i in [1,2,3,5,6,8]:
                 simValues[i] = 0
@@ -78,11 +78,11 @@ def createSystemProperties():
         elif numD ==3:
             pass
         else:
-            print "Number of D not allowed."
+            print("Number of D not allowed.")
             break
         while True:
             try:
-                a = raw_input(querries[i])
+                a = input(querries[i])
                 if a == "":
                     break
                 elif i in [9,10,12]:

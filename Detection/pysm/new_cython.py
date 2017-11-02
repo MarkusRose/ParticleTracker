@@ -61,7 +61,7 @@ def detect_particles_deflation(img,
     img = img.astype(np.float)
     
     particles = []
-    for i in xrange(deflations):
+    for i in range(deflations):
         img_filtered = gaussian_filter_image(img, sigma)
 #        TODO: Changed testing out median filter implementation
 #        (background_mean, 
@@ -313,7 +313,7 @@ def fit_gaussians_2d(img,
     indices_row = local_max_pixels[0]
     indices_column = local_max_pixels[1]
     
-    for i in xrange(num_max_pixels):
+    for i in range(num_max_pixels):
         
         row0 = int(indices_row[i])
         col0 = int(indices_column[i])

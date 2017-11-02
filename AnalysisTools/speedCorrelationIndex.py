@@ -24,7 +24,7 @@ def readTracks(infile):
                 brt = True
                 track = []
             continue
-        track.append(np.array(map(float,line.split()[:-1])))
+        track.append(np.array(list(map(float,line.split()[:-1]))))
 
     if len(track) > 0:
         tracks.append(np.array(track))
@@ -38,9 +38,9 @@ def combineTracks(tracks):
     combtr = [np.array(lastpart)]
     for tr in tracks:
         lastpart = np.array(combtr[-1])
-        for part in xrange(1,len(tr),1):
+        for part in range(1,len(tr),1):
             outpart = []
-            for i in xrange(len(tr[0])):
+            for i in range(len(tr[0])):
                 if i < 3:
                     outpart.append(tr[part][i] - tr[0][i]+lastpart[i])
                 else:
@@ -53,9 +53,9 @@ def combineTracks(tracks):
 def sci(track,L):
     v = np.zeros((len(track)-1,3),dtype=np.float_)
     N = int(track[-1][0] - track[0][0])
-    print N
+    print(N)
     sys.stdout.flush()
-    for i in xrange(1,len(track),1):
+    for i in range(1,len(track),1):
         dt = track[i][0] - track[i-1][0]
         dx = track[i][1] - track[i-1][1]
         dy = track[i][2] - track[i-1][2]
@@ -67,9 +67,9 @@ def sci(track,L):
     CofK = []
     print("Starting")
     sys.stdout.flush()
-    for k in xrange(L):
+    for k in range(L):
         Uk = np.zeros((int((N-k)/L),2),dtype=np.float_)
-        for j in xrange(len(Uk)):
+        for j in range(len(Uk)):
             istart = j*L+k
             iend = istart + L
             iter = 0
@@ -88,17 +88,17 @@ def sci(track,L):
                     istart += 1
             if counter != 0:
                 Uk[j] = vsum/counter
-        print Uk
+        print(Uk)
         C_k = []
-        for i in xrange(L-1,N-2*L+1,1):
+        for i in range(L-1,N-2*L+1,1):
             j = int((i-k)/L)
             C_k.append((Uk[j]*Uk[j+1]).sum()/(np.linalg.norm(Uk[j])*np.linalg.norm(Uk[j+1])))
         CofK.append(np.array(C_k,dtype=np.float_))
-        print k
+        print(k)
         sys.stdout.flush()
     
     #CofK = np.array(CofK)
-    print CofK
+    print(CofK)
     sys.stdout.flush()
     return np.average(CofK,axis=0)
 
@@ -111,7 +111,7 @@ def doSCI(trackfile):
     plt.ylabel("y [px]")
     plt.show()
     C = sci(ct,1)
-    print C
+    print(C)
     plt.plot(C,'k')
     plt.show()
     return

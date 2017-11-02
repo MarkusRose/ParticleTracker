@@ -3,9 +3,9 @@ import sys
 import os
 from multiprocessing import Pool, freeze_support
 
-import AnalysisTools.driftCorrection as dc
-import AnalysisTools.hiddenMarkov as hmm
-import Detection.ctrack as ctrack
+from . import AnalysisTools.driftCorrection as dc
+from . import AnalysisTools.hiddenMarkov as hmm
+from . import Detection.ctrack as ctrack
 
 SR = 3
 

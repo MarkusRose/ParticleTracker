@@ -1,10 +1,10 @@
 import numpy as np
-import pysm.new_cython
-import readImage
-import filters
-import markPosition
+from .pysm import new_cython
+from . import readImage
+from . import filters
+from . import markPosition
 import sys
-import convertFiles
+from . import convertFiles
 from scipy import ndimage, optimize
 
 
@@ -62,10 +62,10 @@ def multiImageDetect(img,
         local_max_pixels = convertFiles.giveLocalMaxValues(convertFiles.convImageJTrack(local_max),len(img))
         
     count = 0
-    print('_' * 52)
+    print(('_' * 52))
     sys.stdout.write("[")
     sys.stdout.flush()
-    for i in xrange(len(img)):
+    for i in range(len(img)):
 
         #Read image
         image = readImage.readImage(img[i])
@@ -94,7 +94,7 @@ def multiImageDetect(img,
             continue
         else:
             a = np.zeros(image.shape)
-            for j in xrange(numAdder):
+            for j in range(numAdder):
                 a += readImage.readImage(img[i-j])
             a /= numAdder
             
@@ -320,7 +320,7 @@ def addParticleToList(particle_list,frame,row_min,row_max,col_min,col_max,fitdat
         #Create a new Particle
         #TODO:        
         #p = cparticle.CParticle()
-        p = pysm.new_cython.TempParticle()        
+        p = new_cython.TempParticle()        
         
         #TODO: Implement Particle ID
         p.frame = frame
@@ -430,8 +430,8 @@ def localMaximaMethod(gausFiltImage,local_max_window,cutoff,output):
 
 def centroidMethod(gausFiltImage,cutoff,output):
     #print 'doing centroid'
-    #for i in xrange(len(gausFiltImage)):
-    #    for j in xrange(len(gausFiltImage[i])):
+    #for i in range(len(gausFiltImage)):
+    #    for j in range(len(gausFiltImage[i])):
     #        if gausFiltImage[i,j] > 0:
     #            print gausFiltImage[i,j]
     binaryMap = (gausFiltImage > (cutoff))
@@ -465,8 +465,8 @@ def centroidMethod(gausFiltImage,cutoff,output):
     clco = 0
     countnet1 = 0
     clusters = []
-    for i in xrange(len(clusterImage)):
-        for j in xrange(len(clusterImage[i])):
+    for i in range(len(clusterImage)):
+        for j in range(len(clusterImage[i])):
             if clusterImage[i,j] == 0:
                 continue
             elif clusterImage[i,j] == -1:
@@ -499,8 +499,8 @@ def centroidMethod(gausFiltImage,cutoff,output):
         x = 0
         y = 0
         sizeOC = 0
-        for i in xrange(len(clusterImage)):
-            for j in xrange(len(clusterImage[i])):
+        for i in range(len(clusterImage)):
+            for j in range(len(clusterImage[i])):
                 if clusterImage[i,j] == clco:
                     sizeOC += 1
                     x += i
@@ -560,7 +560,7 @@ def findParticleAndAdd(image,frame,local_max_pixels,signal_power,sigma,backgroun
     outf = open(path+"/localBoxes.txt",'w')
     #print "local max pixels " + str(len(local_max_pixels[0]))
     #print "length is: ", len(local_max_pixels[0])
-    for i in xrange(len(local_max_pixels[0])):
+    for i in range(len(local_max_pixels[0])):
         #print i
         #print "setting ROI"
         #isIt = determineFittingROI(image.shape,local_max_pixels[0][i],local_max_pixels[1][i],signal_power,sigma)
@@ -611,7 +611,7 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
     outf = open(path+"/foundLocalMaxima.txt",'w')
     saverf = open(path+"/foundCentroids.txt",'a')
     saverf.write("\n\n# frame    y    x\n")
-    for i in xrange(len(local_max_pixels[0])):
+    for i in range(len(local_max_pixels[0])):
         outf.write("{:} {:} {:}\n".format(frame,local_max_pixels[0][i],local_max_pixels[1][i]))
         saverf.write("{:} {:} {:}\n".format(frame,local_max_pixels[0][i],local_max_pixels[1][i]))
 
@@ -628,14 +628,14 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
     #Check, that all possible positions were considered.
     sumparts = nunocon+nunoexc+nusigma+int(nuedge)+nupart
     if sumparts != len(local_max_pixels[0]):
-        print
-        print("Not converged:  {:5d}".format(nunocon))
-        print("Too excentric:  {:5d}".format(nunoexc))
-        print("Wrong Sigma:    {:5d}".format(nusigma))
-        print("Close to Edge:  {:5d}".format(int(nuedge)))
-        print("Appended Parts: {:5d}".format(nupart))
+        print()
+        print(("Not converged:  {:5d}".format(nunocon)))
+        print(("Too excentric:  {:5d}".format(nunoexc)))
+        print(("Wrong Sigma:    {:5d}".format(nusigma)))
+        print(("Close to Edge:  {:5d}".format(int(nuedge))))
+        print(("Appended Parts: {:5d}".format(nupart)))
         print("                +++++") 
-        print("Sum:            {:5d}".format(sumparts))
+        print(("Sum:            {:5d}".format(sumparts)))
         raise Exception("Error: Number of maxPixels not equal to processed positions.\n" +
                 "Number of Particles found: " + str(len(particle_list)))
 

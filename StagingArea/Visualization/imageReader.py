@@ -10,7 +10,7 @@ from skimage import io
 import matplotlib.pyplot as plt
 import pylab as pl
 
-from videofig import videofig
+from .videofig import videofig
 
 #io.call_plugin('imread','tifffile')
 
@@ -18,7 +18,7 @@ path = 'SimulatedImages/'
 anapath= 'Analysis/'
 
 im = io.imread(path+'SimulatedImages.tif')
-print(im.shape)
+print((im.shape))
 
 
 

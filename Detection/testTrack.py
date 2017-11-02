@@ -2,10 +2,10 @@ import numpy as np
 from PIL import Image
 
 import Detection.ctrack
-import detectParticles
-import markPosition
+from . import detectParticles
+from . import markPosition
 import main
-import convertFiles
+from . import convertFiles
 
 # Determine image properties
 size = 512
@@ -16,13 +16,13 @@ numframes = 1000
 x, y = 10,size/2
 
 def circleDrawer():
-    frames = np.array(range(numframes))
+    frames = np.array(list(range(numframes)))
     xpos = R * np.cos(omega * frames)
     ypos = R * np.sin(omega * frames)
     return frames, xpos, ypos
 
 def straightDrawer():
-    frames = np.array(range(numframes))
+    frames = np.array(list(range(numframes)))
     xpos = v*frames
     ypos = 0*frames
     return frames, xpos, ypos
@@ -33,7 +33,7 @@ def calcer(frames,xpos,ypos):
     trajectories = []
     outf = open("circle.txt", 'w')
     outf.write("#frame, xpos, ypos \n")
-    for i in xrange(len(frames)):
+    for i in range(len(frames)):
         particle = ctrack.makeParticle(frames[i],x+xpos[i],y+ypos[i],1,1,0,1)
         particle_data.append([particle])
         track.insert_particle(particle,particle.frame)
@@ -41,10 +41,10 @@ def calcer(frames,xpos,ypos):
     trajectories.append(track)
     outf.close()
     ctrack.writeTrajectories(trajectories,filename="circletrack.txt")
-    for i in xrange(len(trajectories)):
+    for i in range(len(trajectories)):
         m = markPosition.connectPositions((size,size),trajectories[i].track)
         markPosition.saveRGBImage(markPosition.convertRGBMonochrome(m,'B'),"circle{:01d}.tif".format(i))
-    print len(trajectories)
+    print(len(trajectories))
 
     return particle_data
 

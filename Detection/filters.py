@@ -1,25 +1,25 @@
-import readImage
+from . import readImage
 import matplotlib.pyplot as plt
 import numpy as np
-import markPosition as mark
+from . import markPosition as mark
 
 
 def boxcarFilter(image,boxsize=3,cutoff=1.0):
     halfsize = boxsize/2
     changed = np.zeros(image.shape)
-    for i in xrange(len(image)):
-        for j in xrange(len(image[i])):
+    for i in range(len(image)):
+        for j in range(len(image[i])):
             sum = 0
             counter = 0
             #if image[i,j] > cutoff:
             #    changed[i,j] = image[i,j]
             #    print("Pixel brighter than cutoff: " + str((i,j)))
             #    continue
-            for k in xrange(boxsize):
+            for k in range(boxsize):
                 ksaver = i+k-halfsize
                 if ksaver < 0 or ksaver >= len(image):
                     continue
-                for l in xrange(boxsize):
+                for l in range(boxsize):
                     lsaver = j+k-halfsize
                     if lsaver < 0 or lsaver >= len(image[i]):
                         continue

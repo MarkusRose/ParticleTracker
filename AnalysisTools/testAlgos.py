@@ -2,7 +2,7 @@ import numpy as np
 import math
 import random
 import Fileio
-from mcmc import logsum
+from .mcmc import logsum
 
 dr = np.array(Fileio.getTrackFile())[0][:,[1,2]]
 dr2 = dr[:,0]*dr[:,0]+dr[:,1]*dr[:,1]
@@ -19,7 +19,7 @@ def testLikely(theta):
     '''
     for step in dr2:
         elem = np.zeros((2),dtype=np.float64)
-        for i in xrange(len(D)):
+        for i in range(len(D)):
             elem[i] = math.exp(-step/(4*D[i]*tau))/(4*math.pi*D[i]*tau)
         l.append(elem[:])
     '''
@@ -28,7 +28,7 @@ def testLikely(theta):
     anew = pi * l[0]
     anolog.append(1.0*anew)
 
-    for j in xrange(1,len(dr2)):
+    for j in range(1,len(dr2)):
         anew = np.zeros((2),dtype=np.float64)
         anew[0] = ( anolog[-1][0]*(1-theta[2]) + anolog[-1][1]*theta[3] ) * l[j][0]
         #print anew[0].dtype
@@ -37,7 +37,7 @@ def testLikely(theta):
 
     #print D
     #print theta
-    #for k in xrange(len(l)):
+    #for k in range(len(l)):
     #    if l[k][0] > 1 or l[k][0] < 0:
     #        print 0, dr2[k], l[k][0]
     #    if l[k][1] > 1 or l[k][1] < 0:
@@ -46,7 +46,7 @@ def testLikely(theta):
 
     outfile = open("anolog.txt",'w')
     outfile.write("# iteration  dr[0]   dr[1]  dr2  l[0]   l[1]   anolog[0]  anolog[1] \n")
-    for i in xrange(len(dr2)):
+    for i in range(len(dr2)):
         outfile.write(str(i) + ' ' + str(dr[i,0]) + ' ' + str(dr[i,1]) + ' ')
         outfile.write(str(dr2[i]) + ' ' + str(l[i,0]) + ' ' + str(l[i,1]) + ' ')
         outfile.write(str(anolog[i][0]) + ' ' + str(anolog[i][1]) + '\n')
@@ -70,12 +70,12 @@ def testLogLikely(theta):
     try:
         anew = np.log(pi) + l[0]
     except ValueError:
-        print("pi is "+str(pi[0])+ ' ' + str(pi[1]))
+        print(("pi is "+str(pi[0])+ ' ' + str(pi[1])))
         sys.exit(1)
     alogs.append(1.0*anew)
-    print anew,alogs[0]
+    print((anew,alogs[0]))
 
-    for j in xrange(1,len(dr2)):
+    for j in range(1,len(dr2)):
         #print j
         #print anew
             
@@ -85,11 +85,11 @@ def testLogLikely(theta):
             break
         alogs.append(1.0*anew)
         #print alogs
-    print alogs[0], len(alogs)
+    print((alogs[0], len(alogs)))
 
     outfile = open("alogs.txt",'w')
     outfile.write("# iteration  dr[0]   dr[1]  dr2  l[0]   l[1]   anolog[0]  anolog[1] \n")
-    for i in xrange(len(alogs)):
+    for i in range(len(alogs)):
         outfile.write(str(i) + ' ' + str(dr[i,0]) + ' ' + str(dr[i,1]) + ' ')
         outfile.write(str(dr2[i]) + ' ' + str(l[i,0]) + ' ' + str(l[i,1]) + ' ')
         outfile.write(str(alogs[i][0]) + ' ' + str(alogs[i][1]) + '\n')
@@ -100,5 +100,5 @@ def testLogLikely(theta):
 
 
 if __name__=="__main__":
-    print testLikely([3,2,0.1,0.1])
-    print testLogLikely([3,2,0.1,0.1])
+    print((testLikely([3,2,0.1,0.1])))
+    print((testLogLikely([3,2,0.1,0.1])))

@@ -1,6 +1,6 @@
-import Detection.ctrack as ctrack
-import AnalysisTools.driftCorrection as dc
-import AnalysisTools.hiddenMarkov as hmm
+from . import Detection.ctrack as ctrack
+from . import AnalysisTools.driftCorrection as dc
+from . import AnalysisTools.hiddenMarkov as hmm
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.collections import LineCollection
@@ -104,8 +104,8 @@ class markovChain(object):
         self.id.fill('00000000')
 
     def readData(self,hmmlist):
-        for i in xrange(len(hmmlist)):
-            for j in xrange(len(hmmlist[i])):
+        for i in range(len(hmmlist)):
+            for j in range(len(hmmlist[i])):
                 if j ==9:
                     self.id[i] = hmmlist[i][j]
                 else:
@@ -124,7 +124,7 @@ def readInFile(filename):
             header = line[:]
             continue
         saver = line.split()
-        for i in xrange(len(saver)):
+        for i in range(len(saver)):
             if i==9:
                 td.append(saver[i])
             elif i == 8:
@@ -200,7 +200,7 @@ if __name__=="__main__":
         driftdispl += list(tr[0])
     driftdispl = np.sqrt(displ)
 
-    print("Maximum = {:} and Minimum = {:}".format(displ.max(),displ.min()))
+    print(("Maximum = {:} and Minimum = {:}".format(displ.max(),displ.min())))
     print("Plotting now")
     sys.stdout.flush()
 
@@ -372,7 +372,7 @@ if __name__=="__main__":
     for index in indeces[0][0]:
         tra = np.array(tracks[index].track[np.invert(np.isnan(tracks[index].track['x']))])
         if len(tra) == 0:
-            print "We have a problem here: long track length short"
+            print("We have a problem here: long track length short")
             continue
         z = tra['frame']-tra[0]['frame']
         x = tra['x']
@@ -394,7 +394,7 @@ if __name__=="__main__":
         print("Create plots of Tracks? [y,N]  ")
         sys.stdout.flush()
 
-    userinput = raw_input("Create plots of Tracks? [y,N]  ") 
+    userinput = input("Create plots of Tracks? [y,N]  ") 
     num = 0
     plt.ioff()
     plt.show()
@@ -402,7 +402,7 @@ if __name__=="__main__":
     if userinput == 'y':
         num = 2
 
-        for i in xrange(len(indeces)):
+        for i in range(len(indeces)):
             spng = os.path.join(savepng,"Box-{:}".format(i))
             if not os.path.isdir(spng):
                 os.mkdir(spng)
@@ -412,7 +412,7 @@ if __name__=="__main__":
             while j < len(indeces[i][0]):
                 if hmmdata.id[indeces[i][0][j]] != tracks[indeces[i][0][j]+difference].id:
                     difference += 1
-                    print("Problem! {:}".format(hmmdata.id[indeces[i][0][j]]))
+                    print(("Problem! {:}".format(hmmdata.id[indeces[i][0][j]])))
                     continue
                 fig3 = plt.figure()
                 ax3 = fig3.add_subplot(111, aspect='equal')
@@ -442,7 +442,7 @@ if __name__=="__main__":
                 plt.savefig("temp{:}.png".format(j))
                 #plt.draw()
                 plt.close(fig3)
-                print("Done {:}-{:}".format(i,j))
+                print(("Done {:}-{:}".format(i,j)))
                 j += 1
 
         #drift
@@ -481,7 +481,7 @@ if __name__=="__main__":
             plt.savefig("cd{:}.png".format(counter))
             #plt.draw()
             plt.close(fig3)
-            print("Done {:}-{:}".format(0,counter))
+            print(("Done {:}-{:}".format(0,counter)))
 
 
 

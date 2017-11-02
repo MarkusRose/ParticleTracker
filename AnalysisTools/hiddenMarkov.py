@@ -33,7 +33,7 @@ def readHMMData(filename):
             header = line[:]
             continue
         saver = line.split()
-        for i in xrange(len(saver)):
+        for i in range(len(saver)):
             if i==9:
                 td.append(saver[i])
             else:
@@ -73,12 +73,12 @@ def displacements(tracks):
         y_prev = np.nan
         time_dis = 1
         part_id = track.id
-        for i in xrange(len(track.track)):
+        for i in range(len(track.track)):
             x = track.track[i]['x']
             y = track.track[i]['y']
             if not (np.isnan(x) or np.isnan(y)):
                 if not (np.isnan(x_prev) or np.isnan(y_prev)):
-                    for k in xrange(time_dis):
+                    for k in range(time_dis):
                         single_disp.append(np.array([(x-x_prev)/time_dis,(y-y_prev)/time_dis]))
                 x_prev = x
                 y_prev = y
@@ -131,8 +131,8 @@ def loglikelihood(theta, rsquared, tau):
   # Compute forward variable alpha (algorithm 2 - Das et al)
   logalpha = np.empty_like(loglike)
   logalpha[0,:] = logstatprob + loglike[0,:]
-  for j in xrange(1, nsteps):
-    logalpha[j,:] = map(logsum, logalpha[j-1,0] + logtransprob[0,:], logalpha[j-1,1] + logtransprob[1,:]) + loglike[j, :]
+  for j in range(1, nsteps):
+    logalpha[j,:] = list(map(logsum, logalpha[j-1,0] + logtransprob[0,:], logalpha[j-1,1] + logtransprob[1,:])) + loglike[j, :]
   return logsum(logalpha[-1,0], logalpha[-1, 1])
 
 
@@ -149,18 +149,18 @@ def segmentstate(theta, rsquared, particleID, tau=1.):
     # Compute forward variable alpha (algorithm 2 - Das et al)
     logalpha = np.empty_like(loglike)
     logalpha[0,:] = logstatprob + loglike[0,:]
-    for j in xrange(1, nsteps):
-        logalpha[j,:] = map(logsum, logalpha[j-1,0] + logtransprob[0,:], logalpha[j-1,1] + logtransprob[1,:]) + loglike[j, :]
+    for j in range(1, nsteps):
+        logalpha[j,:] = list(map(logsum, logalpha[j-1,0] + logtransprob[0,:], logalpha[j-1,1] + logtransprob[1,:])) + loglike[j, :]
     # Compute backward variable beta (algorithm 5 - Das et al)
     logbeta = np.empty_like(loglike)
     logbeta[nsteps-1,:] = [0,0]
-    for j in xrange(1,nsteps,1):
-        logbeta[nsteps-1-j,:] = map(logsum, logtransprob[:,0] + logbeta[nsteps-j,0] + loglike[nsteps-j,0], logtransprob[:,1] + logbeta[nsteps-j,1] + loglike[nsteps-j,1])
+    for j in range(1,nsteps,1):
+        logbeta[nsteps-1-j,:] = list(map(logsum, logtransprob[:,0] + logbeta[nsteps-j,0] + loglike[nsteps-j,0], logtransprob[:,1] + logbeta[nsteps-j,1] + loglike[nsteps-j,1]))
     stateprob = np.empty_like(loglike)
-    for j in xrange(nsteps):
+    for j in range(nsteps):
         stateprob[j,:] = logalpha[j,:] * logbeta[j,:]
     statemap = np.zeros((nsteps))
-    for j in xrange(nsteps):
+    for j in range(nsteps):
         if stateprob[j,0] < stateprob[j,1]:
             statemap[j] = 1
     return statemap
@@ -181,8 +181,8 @@ def doMetropolisOrig(dr2,particleID,MCsteps=10000,path='.'):
     outf = open(path+"/hmmTrackAnalyzed-{:}.txt".format(particleID),'w')
     outf.write("# L logD1 LogD2 p12 p21 n\n")
 
-    for i in xrange(int(np.floor(MCsteps/4.))):
-        for k in xrange(4):
+    for i in range(int(np.floor(MCsteps/4.))):
+        for k in range(4):
             l = 4*i + k
             #print l
             sys.stdout.flush()
@@ -234,7 +234,7 @@ def runHiddenMarkov(tracks,MCMC=10000,ID=3,path='.'):
         thetaMean = [np.mean(D1[averagingStart:]),np.mean(D2[averagingStart:]),np.mean(p12[averagingStart:]), np.mean(p21[averagingStart:])]
         thetaSTD = [np.std(D1[averagingStart:]),np.std(D2[averagingStart:]),np.std(p12[averagingStart:]), np.std(p21[averagingStart:])]
         Thetas.append(thetaMean + thetaSTD + [r2[1]])
-        print thetaMean
+        print(thetaMean)
         
         statemap = segmentstate(thetaMean, r2[0],r2[1])
         trackout = open(path+"/hmmTrackstates-{:}.txt".format(r2[1]),'w')
@@ -244,7 +244,7 @@ def runHiddenMarkov(tracks,MCMC=10000,ID=3,path='.'):
     date = strftime("%Y%m%d-%H%M%S")
     outthetaf = open(path+"/../hmmAveragedData-ID{:}_{:}.txt".format(ID,date),'w')
     outthetaf.write("#  D1 D2 p12 p21 stds: D1 D2 p12 p21 tracklength particle-ID\n")
-    for i in xrange(len(Thetas)):
+    for i in range(len(Thetas)):
         counter = 0
         for elem in Thetas[i]:
             if counter != 8:
@@ -268,7 +268,7 @@ def doHMM(trackfile,montecarlo=10000,SR=3):
         os.mkdir(path)
     if not os.path.isdir(subpath):
         os.mkdir(subpath)
-    print path
+    print(path)
     sys.stdout.flush()
 
     print("Running HMM")

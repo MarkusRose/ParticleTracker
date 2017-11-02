@@ -143,9 +143,9 @@ def cleanTracksFile(tracks):
 def relativeStpng(track):
     relstpng = []
 
-    for i in xrange(1,len(track),1):
+    for i in range(1,len(track),1):
         saver = []
-        for j in xrange(3):
+        for j in range(3):
             saver.append(track[i][j] - track[i-1][j])
         relstpng.append(np.array(saver))
 
@@ -153,12 +153,12 @@ def relativeStpng(track):
 
 def r2distro(relstpng):
     r2 = []
-    for i in xrange(min(20,len(relstpng))):
+    for i in range(min(20,len(relstpng))):
         saver = []
-        for j in xrange(len(relstpng)-i):
+        for j in range(len(relstpng)-i):
             dx = 0
             dy = 0
-            for k in xrange(i+1):
+            for k in range(i+1):
                 dx += relstpng[j+k][1]/relstpng[j+k][0]
                 dy += relstpng[j+k][2]/relstpng[j+k][0]
             saver.append(dx**2+dy**2)
@@ -168,12 +168,12 @@ def r2distro(relstpng):
 
 def displacementDistro(relstpng):
     displ = []
-    for i in xrange(min(20,len(relstpng))):
+    for i in range(min(20,len(relstpng))):
         saver = []
-        for j in xrange(len(relstpng)-i):
+        for j in range(len(relstpng)-i):
             dx = 0
             dy = 0
-            for k in xrange(i+1):
+            for k in range(i+1):
                 dx += relstpng[j+k][1]/relstpng[j+k][0]
                 dy += relstpng[j+k][2]/relstpng[j+k][0]
             saver.append(dx)
@@ -189,12 +189,12 @@ def msd(track,length=500):
     if l > len(track):
         l = len(track)
 
-    for n in xrange(1,l,1):
+    for n in range(1,l,1):
         msdsave = 0
         possave = []
 
-        for i in xrange(len(track)):
-            for j in xrange(i+1,len(track)):
+        for i in range(len(track)):
+            for j in range(i+1,len(track)):
                 dt = track[j,0] - track[i,0]
 
                 if dt < n:
@@ -331,7 +331,7 @@ def findDiffConsts(msd):
 #==== Helper functions =====================
 def tenLongTracks(tracks):
     tlTs = range(10)
-    for i in xrange(10,len(tracks)):
+    for i in range(10,len(tracks)):
         c = 0
         while (c < 10) and (len(tracks[i]) > len(tracks[tlTs[c]])):
             c += 1
@@ -341,7 +341,7 @@ def tenLongTracks(tracks):
         
 def tenMediumTracks(tracks):
     tmtl = []
-    for i in xrange(len(tracks)):
+    for i in range(len(tracks)):
         if len(tracks[i]) >=10 and len(tracks[i])<20:
             tmtl.append(i)
         #if len(tmtl) > 10:
@@ -398,7 +398,7 @@ def diffConstDistrib(tracks,trid):
     else:
         ofopen = open("singleStateAnalysis.txt",'w')
         ofopen.write("Dlen D id\n".format(Dlist[i],trid[i]))
-        for i in xrange(len(trid)):
+        for i in range(len(trid)):
             ofopen.write("{:} {:} {:}\n".format(Dlist[i][0],Dlist[i][1],trid[i]))
     print ">>>> The average diffusion coefficient is: " + str(Dlist.mean()*Dfactor) + " +- " + str(Dlist.std()*Dfactor) + " um^2/s"
     print "........(finding the lengths of the single tracks)"
@@ -439,7 +439,7 @@ def diffConstDistrib(tracks,trid):
     bincount = 1
     Dmean = np.zeros((3,nubin))
     Dmean[0] = np.arange(nubin)*wbin+wbin/2+lenhist[1][0]
-    for i in xrange(len(Dlist)):
+    for i in range(len(Dlist)):
         bincount = 1
         while Dlist[i,0] > bincount * wbin+lenhist[1][0]:
             bincount+=1
@@ -449,7 +449,7 @@ def diffConstDistrib(tracks,trid):
                 break
         Dmean[1,bincount-1] += 1
         Dmean[2,bincount-1] += Dlist[i,1]
-    for i in xrange(len(Dmean[0])):
+    for i in range(len(Dmean[0])):
         if Dmean[1,i] == 0:
             continue
         Dmean[2,i] = Dmean[2,i]/Dmean[1,i]
@@ -474,9 +474,9 @@ def combineTracks(tracks):
     combtr = [np.array(lastpart)]
     for tr in tracks:
         lastpart = np.array(combtr[-1])
-        for part in xrange(1,len(tr),1):
+        for part in range(1,len(tr),1):
             outpart = []
-            for i in xrange(len(tr[0])):
+            for i in range(len(tr[0])):
                 if i < 3:
                     outpart.append(tr[part][i] - tr[0][i]+lastpart[i])
                 else:
@@ -619,7 +619,7 @@ if __name__ == "__main__":
 #=== unused =======================
 def minimumEndToEnd(tracks):
     minEE = []
-    for i in xrange(len(tracks)):
+    for i in range(len(tracks)):
         if endToEnd2(tracks[i]) > 400:
             minEE.append([i,endToEnd2(tracks[i])])
     return minEE
@@ -638,7 +638,7 @@ def oldmain(tracks):
     alldiffs = findDiffConsts(allmsds)
     print "Mean of all tracks: " + str(alldiffs.mean()) + " +- " + str(alldiffs.std())
     allmsds = []
-    for i in xrange(len(subTracks)):
+    for i in range(len(subTracks)):
         allmsds.append(msd(subTracks[i]))
 
     alldiffs = findDiffConsts(allmsds)
@@ -650,7 +650,7 @@ def oldmain(tracks):
     print diffconstant
 
 
-    for i in xrange(len(subTracks)):
+    for i in range(len(subTracks)):
         plotTrack(subTracks[i])
         plotMSD(firstmsd[i],diffconstant[i][1])
 

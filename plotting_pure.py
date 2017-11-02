@@ -1,6 +1,6 @@
-import Detection.ctrack as ctrack
-import AnalysisTools.driftCorrection as dc
-import AnalysisTools.hiddenMarkov as hmm
+from . import Detection.ctrack as ctrack
+from . import AnalysisTools.driftCorrection as dc
+from . import AnalysisTools.hiddenMarkov as hmm
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.collections import LineCollection
@@ -91,7 +91,7 @@ if __name__=="__main__":
         displ += list(tr[0])
     displ = np.sqrt(displ)
 
-    print("Maximum = {:} and Minimum = {:}".format(displ.max(),displ.min()))
+    print(("Maximum = {:} and Minimum = {:}".format(displ.max(),displ.min())))
     print("Plotting now")
     sys.stdout.flush()
 
@@ -107,7 +107,7 @@ if __name__=="__main__":
         print("Create plots of Tracks? [y,N]  ")
         sys.stdout.flush()
 
-    userinput = raw_input("Create plots of Tracks? [y,N]  ") 
+    userinput = input("Create plots of Tracks? [y,N]  ") 
     num = 0
     plt.ioff()
     plt.show()
@@ -151,7 +151,7 @@ if __name__=="__main__":
             plt.savefig("cd{:}.png".format(counter))
             #plt.draw()
             plt.close(fig3)
-            print("Done {:}-{:}".format(0,counter))
+            print(("Done {:}-{:}".format(0,counter)))
 
 
 

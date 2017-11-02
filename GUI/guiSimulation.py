@@ -1,19 +1,29 @@
-import Tkinter
-import tkMessageBox
-import tkFileDialog
+try:
+    import tkinter as tk
+    import tkinter.messagebox
+    import tkinter.filedialog
+except ImportError:
+    import tkinter as tk
+    from tkinter import filedialog
+    from tkinter import messagebox
+    from tkinter import ttk
+
 import System.Fileio
 import Simulation.enzymeDiffuser
 import time
 import threading
-import Queue
+try: 
+    import queue
+except ImportError:
+    import queue as Queue
 import os
 import sys
 
-class Simulation_App(Tkinter.Frame):
+class Simulation_App(tk.Frame):
     
 
     def __init__(self,parent):
-        Tkinter.Frame.__init__(self,parent)
+        tk.Frame.__init__(self,parent)
         self.parent = parent
         self.initVars()
         self.initialyze()
@@ -22,47 +32,47 @@ class Simulation_App(Tkinter.Frame):
 
     
     def initVars(self):
-        self.diff1Var = Tkinter.StringVar()
-        self.diff2Var = Tkinter.StringVar()
-        self.diff3Var = Tkinter.StringVar()
+        self.diff1Var = tk.StringVar()
+        self.diff2Var = tk.StringVar()
+        self.diff3Var = tk.StringVar()
         self.diff1Var.set("3.0")
         self.diff2Var.set("n/a")
         self.diff3Var.set("n/a")
-        self.prob12 = Tkinter.StringVar()
-        self.prob21 = Tkinter.StringVar()
-        self.prob13 = Tkinter.StringVar()
-        self.prob31 = Tkinter.StringVar()
-        self.prob23 = Tkinter.StringVar()
-        self.prob32 = Tkinter.StringVar()
+        self.prob12 = tk.StringVar()
+        self.prob21 = tk.StringVar()
+        self.prob13 = tk.StringVar()
+        self.prob31 = tk.StringVar()
+        self.prob23 = tk.StringVar()
+        self.prob32 = tk.StringVar()
         self.prob12.set("0.0")
         self.prob21.set("1.0")
         self.prob13.set("0.0")
         self.prob23.set("0.0")
         self.prob31.set("1.0")
         self.prob32.set("0.0")
-        self.numframesVar = Tkinter.StringVar()
+        self.numframesVar = tk.StringVar()
         self.numframesVar.set("10")
-        self.numPartVar = Tkinter.StringVar()
+        self.numPartVar = tk.StringVar()
         self.numPartVar.set("10")
-        self.tauVar = Tkinter.StringVar()
+        self.tauVar = tk.StringVar()
         self.tauVar.set("0.1")
-        self.frameLengthVar = Tkinter.StringVar()
+        self.frameLengthVar = tk.StringVar()
         self.frameLengthVar.set("512")
-        self.lambdaVar = Tkinter.StringVar()
+        self.lambdaVar = tk.StringVar()
         self.lambdaVar.set("700")
-        self.pixsizeVar = Tkinter.StringVar()
+        self.pixsizeVar = tk.StringVar()
         self.pixsizeVar.set("16")
-        self.naVar = Tkinter.StringVar()
+        self.naVar = tk.StringVar()
         self.naVar.set("1.45")
-        self.magnifVar = Tkinter.StringVar()
+        self.magnifVar = tk.StringVar()
         self.magnifVar.set("100")
-        self.backgroundVar = Tkinter.StringVar()
+        self.backgroundVar = tk.StringVar()
         self.backgroundVar.set("500")
-        self.backnoiseVar = Tkinter.StringVar()
+        self.backnoiseVar = tk.StringVar()
         self.backnoiseVar.set("100")
-        self.intensityVar = Tkinter.StringVar()
+        self.intensityVar = tk.StringVar()
         self.intensityVar.set("1000")
-        self.saveDir = Tkinter.StringVar()
+        self.saveDir = tk.StringVar()
         self.saveDir.set(".")
 
     def checkVars(self):
@@ -70,24 +80,24 @@ class Simulation_App(Tkinter.Frame):
             #Check diff Constants and number of states
             if int(self.numStates.get()) >=3:
                 if (self.diff3Var.get() == "n/a" or float(self.diff3Var.get()) < 0):
-                    tkMessageBox.showerror("D3 false", "Third Diffusion coefficient does not match!")
+                    tkinter.messagebox.showerror("D3 false", "Third Diffusion coefficient does not match!")
                     return False
                 if ((self.prob13.get() == "0.0" or float(self.prob13.get()) <=0 or float(self.prob13.get()) >=1) or
                     (self.prob23.get() == "0.0" or float(self.prob23.get()) <=0 or float(self.prob23.get()) >=1) or
                     (self.prob31.get() == "0.0" or float(self.prob31.get()) <=0 or float(self.prob31.get()) >=1) or
                     (self.prob32.get() == "0.0" or float(self.prob32.get()) <=0 or float(self.prob32.get()) >=1)):
-                    tkMessageBox.showerror("Probs false", "Transition probatilities concerning the third diffusion coefficient do not match number of states!")
+                    tkinter.messagebox.showerror("Probs false", "Transition probatilities concerning the third diffusion coefficient do not match number of states!")
                     return False
             if int(self.numStates.get()) >=2:
                 if (self.diff2Var.get() == "n/a" or float(self.diff2Var.get()) < 0):
-                    tkMessageBox.showerror("D2 false", "Second Diffusion coefficient does not match!")
+                    tkinter.messagebox.showerror("D2 false", "Second Diffusion coefficient does not match!")
                     return False
                 if ((self.prob12.get() == "0.0" or float(self.prob12.get()) <=0 or float(self.prob12.get()) >=1) or
                     (self.prob21.get() == "0.0" or float(self.prob21.get()) <=0 or float(self.prob21.get()) >=1)):
-                    tkMessageBox.showerror("Probs false", "Transition probatilities concerning the first and second diffusion coefficient do not match number of states!")
+                    tkinter.messagebox.showerror("Probs false", "Transition probatilities concerning the first and second diffusion coefficient do not match number of states!")
                     return False
             if (len(self.diff1Var.get()) == 0 or float(self.diff1Var.get()) < 0):
-                tkMessageBox.showerror("D1 false", "First Diffusion coefficient does not match!")
+                tkinter.messagebox.showerror("D1 false", "First Diffusion coefficient does not match!")
                 return False
             if int(self.numStates.get()) == 2:
                 self.diff3Var.set("0.0")
@@ -108,43 +118,43 @@ class Simulation_App(Tkinter.Frame):
             
             #Check number of frames, particles
             if int(self.numframesVar.get()) < 1:
-                tkMessageBox.showerror("Wrong Framenumber", "Number of Frames must be larger than 0.")
+                tkinter.messagebox.showerror("Wrong Framenumber", "Number of Frames must be larger than 0.")
                 return False
             if int(self.numPartVar.get()) < 1:
-                tkMessageBox.showerror("Wrong Particle Number", "Number of particles must be larger than 0!")
+                tkinter.messagebox.showerror("Wrong Particle Number", "Number of particles must be larger than 0!")
                 return False
             
             #Test wavelength, acquisition time, NA, magnification
             if float(self.tauVar.get()) <= 0:
-                tkMessageBox.showerror("A.Time","Acquisition time has to be larger than 0.")
+                tkinter.messagebox.showerror("A.Time","Acquisition time has to be larger than 0.")
                 return False
             if float(self.lambdaVar.get()) <= 0:
-                tkMessageBox.showerror("Wavelength", "Wavelength must be larger than 0.")
+                tkinter.messagebox.showerror("Wavelength", "Wavelength must be larger than 0.")
                 return False
             if float(self.naVar.get()) <=0:
-                tkMessageBox.showerror("NA","Numerical aperture must be larger than 0.")
+                tkinter.messagebox.showerror("NA","Numerical aperture must be larger than 0.")
                 return False
             if float(self.magnifVar.get()) <= 0:
-                tkMessageBox.showerror("Magnification", "Magnification must be larger than 0.")
+                tkinter.messagebox.showerror("Magnification", "Magnification must be larger than 0.")
                 return False
 
             #Image properties: frame length, pixel size, signal to noise, intensity
             if int(self.frameLengthVar.get()) <= 1:
-                tkMessageBox.showerror("# of Pixels", "Number of Pixels must be larger than 1.")
+                tkinter.messagebox.showerror("# of Pixels", "Number of Pixels must be larger than 1.")
                 return False
             if float(self.pixsizeVar.get()) <= 0:
-                tkMessageBox.showerror("Pixel size", "Pixels must have a size larget than 0.")
+                tkinter.messagebox.showerror("Pixel size", "Pixels must have a size larget than 0.")
                 return False
             if float(self.backgroundVar.get()) < 0:
-                tkMessageBox.showerror("Background", "Background cannot be negative.")
+                tkinter.messagebox.showerror("Background", "Background cannot be negative.")
                 return False
             if float(self.backnoiseVar.get()) <= 0:
-                tkMessageBox.showerror("Background noise", "Background noise must be larger than 0.")
+                tkinter.messagebox.showerror("Background noise", "Background noise must be larger than 0.")
                 return False
             if float(self.intensityVar.get()) <= 0:
-                tkMessageBox.showerror("Intensity", "Intensity must be larger than 0.")
+                tkinter.messagebox.showerror("Intensity", "Intensity must be larger than 0.")
         except ValueError:
-            tkMessageBox.showerror("NaN","Some entry is not a number!")
+            tkinter.messagebox.showerror("NaN","Some entry is not a number!")
             return False
         
         return True
@@ -155,56 +165,56 @@ class Simulation_App(Tkinter.Frame):
         
         #All text inputs
         #Number of States
-        numStatesLabel = Tkinter.Label(self, text=u"Number of States")
+        numStatesLabel = tk.Label(self, text="Number of States")
         numStatesLabel.grid(column=0,row=0,sticky="EW")
-        self.numStates= Tkinter.Spinbox(self, from_=1, to=3)
+        self.numStates= tk.Spinbox(self, from_=1, to=3)
         self.numStates.grid(column=1,row=0,sticky="EW")
         #Diffconsts
-        diffFrame = Tkinter.Frame(self)
-        numDiffButton = Tkinter.Button(diffFrame, text=u"Set Diff.Const.", command=self.setDiffs)
+        diffFrame = tk.Frame(self)
+        numDiffButton = tk.Button(diffFrame, text="Set Diff.Const.", command=self.setDiffs)
         numDiffButton.grid(column=0,row=0, sticky="EW")
-        l1 = Tkinter.Label(diffFrame,text="D1 = ")
+        l1 = tk.Label(diffFrame,text="D1 = ")
         l1.grid(column = 1, row = 0)
-        d1 = Tkinter.Label(diffFrame,textvariable=self.diff1Var)
+        d1 = tk.Label(diffFrame,textvariable=self.diff1Var)
         d1.grid(column = 2, row = 0)
-        l1l = Tkinter.Label(diffFrame,text=" um^2/s")
+        l1l = tk.Label(diffFrame,text=" um^2/s")
         l1l.grid(column = 3, row = 0, sticky = "E")
-        l2 = Tkinter.Label(diffFrame,text="D2 = ")
+        l2 = tk.Label(diffFrame,text="D2 = ")
         l2.grid(column = 1, row = 1)
-        d2 = Tkinter.Label(diffFrame,textvariable=self.diff2Var)
+        d2 = tk.Label(diffFrame,textvariable=self.diff2Var)
         d2.grid(column = 2, row = 1)
-        l2l = Tkinter.Label(diffFrame,text=" um^2/s")
+        l2l = tk.Label(diffFrame,text=" um^2/s")
         l2l.grid(column = 3, row = 1, sticky = "E")
-        l3 = Tkinter.Label(diffFrame,text="D3 = ")
+        l3 = tk.Label(diffFrame,text="D3 = ")
         l3.grid(column = 1, row = 2)
-        d3 = Tkinter.Label(diffFrame,textvariable=self.diff3Var)
+        d3 = tk.Label(diffFrame,textvariable=self.diff3Var)
         d3.grid(column = 2, row = 2)
-        l3l = Tkinter.Label(diffFrame,text=" um^2/s")
+        l3l = tk.Label(diffFrame,text=" um^2/s")
         l3l.grid(column = 3, row = 2, sticky ="E")
 
-        d12l = Tkinter.Label(diffFrame,text="p12 = ")
+        d12l = tk.Label(diffFrame,text="p12 = ")
         d12l.grid(column=4, row=0)
-        d21l = Tkinter.Label(diffFrame,text="p21 = ")
+        d21l = tk.Label(diffFrame,text="p21 = ")
         d21l.grid(column=4, row=1)
-        d13l = Tkinter.Label(diffFrame,text="p13 = ")
+        d13l = tk.Label(diffFrame,text="p13 = ")
         d13l.grid(column=4, row=2)
-        d23l = Tkinter.Label(diffFrame,text="p23 = ")
+        d23l = tk.Label(diffFrame,text="p23 = ")
         d23l.grid(column=6, row=0)
-        d31l = Tkinter.Label(diffFrame,text="p31 = ")
+        d31l = tk.Label(diffFrame,text="p31 = ")
         d31l.grid(column=6, row=1)
-        d32l = Tkinter.Label(diffFrame,text="p32 = ")
+        d32l = tk.Label(diffFrame,text="p32 = ")
         d32l.grid(column=6, row=2)
-        d12 = Tkinter.Label(diffFrame, textvariable=self.prob12)
+        d12 = tk.Label(diffFrame, textvariable=self.prob12)
         d12.grid(column=5, row=0)
-        d21 = Tkinter.Label(diffFrame, textvariable=self.prob21)
+        d21 = tk.Label(diffFrame, textvariable=self.prob21)
         d21.grid(column=5, row=1)
-        d13 = Tkinter.Label(diffFrame, textvariable=self.prob13)
+        d13 = tk.Label(diffFrame, textvariable=self.prob13)
         d13.grid(column=5, row=2)
-        d23 = Tkinter.Label(diffFrame, textvariable=self.prob23)
+        d23 = tk.Label(diffFrame, textvariable=self.prob23)
         d23.grid(column=7, row=0)
-        d31 = Tkinter.Label(diffFrame, textvariable=self.prob31)
+        d31 = tk.Label(diffFrame, textvariable=self.prob31)
         d31.grid(column=7, row=1)
-        d32 = Tkinter.Label(diffFrame, textvariable=self.prob32)
+        d32 = tk.Label(diffFrame, textvariable=self.prob32)
         d32.grid(column=7, row=2)
         diffFrame.grid(column=0,row=1,rowspan=1, columnspan=3, sticky="EW")
         diffFrame.grid_columnconfigure(2,weight=1)
@@ -213,124 +223,124 @@ class Simulation_App(Tkinter.Frame):
 
         
         #Number of frames
-        numframesLabel = Tkinter.Label(self, text=u"Number of Frames")
+        numframesLabel = tk.Label(self, text="Number of Frames")
         numframesLabel.grid(column=0,row=4,sticky="EW")
-        numframesText = Tkinter.Entry(self, textvariable=self.numframesVar)
+        numframesText = tk.Entry(self, textvariable=self.numframesVar)
         numframesText.grid(column=1,row=4, sticky="EW")
         #Number of Particles
-        numPartLabel = Tkinter.Label(self, text=u"Number of Particles")
+        numPartLabel = tk.Label(self, text="Number of Particles")
         numPartLabel.grid(column=0,row=5,sticky="EW")
-        numPartText = Tkinter.Entry(self, textvariable=self.numPartVar)
+        numPartText = tk.Entry(self, textvariable=self.numPartVar)
         numPartText.grid(column=1,row=5, sticky="EW")
         #Acquisition time
-        tauLabel = Tkinter.Label(self,text=u"Acquisition Time [s]")
+        tauLabel = tk.Label(self,text="Acquisition Time [s]")
         tauLabel.grid(column=0,row=6,sticky="EW")
-        tauText = Tkinter.Entry(self, textvariable=self.tauVar)
+        tauText = tk.Entry(self, textvariable=self.tauVar)
         tauText.grid(column=1,row=6, sticky="EW")
         #Frame dimension a (a x a pixels)
-        frameLengthLabel = Tkinter.Label(self,text=u"Frame height and width [pixels]")
+        frameLengthLabel = tk.Label(self,text="Frame height and width [pixels]")
         frameLengthLabel.grid(column=0,row=7,sticky="EW")
-        frameLengthText = Tkinter.Entry(self, textvariable=self.frameLengthVar)
+        frameLengthText = tk.Entry(self, textvariable=self.frameLengthVar)
         frameLengthText.grid(column=1,row=7, sticky="EW")
         #Wavelength
-        lambdaLabel = Tkinter.Label(self,text=u"Wavelength [nm]")
+        lambdaLabel = tk.Label(self,text="Wavelength [nm]")
         lambdaLabel.grid(column=0,row=8,sticky="EW")
-        lambdaText = Tkinter.Entry(self, textvariable=self.lambdaVar)
+        lambdaText = tk.Entry(self, textvariable=self.lambdaVar)
         lambdaText.grid(column=1,row=8, sticky="EW")
         #Pixelsize
-        pixsizeLabel = Tkinter.Label(self,text=u"Pixelsize [um]")
+        pixsizeLabel = tk.Label(self,text="Pixelsize [um]")
         pixsizeLabel.grid(column=0,row=9,sticky="EW")
-        pixsizeText = Tkinter.Entry(self, textvariable=self.pixsizeVar)
+        pixsizeText = tk.Entry(self, textvariable=self.pixsizeVar)
         pixsizeText.grid(column=1,row=9, sticky="EW")
         #NA
-        naLabel = Tkinter.Label(self,text=u"Numerical Aperture")
+        naLabel = tk.Label(self,text="Numerical Aperture")
         naLabel.grid(column=0,row=10,sticky="EW")
-        naText = Tkinter.Entry(self, textvariable=self.naVar)
+        naText = tk.Entry(self, textvariable=self.naVar)
         naText.grid(column=1,row=10, sticky="EW")
         #Magnification
-        magnifLabel = Tkinter.Label(self,text=u"Magnification")
+        magnifLabel = tk.Label(self,text="Magnification")
         magnifLabel.grid(column=0,row=11,sticky="EW")
-        magnifText = Tkinter.Entry(self, textvariable=self.magnifVar)
+        magnifText = tk.Entry(self, textvariable=self.magnifVar)
         magnifText.grid(column=1,row=11, sticky="EW")
         #Background
-        backgroundLabel = Tkinter.Label(self,text=u"Background mean")
+        backgroundLabel = tk.Label(self,text="Background mean")
         backgroundLabel.grid(column=0,row=12,sticky="EW")
-        backgroundText = Tkinter.Entry(self, textvariable=self.backgroundVar)
+        backgroundText = tk.Entry(self, textvariable=self.backgroundVar)
         backgroundText.grid(column=1,row=12, sticky="EW")
         #Background noise
-        backnoiseLabel = Tkinter.Label(self,text=u"Background noise")
+        backnoiseLabel = tk.Label(self,text="Background noise")
         backnoiseLabel.grid(column=0,row=13,sticky="EW")
-        backnoiseText = Tkinter.Entry(self, textvariable=self.backnoiseVar)
+        backnoiseText = tk.Entry(self, textvariable=self.backnoiseVar)
         backnoiseText.grid(column=1,row=13, sticky="EW")
         #Intensity
-        intensityLabel = Tkinter.Label(self,text=u"Intensity")
+        intensityLabel = tk.Label(self,text="Intensity")
         intensityLabel.grid(column=0,row=14,sticky="EW")
-        intensityText = Tkinter.Entry(self, textvariable=self.intensityVar)
+        intensityText = tk.Entry(self, textvariable=self.intensityVar)
         intensityText.grid(column=1,row=14, sticky="EW")
 
     
         #output directory location
-        dirButton = Tkinter.Button(self, text="Output Location", command = lambda:self.saveDir.set(tkFileDialog.askdirectory()))
+        dirButton = tk.Button(self, text="Output Location", command = lambda:self.saveDir.set(tkinter.filedialog.askdirectory()))
         dirButton.grid(column=0, row=15, sticky='W')
-        directoryLabel = Tkinter.Entry(self,textvariable=self.saveDir)
+        directoryLabel = tk.Entry(self,textvariable=self.saveDir)
         directoryLabel.grid(column=1,row=15)
 
 
         #Save settings and run simulation or cancel with buttons
-        runButton = Tkinter.Button(self, text=u"Save & Run", command=self.runcomm)
+        runButton = tk.Button(self, text="Save & Run", command=self.runcomm)
         runButton.grid(column=2,row=12, sticky="EW")
-        cancelButton = Tkinter.Button(self, text=u"Cancel", command=self.parent.destroy)
+        cancelButton = tk.Button(self, text="Cancel", command=self.parent.destroy)
         cancelButton.grid(column=2,row=13, sticky="EW")
 
         self.grid_columnconfigure(1,weight=1)
         
 
     def setDiffs(self):
-        fra = Tkinter.Toplevel(self)
+        fra = tk.Toplevel(self)
         fra.wm_title("Diffusion Constants")
         fra.grid()
         #D1
-        diff1Label = Tkinter.Label(fra, text=u"Diff const 1 [um^2/s]")
+        diff1Label = tk.Label(fra, text="Diff const 1 [um^2/s]")
         diff1Label.grid(column=0,row=1,sticky="EW")
-        diff1Text = Tkinter.Entry(fra, textvariable=self.diff1Var)
+        diff1Text = tk.Entry(fra, textvariable=self.diff1Var)
         diff1Text.grid(column=1,row=1,sticky="EW")
         if int(self.numStates.get()) >=2:
             #D2
-            diff2Label = Tkinter.Label(fra, text=u"Diff const 2 [um^2/s]")
+            diff2Label = tk.Label(fra, text="Diff const 2 [um^2/s]")
             diff2Label.grid(column=0,row=2,sticky="EW")
-            diff2Text = Tkinter.Entry(fra, textvariable=self.diff2Var)
+            diff2Text = tk.Entry(fra, textvariable=self.diff2Var)
             diff2Text.grid(column=1,row=2, sticky="EW")
-            prob12Label = Tkinter.Label(fra, text=u"p1->2 = ")
+            prob12Label = tk.Label(fra, text="p1->2 = ")
             prob12Label.grid(column=2,row=1,sticky="EW")
-            prob21Label = Tkinter.Label(fra, text=u"p2->1 = ")
+            prob21Label = tk.Label(fra, text="p2->1 = ")
             prob21Label.grid(column=2,row=2,sticky="EW")
-            prob12Text = Tkinter.Entry(fra, textvariable=self.prob12)
+            prob12Text = tk.Entry(fra, textvariable=self.prob12)
             prob12Text.grid(column=3,row=1,sticky="EW")
-            prob21Label = Tkinter.Label(fra, text=u"p2->1 = ")
+            prob21Label = tk.Label(fra, text="p2->1 = ")
             prob21Label.grid(column=2,row=2,sticky="EW")
-            prob21Text = Tkinter.Entry(fra, textvariable=self.prob21)
+            prob21Text = tk.Entry(fra, textvariable=self.prob21)
             prob21Text.grid(column=3,row=2,sticky="EW")
             if int(self.numStates.get()) >=3:
                 #D3
-                diff3Label = Tkinter.Label(fra, text=u"Diff const 3 [um^2/s]")
+                diff3Label = tk.Label(fra, text="Diff const 3 [um^2/s]")
                 diff3Label.grid(column=0,row=3,sticky="EW")
-                diff3Text = Tkinter.Entry(fra, textvariable=self.diff3Var)
+                diff3Text = tk.Entry(fra, textvariable=self.diff3Var)
                 diff3Text.grid(column=1,row=3, sticky="EW")
-                prob13Label = Tkinter.Label(fra, text=u"p1->3 = ")
+                prob13Label = tk.Label(fra, text="p1->3 = ")
                 prob13Label.grid(column=2,row=3,sticky="EW")
-                prob13Text = Tkinter.Entry(fra, textvariable=self.prob13)
+                prob13Text = tk.Entry(fra, textvariable=self.prob13)
                 prob13Text.grid(column=3,row=3,sticky="EW")
-                prob23Label = Tkinter.Label(fra, text=u"p2->3 = ")
+                prob23Label = tk.Label(fra, text="p2->3 = ")
                 prob23Label.grid(column=2,row=4,sticky="EW")
-                prob23Text = Tkinter.Entry(fra, textvariable=self.prob23)
+                prob23Text = tk.Entry(fra, textvariable=self.prob23)
                 prob23Text.grid(column=3,row=4,sticky="EW")
-                prob31Label = Tkinter.Label(fra, text=u"p3->1 = ")
+                prob31Label = tk.Label(fra, text="p3->1 = ")
                 prob31Label.grid(column=2,row=5,sticky="EW")
-                prob31Text = Tkinter.Entry(fra, textvariable=self.prob31)
+                prob31Text = tk.Entry(fra, textvariable=self.prob31)
                 prob31Text.grid(column=3,row=5,sticky="EW")
-                prob32Label = Tkinter.Label(fra, text=u"p3->2 = ")
+                prob32Label = tk.Label(fra, text="p3->2 = ")
                 prob32Label.grid(column=2,row=6,sticky="EW")
-                prob32Text = Tkinter.Entry(fra, textvariable=self.prob32)
+                prob32Text = tk.Entry(fra, textvariable=self.prob32)
                 prob32Text.grid(column=3,row=6,sticky="EW")
             else:
                 self.diff3Var.set("0.0")
@@ -350,7 +360,7 @@ class Simulation_App(Tkinter.Frame):
         def saveDiffs():
             fra.destroy()
         
-        closeButton = Tkinter.Button(fra, text=u"Close", command=saveDiffs)
+        closeButton = tk.Button(fra, text="Close", command=saveDiffs)
         closeButton.grid(column=1,row=7)
 
         fra.mainloop()
@@ -385,14 +395,14 @@ class Simulation_App(Tkinter.Frame):
     def runcomm(self):
         print(">>>>Starting Simulation")
         if self.checkVars():
-            print "Everythings fine, running program now. Have to pass variables to Fileio.setSysProps with all the parameters given."
-            top = Tkinter.Toplevel(self)
+            print("Everythings fine, running program now. Have to pass variables to Fileio.setSysProps with all the parameters given.")
+            top = tk.Toplevel(self)
             top.title("Simulation running")
             top.grab_set()
-            Tkinter.Message(top, text="Running simulation now. This might take a while.", padx=20, pady=20).pack()
+            tk.Message(top, text="Running simulation now. This might take a while.", padx=20, pady=20).pack()
             #System.Fileio.setSysProps(self.giveToProgram())
             outvariable = self.giveToProgram()
-            q = Queue.Queue()
+            q = queue.Queue()
             def on_main_thread(func):
                 q.put(func)
 
@@ -400,7 +410,7 @@ class Simulation_App(Tkinter.Frame):
                 while True:
                     try:
                         task = q.get(block=False)
-                    except Queue.Empty:
+                    except queue.Empty:
                         break
                     else:
                         self.after_idle(task)
@@ -408,17 +418,17 @@ class Simulation_App(Tkinter.Frame):
 
             def done_mssg():
                 top.grab_release()
-                tkMessageBox.showinfo("Done!", "Simulation finished without problems.")
+                tkinter.messagebox.showinfo("Done!", "Simulation finished without problems.")
 
             def add_task():
                 return 0
 
             def handle_calc():
                 def run_sim():
-                    print "starting simulation"
+                    print("starting simulation")
                     sys.stdout.flush()
                     Simulation.enzymeDiffuser.simulateTracks(outvariable[0],outvariable[1])
-                    print ">>>>Finished Simulation"
+                    print(">>>>Finished Simulation")
                     sys.stdout.flush()
                     on_main_thread(top.destroy)
                     on_main_thread(done_mssg)
@@ -428,12 +438,12 @@ class Simulation_App(Tkinter.Frame):
                 #run_sim()
             self.after(1,handle_calc)
             self.after(100,check_queue)
-            print "Done"
+            print("Done")
         return
 
 
 if __name__ == "__main__":
-    root = Tkinter.Tk(None)
+    root = tk.Tk(None)
     app = Simulation_App(root)
     app.pack()
     root.mainloop()

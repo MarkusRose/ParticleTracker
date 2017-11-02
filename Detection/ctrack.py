@@ -12,7 +12,7 @@ Created on Feb 8, 2010
 import os
 import time
 import sys
-import pysm.new_cython
+from Detection.pysm import new_cython
 import System.Fileio as Fileio
 from scipy import io
 import string
@@ -78,14 +78,14 @@ def writeTrajectories(tracks,filename="foundTracks.txt"):
 
     outfile.close()
     print("Done writing Tracks")
-    print("Number of Tracks found: {:}".format(len(tracks)))
+    print(("Number of Tracks found: {:}".format(len(tracks))))
     return
 
 def makeParticle(frame,x,y,width_x,width_y,height,amplitude,part_id):
         #Create a new Particle
         #TODO:        
         #p = cparticle.CParticle()
-        p = pysm.new_cython.TempParticle()        
+        p = new_cython.TempParticle()        
         
         #TODO: Implement Particle ID
         p.frame = frame
@@ -216,7 +216,7 @@ def link_particles(particle_data, max_displacement,
     #print particle_data[0][16].next.shape
     ''' Begin Tracking process'''
     count = 0
-    print('_'*52)
+    print(('_'*52))
     sys.stdout.write("[")
     sys.stdout.flush()
     for frame in range(num_frames - 1):
@@ -377,9 +377,9 @@ def link_particles(particle_data, max_displacement,
                             try:
                                 linked_particle = particle_data[k + n + 1][link_index]
                             except IndexError:
-                                print "IndexError for this line"
-                                print "linked_particle {:}, index {:}".format(len(particle_data),k+n+1)
-                                print "linked_particle-sublength {:}, index {:}".format(len(particle_data[k+n+1]),link_index)
+                                print("IndexError for this line")
+                                print("linked_particle {:}, index {:}".format(len(particle_data),k+n+1))
+                                print("linked_particle-sublength {:}, index {:}".format(len(particle_data[k+n+1]),link_index))
                                 sys.exit(1)
                                 
                             # If particle is linked to a real 
@@ -416,7 +416,7 @@ def link_particles(particle_data, max_displacement,
                         #print("Linked Particle frame: " + str(linked_particle.frame))
                         #print("Particle Track " + str(len(trajectories)) + ": " + str(particle_track.track['x']))
                     else:
-                        print("Stopping track here: " + str(len(particle_track)))
+                        print(("Stopping track here: " + str(len(particle_track))))
                         #TODO:
                         # Check this logic, should m ever be negative? 
                         # If current

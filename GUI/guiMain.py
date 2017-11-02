@@ -1,15 +1,18 @@
-import Tkinter
+try:
+    import tkinter as tk
+except ImportError:
+    import tkinter as tk
 import sys
 
-import guiAnalysis
-import guiTracking
-import guiDetection
-import guiDetandTrack
-import guiSimulation
+from GUI import guiAnalysis
+from GUI import guiTracking
+from GUI import guiDetection
+from GUI import guiDetandTrack
+from GUI import guiSimulation
 
-class mainWindow(Tkinter.Tk):
+class mainWindow(tk.Tk):
     def __init__(self,parent):
-        Tkinter.Tk.__init__(self,parent)
+        tk.Tk.__init__(self,parent)
         self.parent = parent
         self.initialize()
 
@@ -18,7 +21,7 @@ class mainWindow(Tkinter.Tk):
         #self.geometry("320x400")
 
         def runSimulation():
-            self.simwin = Tkinter.Toplevel(self)
+            self.simwin = tk.Toplevel(self)
             self.simwin.title("Simulation")
             app = guiSimulation.Simulation_App(self.simwin)
             app.grid(column=1,row=0,rowspan=12,sticky="NWSE")
@@ -32,7 +35,7 @@ class mainWindow(Tkinter.Tk):
             return
             
         def runDetection():
-            self.detwin = Tkinter.Toplevel(self)
+            self.detwin = tk.Toplevel(self)
             self.detwin.title("Detection")
             app = guiDetection.guiDetection(self.detwin)
             app.grid(column=1,row=0,rowspan=12,sticky="NWSE")
@@ -46,7 +49,7 @@ class mainWindow(Tkinter.Tk):
             return
 
         def runTracking():
-            self.trackwin = Tkinter.Toplevel(self)
+            self.trackwin = tk.Toplevel(self)
             self.trackwin.title("Tracking")
             app = guiTracking.guiTracking(self.trackwin)
             app.grid(column=1,row=0,rowspan=12,sticky="NWSE")
@@ -60,7 +63,7 @@ class mainWindow(Tkinter.Tk):
             return
         
         def runDetandTrack():
-            self.dettrackwin = Tkinter.Toplevel(self)
+            self.dettrackwin = tk.Toplevel(self)
             self.dettrackwin.title("Detection and Tracking")
             app = guiDetandTrack.guiDetandTrack(self.dettrackwin)
             app.grid(column=1,row=0,rowspan=12,sticky="NWSE")
@@ -74,7 +77,7 @@ class mainWindow(Tkinter.Tk):
             return
         
         def runAnalysis():
-            self.anawin = Tkinter.Toplevel(self)
+            self.anawin = tk.Toplevel(self)
             self.anawin.title("Analysis of Tracks")
             app = guiAnalysis.guiAnalysis(self.anawin)
             app.grid(column=1,row=0,rowspan=12,sticky="NWSE")
@@ -87,17 +90,17 @@ class mainWindow(Tkinter.Tk):
             self.anawin.geometry("{:}x{:}+{:}+{:}".format(w,h,posx,posy))
             return
         
-        simbutton = Tkinter.Button(self, text=u"Simulation",command=runSimulation)
+        simbutton = tk.Button(self, text="Simulation",command=runSimulation)
         simbutton.grid(column=0,row=1,sticky="EW")
-        detbutton = Tkinter.Button(self, text=u"Detection",command=runDetection)
+        detbutton = tk.Button(self, text="Detection",command=runDetection)
         detbutton.grid(column=0,row=2,sticky="EW")
-        trabutton = Tkinter.Button(self, text=u"Tracking",command=runTracking)
+        trabutton = tk.Button(self, text="Tracking",command=runTracking)
         trabutton.grid(column=0,row=3,sticky="EW")
-        detatrabutton = Tkinter.Button(self, text=u"Detect and Track",command=runDetandTrack)
+        detatrabutton = tk.Button(self, text="Detect and Track",command=runDetandTrack)
         detatrabutton.grid(column=0,row=4,sticky="EW")
-        anabutton = Tkinter.Button(self, text=u"Analysis",command=runAnalysis)
+        anabutton = tk.Button(self, text="Analysis",command=runAnalysis)
         anabutton.grid(column=0,row=5,sticky="EW")
-        exibutton = Tkinter.Button(self, text=u"Quit", command=self.destroy)
+        exibutton = tk.Button(self, text="Quit", command=self.destroy)
         exibutton.grid(column=0,row=6,sticky="EW")
         #exibutton.pack()
         

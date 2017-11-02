@@ -1,15 +1,18 @@
-import tracking
-import Simulation.enzymeDiffuser as eD
+from . import tracking
+from . import Simulation.enzymeDiffuser as eD
 import threading
-import Queue
+try:
+    import queue
+except ImportError:
+    import queue as Queue
 import time
 import os
 
 path = "D:/Benchmarking"
 
 exitFlag = 0
-workQueue = Queue.Queue(8)
-dataQueue = Queue.Queue(20)
+workQueue = queue.Queue(8)
+dataQueue = queue.Queue(20)
 queueLock = threading.Lock()
 dataLock = threading.Lock()
 results = []
@@ -24,9 +27,9 @@ class myThread(threading.Thread):
         return
 
     def run(self):
-        print "Starting " + self.name
+        print("Starting " + self.name)
         process_data(self.name, self.q,self.dq)
-        print "Exiting " + self.name
+        print("Exiting " + self.name)
 
 def process_data(threadName, q, dq):
     while not exitFlag:
@@ -34,7 +37,7 @@ def process_data(threadName, q, dq):
         if not workQueue.emtpy():
             data = q.get()
             queueLock.release()
-            print "%s processing %s" % (threadName,data)
+            print("%s processing %s" % (threadName,data))
             result = benchMarker(data)
             dataLock.acquire()
             dq.put(result)
@@ -62,7 +65,7 @@ def benchMarker(data):
 
     def find_particle(c,p):
         id = 0
-        for i in xrange(len(p)):
+        for i in range(len(p)):
             if c[0] == p[i][0] and c[1] == p[i][1] and c[2] == p[i][2]:
                 id = p[i][3]
                 del p[i]
@@ -86,10 +89,10 @@ def benchMarker(data):
                 myid = saveid
             elif myid != saveid:
                 falselinks += 1
-                print 'Link found'
+                print('Link found')
                 break
 
-    print falselinks
+    print(falselinks)
 
     fout = open(path+'/{:}-{:}-{:}-{:}/benchlog.txt'.format(D,N,SR,rep),'w')
     fout.write("falselinks = {:}\n".format(falselinks))
@@ -107,11 +110,11 @@ if __name__=="__main__":
     for d in D:
         for n in N:
             for sr in SR:
-                for i in xrange(repeats):
+                for i in range(repeats):
                     dataForThreads.append([d,n,sr,i+1])
 
     threads = []
-    for i in xrange(8):
+    for i in range(8):
         thread = myThread(i+1,"Thread-{:}".format(i+1),workQueue,dataQueue)
         thread.start()
         threads.append(thread)
@@ -138,9 +141,9 @@ if __name__=="__main__":
     for d in D:
         for n in N:
             for sr in SR:
-                for i in xrange(repeats):
-                    print
-                    print("starting {:}, {:}, {:}, {:}".format(d,n,sr,i))
+                for i in range(repeats):
+                    print()
+                    print(("starting {:}, {:}, {:}, {:}".format(d,n,sr,i)))
                     dif,num,sign,reps,frames,falselinks = benchMarker(d,n,sr,i+1)
                     fout.write("{:} {:} {:} {:} {:} {:}\n".format(dif,num,sign,frames,reps,falselinks))
     fout.close()
