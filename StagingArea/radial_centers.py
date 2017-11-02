@@ -269,12 +269,12 @@ if __name__=="__main__":
     Background = 100
     nt = 100
 
-    varindex = 0
-    start = 10
-    stop = 50
-    incr = 5
+    varindex = 3
+    start = 2
+    stop = 15
+    incr = 1
 
-    for SNR in xrange(2,51,1):
+    for size in xrange(5,15,2):
         if varindex == 0:
             print "----"
             print SNR

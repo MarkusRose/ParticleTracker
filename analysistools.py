@@ -88,7 +88,7 @@ pixel_size = 0.100 #um
 timestep = 0.1 #s
 
 #single track analysis input
-minTrLength = 40 
+minTrLength = 0
 
 #debugging variables:
 testing = False
@@ -108,6 +108,7 @@ def readTracks(infile):
 
     tracks = []
     track = []
+    trid = []
     brt = False
 
     for line in fopen:
@@ -124,12 +125,14 @@ def readTracks(infile):
                 track = []
             continue
         track.append(np.array(map(float,line.split()[0:-1])))
+        if len(trid) == 0 or trid[-1] != line.split()[-1]:
+            trid.append(line.split()[-1])
 
     if len(track) > 0:
         tracks.append(np.array(track))
         del track
 
-    return tracks
+    return tracks,trid
 
 def cleanTracksFile(tracks):
     outfile = open("cleandTracks.txt",'w')
@@ -380,14 +383,23 @@ def eedispllist(tracks):
     return histo
     
 
-def diffConstDistrib(tracks):
+def diffConstDistrib(tracks,trid):
 
     print "Starting Analysis of " + str(len(tracks)) + " single tracks."
     print "....This will take a while..."
     print "........(creating a list of MSD from all tracks; this takes long...)"
     msdlist = map(msd,tracks)
     print "........(finding diffusion coefficient from all MSDs from list)"
+    
     Dlist = findDiffConsts(msdlist)
+    if len(Dlist) != len(trid):
+        print "Problem in lengths"
+        print len(Dlist) len(trid)
+    else:
+        ofopen = open("singleStateAnalysis.txt",'w')
+        ofopen.write("Dlen D id\n".format(Dlist[i],trid[i]))
+        for i in xrange(len(trid)):
+            ofopen.write("{:} {:} {:}\n".format(Dlist[i][0],Dlist[i][1],trid[i]))
     print ">>>> The average diffusion coefficient is: " + str(Dlist.mean()*Dfactor) + " +- " + str(Dlist.std()*Dfactor) + " um^2/s"
     print "........(finding the lengths of the single tracks)"
     lenList= np.array(map(len,tracks))
@@ -545,7 +557,8 @@ def main():
 
     os.chdir(path)
     
-    tracks = readTracks(infilename)
+    tracks,trid = readTracks(infilename)
+
 
     spng = os.path.join(path,"Tracks-Cel{:}-SR{:}".format(Cel,SR),"SingleStateAnalysis")
     if not os.path.isdir(spng):
@@ -581,7 +594,7 @@ def main():
         print
         print "Starting Diffusion Constant Analysis for single tracks"
         print "------------------------------------------------------"
-        diffChisto = diffConstDistrib(considered)
+        diffChisto = diffConstDistrib(considered,trid)
     if bCombineTrack:
         print
         print
