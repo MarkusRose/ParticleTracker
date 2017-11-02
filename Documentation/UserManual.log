@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016) (preloaded format=pdflatex 2017.7.11)  19 OCT 2017 12:24
+This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016) (preloaded format=pdflatex 2017.7.11)  19 OCT 2017 14:48
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -42,6 +42,12 @@ Package tocbasic Info: omitting babel extension for `lot'
 (tocbasic)             for `lot' on input line 134.
 Package tocbasic Info: defining new hook before heading of `' on input line 160
 2.
+Class scrbook Info: You've used standard option `oneside'.
+(scrbook)           This is correct!
+(scrbook)           Internally I'm using `twoside=false'.
+(scrbook)           If you'd like to set the option with \KOMAoptions,
+(scrbook)           you'd have to use `twoside=false' there
+(scrbook)           instead of `oneside', too.
 Class scrbook Info: File `scrsize11pt.clo' used instead of
 (scrbook)           file `scrsize11.clo' to setup font sizes on input line 2269
 .
@@ -59,6 +65,18 @@ Package typearea, 2016/06/14 v3.21 KOMA-Script package (type area)
 
 \ta@bcor=\skip42
 \ta@div=\count79
+Package typearea Info: You've used standard option `oneside'.
+(typearea)             This is correct!
+(typearea)             Internally I'm using `twoside=false'.
+(typearea)             If you'd like to set the option with \KOMAoptions,
+(typearea)             you'd have to use `twoside=false' there
+(typearea)             instead of `oneside', too.
+Package typearea Info: You've used standard option `letterpaper'.
+(typearea)             This is correct!
+(typearea)             Internally I'm using `paper=letter'.
+(typearea)             If you'd like to set the option with \KOMAoptions,
+(typearea)             you'd have to use `paper=letter' there
+(typearea)             instead of `letterpaper', too.
 \ta@hblk=\skip43
 \ta@vblk=\skip44
 \ta@temp=\skip45
@@ -66,14 +84,14 @@ Package typearea, 2016/06/14 v3.21 KOMA-Script package (type area)
 Package typearea Info: These are the values describing the layout:
 (typearea)             DIV  = 10
 (typearea)             BCOR = 0.0pt
-(typearea)             \paperwidth      = 597.50793pt
-(typearea)              \textwidth      = 418.25555pt
-(typearea)              DIV departure   = -6%
-(typearea)              \evensidemargin = 47.2316pt
-(typearea)              \oddsidemargin  = -12.5192pt
-(typearea)             \paperheight     = 845.04694pt
-(typearea)              \textheight     = 595.80026pt
-(typearea)              \topmargin      = -25.16531pt
+(typearea)             \paperwidth      = 614.295pt
+(typearea)              \textwidth      = 430.00653pt
+(typearea)              DIV departure   = -9%
+(typearea)              \evensidemargin = 19.87424pt
+(typearea)              \oddsidemargin  = 19.87424pt
+(typearea)             \paperheight     = 794.96999pt
+(typearea)              \textheight     = 568.60025pt
+(typearea)              \topmargin      = -30.173pt
 (typearea)              \headheight     = 17.0pt
 (typearea)              \headsep        = 20.40001pt
 (typearea)              \topskip        = 11.0pt
@@ -530,21 +548,28 @@ Package: ltxcmds 2016/05/16 v1.23 LaTeX kernel commands for general use (HO)
 \Gin@req@height=\dimen113
 \Gin@req@width=\dimen114
 )
-(./UserManual.aux)
+(/home/rosemm2/texmf/tex/latex/tocbibind/tocbibind.sty
+Package: tocbibind 2010/10/13 v1.5k extra ToC listings
+Package tocbibind Info: The document has chapter divisions on input line 50.
+
+
+Package tocbibind Note: Using chapter style headings, unless overridden.
+
+) (./UserManual.aux)
 \openout1 = `UserManual.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 17.
-LaTeX Font Info:    ... okay on input line 17.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 17.
-LaTeX Font Info:    ... okay on input line 17.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 17.
-LaTeX Font Info:    ... okay on input line 17.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 17.
-LaTeX Font Info:    ... okay on input line 17.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 17.
-LaTeX Font Info:    ... okay on input line 17.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 17.
-LaTeX Font Info:    ... okay on input line 17.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 22.
+LaTeX Font Info:    ... okay on input line 22.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 22.
+LaTeX Font Info:    ... okay on input line 22.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 22.
+LaTeX Font Info:    ... okay on input line 22.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 22.
+LaTeX Font Info:    ... okay on input line 22.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 22.
+LaTeX Font Info:    ... okay on input line 22.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 22.
+LaTeX Font Info:    ... okay on input line 22.
 
 (/usr/share/texlive/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
@@ -608,12 +633,12 @@ G,.JBIG2,.JB2,.eps]
 File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
 e
 ))
-LaTeX Font Info:    Try loading font information for U+msa on input line 20.
+LaTeX Font Info:    Try loading font information for U+msa on input line 25.
 
 (/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 20.
+LaTeX Font Info:    Try loading font information for U+msb on input line 25.
 
 (/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
@@ -621,56 +646,78 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 
 
 
-{/usr/share/texlive/texmf-dist/fonts/map/pdftex/updmap/pdftex.map}] [2
 
-
-] (./UserManual.toc)
+{/usr/share/texlive/texmf-dist/fonts/map/pdftex/updmap/pdftex.map}] (./UserManu
+al.toc)
 \tf@toc=\write3
 \openout3 = `UserManual.toc'.
 
+ [2
 
-[3] [4
+
+]
+(./UserManual.lof)
+\tf@lof=\write4
+\openout4 = `UserManual.lof'.
+
+ [3
+
+
+] (./UserManual.lot)
+\tf@lot=\write5
+\openout5 = `UserManual.lot'.
+
+ [4
+
+
+]
+chapter without number
+[5
 
 
 ]
 chapter 1.
-[5] [6
+[1
+
 
 
 ]
 chapter 2.
-[7] [8
+[2
 
 
 ]
 chapter 3.
-[9] [10
+[3
 
 
 ]
-chapter 4.
-[11] [12
+chapter without number
+(./UserManual.bbl [4
 
 
-]
-chapter 5.
-[13] (./UserManual.aux) ) 
+
+
+]) [5
+
+
+] (./UserManual.aux) ) 
 Here is how much of TeX's memory you used:
- 5147 strings out of 494946
- 80250 string characters out of 6180981
- 232992 words of memory out of 5000000
- 8371 multiletter control sequences out of 15000+600000
- 12368 words of font info for 48 fonts, out of 8000000 for 9000
+ 5251 strings out of 494946
+ 81677 string characters out of 6180981
+ 234790 words of memory out of 5000000
+ 8459 multiletter control sequences out of 15000+600000
+ 12714 words of font info for 49 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 47i,6n,66p,8821b,285s stack positions out of 5000i,500n,10000p,200000b,80000s
-</usr/share/texlive/texmf-dist/fonts/type1/public/amsf
-onts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm
-/cmr12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmssbx
-10.pfb>
-Output written on UserManual.pdf (13 pages, 46350 bytes).
+ 47i,6n,66p,8821b,230s stack positions out of 5000i,500n,10000p,200000b,80000s
+</usr/share/texlive/texmf-dist/fonts/type1/public/amsfont
+s/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cm
+r12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmssbx10.
+pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb>
+Output written on UserManual.pdf (10 pages, 59681 bytes).
 PDF statistics:
- 59 PDF objects out of 1000 (max. 8388607)
- 40 compressed objects within 1 object stream
+ 53 PDF objects out of 1000 (max. 8388607)
+ 36 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 
