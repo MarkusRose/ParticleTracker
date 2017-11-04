@@ -1,5 +1,5 @@
 try:
-    import tkinter as tk
+    import Tkinter as tk
 except ImportError:
     import tkinter as tk
 import sys

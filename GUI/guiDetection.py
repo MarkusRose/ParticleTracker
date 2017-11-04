@@ -1,8 +1,8 @@
 try:
-    import tkinter as tk
-    import tkinter.ttk
-    import tkinter.filedialog
-    import tkinter.messagebox
+    import Tkinter as tk
+    import ttk
+    import tkFileDialog as filedialog
+    import tkMessageBox as messagebox
 except ImportError:
     import tkinter as tk
     from tkinter import filedialog
@@ -12,7 +12,7 @@ import sys
 import time
 import threading
 try:
-    import queue
+    import Queue
 except ImportError:
     import queue as Queue
 
@@ -32,32 +32,32 @@ class guiDetection(tk.Frame):
 
 
     def doSetup(self):
-        self.mainframe = tkinter.ttk.Frame(self)
+        self.mainframe = ttk.Frame(self)
         self.mainframe.grid(column=1, row=1)
 
-        tkinter.ttk.Button(self, text="Run", command=self.runDetection).grid(column=2,row=2, sticky="SE")
-        tkinter.ttk.Button(self, text="Cancel", command=self.parent.destroy).grid(column=2,row=3, sticky='E')
+        ttk.Button(self, text="Run", command=self.runDetection).grid(column=2,row=2, sticky="SE")
+        ttk.Button(self, text="Cancel", command=self.parent.destroy).grid(column=2,row=3, sticky='E')
         
-        self.labelframe = tkinter.ttk.Frame(self.mainframe)
+        self.labelframe = ttk.Frame(self.mainframe)
         self.labelframe.grid(column=0, row=0)
 
         self.inImagesVar = tk.StringVar()
         self.inImagesVar.set("Please select Image Folder")
-        tkinter.ttk.Button(self.labelframe, text="Input Images", command = lambda:self.inImagesVar.set(tkinter.filedialog.askdirectory())).grid(column=1, row=1, sticky='W')
-        tkinter.ttk.Entry(self.labelframe, textvariable = self.inImagesVar).grid(column=2, row=1, sticky='W')
+        ttk.Button(self.labelframe, text="Input Images", command = lambda:self.inImagesVar.set(filedialog.askdirectory())).grid(column=1, row=1, sticky='W')
+        ttk.Entry(self.labelframe, textvariable = self.inImagesVar).grid(column=2, row=1, sticky='W')
 
         self.dcvar = tk.IntVar()
         self.dcvar.set(0)
         tk.Checkbutton(self.labelframe,text="Drift Correction",variable=self.dcvar).grid(column=1,row=14,sticky='W')
         self.feducialVar = tk.StringVar()
         self.feducialVar.set(os.path.abspath(os.path.join(self.inImagesVar.get(), '..', 'Analysis')))
-        tkinter.ttk.Button(self.labelframe, text="Fiducial Markers", command = lambda:self.feducialVar.set(tkinter.filedialog.askdirectory())).grid(column=1, row=15, sticky='W')
-        tkinter.ttk.Entry(self.labelframe, textvariable = self.feducialVar).grid(column=2, row=15, sticky='W')
+        ttk.Button(self.labelframe, text="Fiducial Markers", command = lambda:self.feducialVar.set(filedialog.askdirectory())).grid(column=1, row=15, sticky='W')
+        ttk.Entry(self.labelframe, textvariable = self.feducialVar).grid(column=2, row=15, sticky='W')
 
         self.outDirVar = tk.StringVar()
         self.outDirVar.set(os.path.abspath(os.path.join(self.inImagesVar.get(), '..', 'Analysis')))
-        tkinter.ttk.Button(self.labelframe, text="Output Folder", command = lambda:self.outDirVar.set(tkinter.filedialog.askdirectory())).grid(column=1, row=13, sticky='W')
-        tkinter.ttk.Entry(self.labelframe, textvariable = self.outDirVar).grid(column=2, row=13, sticky='W')
+        ttk.Button(self.labelframe, text="Output Folder", command = lambda:self.outDirVar.set(filedialog.askdirectory())).grid(column=1, row=13, sticky='W')
+        ttk.Entry(self.labelframe, textvariable = self.outDirVar).grid(column=2, row=13, sticky='W')
 
         dependency = ["Sigma", "Signal Power", "Image Bit Depth",
                 "Number of Images to add up", "Sigma Threshold",
@@ -66,8 +66,8 @@ class guiDetection(tk.Frame):
 
         for i in range(len(dependency)):
             var = tk.StringVar()
-            tkinter.ttk.Label(self.labelframe, text=dependency[i]).grid(column=1, row=2+i, sticky='W')
-            tkinter.ttk.Entry(self.labelframe, textvariable = var).grid(column=2, row=2+i, sticky='W')
+            ttk.Label(self.labelframe, text=dependency[i]).grid(column=1, row=2+i, sticky='W')
+            ttk.Entry(self.labelframe, textvariable = var).grid(column=2, row=2+i, sticky='W')
             self.vars.append(var)
 
         self.vars[0].set("2")
@@ -80,7 +80,7 @@ class guiDetection(tk.Frame):
 
         self.detMethVar = tk.StringVar()
         self.detMethVar.set(self.detMethod[1])
-        tkinter.ttk.Label(self.labelframe, text="Detection Method").grid(column=1, row=11, sticky='W')
+        ttk.Label(self.labelframe, text="Detection Method").grid(column=1, row=11, sticky='W')
         drop = tk.OptionMenu(self.labelframe,self.detMethVar,*(self.detMethod))
         drop.grid(column=2,row=11,sticky="EW")
 
@@ -94,7 +94,7 @@ class guiDetection(tk.Frame):
         try:
             #Input Images Folder exists
             if not os.path.isdir(self.inImagesVar.get()):
-                tkinter.messagebox.showerror("No Images", "Images could not be located.")
+                messagebox.showerror("No Images", "Images could not be located.")
                 return False
 
             for elem in self.vars:
@@ -104,11 +104,11 @@ class guiDetection(tk.Frame):
             #Initial Positions File
             #Output Folder
             if os.path.isdir(self.outDirVar.get()):
-                if not tkinter.messagebox.askyesno("Folder Exists!", "This folder exists. Do you want to copy over its content?"):
+                if not messagebox.askyesno("Folder Exists!", "This folder exists. Do you want to copy over its content?"):
                     return False
             
         except ValueError:
-            tkinter.messagebox.showerror("NaN", "One of the entries is not correct (not a number).")
+            messagebox.showerror("NaN", "One of the entries is not correct (not a number).")
             return False
 
         return True
@@ -138,7 +138,7 @@ class guiDetection(tk.Frame):
             tk.Message(top, text="Running detection now. This might take a while.", padx=20, pady=20).pack()
             #System.Fileio.setSysProps(self.giveToProgram())
             
-            q = queue.Queue()
+            q = Queue.Queue()
             def on_main_thread(func):
                 q.put(func)
 
@@ -146,14 +146,14 @@ class guiDetection(tk.Frame):
                 while True:
                     try:
                         task = q.get(block=False)
-                    except queue.Empty:
+                    except Queue.Empty:
                         break
                     else:
                         self.after_idle(task)
                 self.after(100,check_queue)
 
             def done_mssg():
-                tkinter.messagebox.showinfo("Done!", "Detection finished without problems.")
+                messagebox.showinfo("Done!", "Detection finished without problems.")
 
             def add_task():
                 return 0

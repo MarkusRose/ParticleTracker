@@ -5,7 +5,10 @@
 
 import numpy as np
 import cmath
-from . import convertFiles
+try:
+    from . import convertFiles
+except ImportError:
+    import convertFiles
 from . import ctrack
 
 def sortOutTrack(track):

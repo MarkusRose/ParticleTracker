@@ -84,10 +84,13 @@ def readDetectedParticles(filename):
         elif line[0] == '#':
             hashcounter += 1
             if hashcounter % 4 == 1:
+                print(line.split())
                 frame  = int(line.split()[1])
             elif hashcounter % 4 == 2:
+                print(line.split())
                 partnum = float(line.split()[1])
             elif hashcounter % 4 == 3:
+                print(line.split())
                 cutoff = float(line.split()[1])
             elif hashcounter % 4 == 0:
                 oneframe = []

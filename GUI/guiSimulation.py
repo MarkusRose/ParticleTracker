@@ -1,7 +1,7 @@
 try:
-    import tkinter as tk
-    import tkinter.messagebox
-    import tkinter.filedialog
+    import Tkinter as tk
+    import tkMessageBox as messagebox
+    import tkFileDialog as filedialog
 except ImportError:
     import tkinter as tk
     from tkinter import filedialog
@@ -13,9 +13,9 @@ import Simulation.enzymeDiffuser
 import time
 import threading
 try: 
-    import queue
+    import Queue as queue
 except ImportError:
-    import queue as Queue
+    import queue
 import os
 import sys
 
@@ -80,24 +80,24 @@ class Simulation_App(tk.Frame):
             #Check diff Constants and number of states
             if int(self.numStates.get()) >=3:
                 if (self.diff3Var.get() == "n/a" or float(self.diff3Var.get()) < 0):
-                    tkinter.messagebox.showerror("D3 false", "Third Diffusion coefficient does not match!")
+                    messagebox.showerror("D3 false", "Third Diffusion coefficient does not match!")
                     return False
                 if ((self.prob13.get() == "0.0" or float(self.prob13.get()) <=0 or float(self.prob13.get()) >=1) or
                     (self.prob23.get() == "0.0" or float(self.prob23.get()) <=0 or float(self.prob23.get()) >=1) or
                     (self.prob31.get() == "0.0" or float(self.prob31.get()) <=0 or float(self.prob31.get()) >=1) or
                     (self.prob32.get() == "0.0" or float(self.prob32.get()) <=0 or float(self.prob32.get()) >=1)):
-                    tkinter.messagebox.showerror("Probs false", "Transition probatilities concerning the third diffusion coefficient do not match number of states!")
+                    messagebox.showerror("Probs false", "Transition probatilities concerning the third diffusion coefficient do not match number of states!")
                     return False
             if int(self.numStates.get()) >=2:
                 if (self.diff2Var.get() == "n/a" or float(self.diff2Var.get()) < 0):
-                    tkinter.messagebox.showerror("D2 false", "Second Diffusion coefficient does not match!")
+                    messagebox.showerror("D2 false", "Second Diffusion coefficient does not match!")
                     return False
                 if ((self.prob12.get() == "0.0" or float(self.prob12.get()) <=0 or float(self.prob12.get()) >=1) or
                     (self.prob21.get() == "0.0" or float(self.prob21.get()) <=0 or float(self.prob21.get()) >=1)):
-                    tkinter.messagebox.showerror("Probs false", "Transition probatilities concerning the first and second diffusion coefficient do not match number of states!")
+                    messagebox.showerror("Probs false", "Transition probatilities concerning the first and second diffusion coefficient do not match number of states!")
                     return False
             if (len(self.diff1Var.get()) == 0 or float(self.diff1Var.get()) < 0):
-                tkinter.messagebox.showerror("D1 false", "First Diffusion coefficient does not match!")
+                messagebox.showerror("D1 false", "First Diffusion coefficient does not match!")
                 return False
             if int(self.numStates.get()) == 2:
                 self.diff3Var.set("0.0")
@@ -118,43 +118,43 @@ class Simulation_App(tk.Frame):
             
             #Check number of frames, particles
             if int(self.numframesVar.get()) < 1:
-                tkinter.messagebox.showerror("Wrong Framenumber", "Number of Frames must be larger than 0.")
+                messagebox.showerror("Wrong Framenumber", "Number of Frames must be larger than 0.")
                 return False
             if int(self.numPartVar.get()) < 1:
-                tkinter.messagebox.showerror("Wrong Particle Number", "Number of particles must be larger than 0!")
+                messagebox.showerror("Wrong Particle Number", "Number of particles must be larger than 0!")
                 return False
             
             #Test wavelength, acquisition time, NA, magnification
             if float(self.tauVar.get()) <= 0:
-                tkinter.messagebox.showerror("A.Time","Acquisition time has to be larger than 0.")
+                messagebox.showerror("A.Time","Acquisition time has to be larger than 0.")
                 return False
             if float(self.lambdaVar.get()) <= 0:
-                tkinter.messagebox.showerror("Wavelength", "Wavelength must be larger than 0.")
+                messagebox.showerror("Wavelength", "Wavelength must be larger than 0.")
                 return False
             if float(self.naVar.get()) <=0:
-                tkinter.messagebox.showerror("NA","Numerical aperture must be larger than 0.")
+                messagebox.showerror("NA","Numerical aperture must be larger than 0.")
                 return False
             if float(self.magnifVar.get()) <= 0:
-                tkinter.messagebox.showerror("Magnification", "Magnification must be larger than 0.")
+                messagebox.showerror("Magnification", "Magnification must be larger than 0.")
                 return False
 
             #Image properties: frame length, pixel size, signal to noise, intensity
             if int(self.frameLengthVar.get()) <= 1:
-                tkinter.messagebox.showerror("# of Pixels", "Number of Pixels must be larger than 1.")
+                messagebox.showerror("# of Pixels", "Number of Pixels must be larger than 1.")
                 return False
             if float(self.pixsizeVar.get()) <= 0:
-                tkinter.messagebox.showerror("Pixel size", "Pixels must have a size larget than 0.")
+                messagebox.showerror("Pixel size", "Pixels must have a size larget than 0.")
                 return False
             if float(self.backgroundVar.get()) < 0:
-                tkinter.messagebox.showerror("Background", "Background cannot be negative.")
+                messagebox.showerror("Background", "Background cannot be negative.")
                 return False
             if float(self.backnoiseVar.get()) <= 0:
-                tkinter.messagebox.showerror("Background noise", "Background noise must be larger than 0.")
+                messagebox.showerror("Background noise", "Background noise must be larger than 0.")
                 return False
             if float(self.intensityVar.get()) <= 0:
-                tkinter.messagebox.showerror("Intensity", "Intensity must be larger than 0.")
+                messagebox.showerror("Intensity", "Intensity must be larger than 0.")
         except ValueError:
-            tkinter.messagebox.showerror("NaN","Some entry is not a number!")
+            messagebox.showerror("NaN","Some entry is not a number!")
             return False
         
         return True
@@ -280,7 +280,7 @@ class Simulation_App(tk.Frame):
 
     
         #output directory location
-        dirButton = tk.Button(self, text="Output Location", command = lambda:self.saveDir.set(tkinter.filedialog.askdirectory()))
+        dirButton = tk.Button(self, text="Output Location", command = lambda:self.saveDir.set(filedialog.askdirectory()))
         dirButton.grid(column=0, row=15, sticky='W')
         directoryLabel = tk.Entry(self,textvariable=self.saveDir)
         directoryLabel.grid(column=1,row=15)
@@ -418,7 +418,7 @@ class Simulation_App(tk.Frame):
 
             def done_mssg():
                 top.grab_release()
-                tkinter.messagebox.showinfo("Done!", "Simulation finished without problems.")
+                messagebox.showinfo("Done!", "Simulation finished without problems.")
 
             def add_task():
                 return 0

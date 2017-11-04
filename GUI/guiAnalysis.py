@@ -4,19 +4,23 @@ import os
 import threading
 import time
 try:
-    import tkinter as tk
+    import Tkinter as tk
 except ImportError:
     import tkinter as tk
+
 try:
-    import tkinter.ttk
-    import tkinter.filedialog
-    import tkMessagebox
-    import queue
+    import ttk
+    import tkFileDialog as filedialog
+    import tkMessageBox as messagebox
 except ImportError:
     from tkinter import ttk
     from tkinter import filedialog
     from tkinter import messagebox
-    import queue as Queue
+
+try:
+    import Queue as queue
+except ImportError:
+    import queue
     
 
 import AnalysisTools.ana_singlestate as ANA
@@ -53,7 +57,7 @@ class guiAnalysis(tk.Frame):
         frame_iT = tk.Frame(self)
         tk.Label(frame_iT, text="").grid(row=1,column=0)
         frame_iT.pack()
-        tkinter.ttk.Separator(self).pack(fill='x',expand=1)
+        ttk.Separator(self).pack(fill='x',expand=1)
         #----------------------------
         #combined tracks gui
         self.f_combTrack = tk.IntVar()
@@ -62,7 +66,7 @@ class guiAnalysis(tk.Frame):
         tk.Label(frame_CT, text="").grid(sticky='e')
         tk.Label(frame_CT, text="").grid(sticky='e')
         frame_CT.pack()
-        tkinter.ttk.Separator(self).pack(fill='x',expand=1)
+        ttk.Separator(self).pack(fill='x',expand=1)
         #----------------------------
         #MCMC gui
         self.f_mcmc = tk.IntVar()
@@ -77,7 +81,7 @@ class guiAnalysis(tk.Frame):
         self.v_mcmcID = tk.StringVar()
         self.v_mcmcID.set('')
         tk.Entry(frame_MCMC,textvariable=self.v_mcmcID).grid(row=1,column=1,sticky='e')
-        tkinter.ttk.Separator(self).pack(fill='x',expand=1)
+        ttk.Separator(self).pack(fill='x',expand=1)
         #----------------------------
         #SCI gui
         self.f_sci = tk.IntVar()
@@ -86,7 +90,7 @@ class guiAnalysis(tk.Frame):
         tk.Label(frame_SCI, text="").grid(sticky='e')
         tk.Label(frame_SCI, text="").grid(sticky='e')
         frame_SCI.pack()
-        tkinter.ttk.Separator(self).pack(fill='x',expand=1)
+        ttk.Separator(self).pack(fill='x',expand=1)
         #----------------------------
         tk.Label(self, text="General properties").pack(anchor='w')
         frame_GP = tk.Frame(self)
@@ -103,12 +107,12 @@ class guiAnalysis(tk.Frame):
         tk.Button(frame_GP, text="Track File",command=fileSelect).grid(row=2,sticky='w')
         tk.Entry(frame_GP, textvariable=self.v_trackFile).grid(row=2,column=1,sticky='ew')
         frame_GP.pack()
-        tkinter.ttk.Separator(self).pack(fill='x',expand=1)
+        ttk.Separator(self).pack(fill='x',expand=1)
         #----------------------------
 
-        self.anaButton = tkinter.ttk.Button(self, text="Analyze", command=self.analyze)
+        self.anaButton = ttk.Button(self, text="Analyze", command=self.analyze)
         self.anaButton.pack()
-        self.cancelButton = tkinter.ttk.Button(self, text="Cancel", command=self.exitWindow)
+        self.cancelButton = ttk.Button(self, text="Cancel", command=self.exitWindow)
         self.cancelButton.pack()
         return
 

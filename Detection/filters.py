@@ -16,11 +16,11 @@ def boxcarFilter(image,boxsize=3,cutoff=1.0):
             #    print("Pixel brighter than cutoff: " + str((i,j)))
             #    continue
             for k in range(boxsize):
-                ksaver = i+k-halfsize
+                ksaver = int(i+k-halfsize)
                 if ksaver < 0 or ksaver >= len(image):
                     continue
                 for l in range(boxsize):
-                    lsaver = j+k-halfsize
+                    lsaver = int(j+k-halfsize)
                     if lsaver < 0 or lsaver >= len(image[i]):
                         continue
                     counter += 1

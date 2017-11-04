@@ -4,7 +4,10 @@ from . import readImage
 from . import filters
 from . import markPosition
 import sys
-from . import convertFiles
+try:
+    from . import convertFiles
+except ImportError:
+    import convertFiles
 from scipy import ndimage, optimize
 
 
@@ -222,11 +225,11 @@ def setFittingROI(imageshape,lmpx,lmpy,boxsize=11):
     row0 = int(lmpx)
     col0 = int(lmpy)
     #print(row0,' ',col0)
-
-    row_min = row0 - boxsize/2
-    row_max = row0 + boxsize/2
-    col_min = col0 - boxsize/2
-    col_max = col0 + boxsize/2
+    halfbs = int(boxsize/2)
+    row_min = row0 - halfbs
+    row_max = row0 + halfbs
+    col_min = col0 - halfbs
+    col_max = col0 + halfbs
 
     if (row_min < 0 or row_max >= num_rows or
             col_min < 0 or col_max >= num_cols):
