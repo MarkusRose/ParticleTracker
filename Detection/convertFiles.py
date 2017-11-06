@@ -69,28 +69,39 @@ def readDetectedParticles(filename):
     emptycounter = 0
     hashcounter = 0
     frame = 0
+    first = True
 
     oneframe = []
     
     for line in infile:
         if len(line.split()) == 0:
-            emptycounter += 1
-            if len(oneframe) != 0:
+            if not first:
+                emptycounter += 1
+            if len(oneframe) != 0 and emptycounter == 1:
                 if len(oneframe) != partnum:
                     print("Number of particles and Frame content don't match!")
                     raise
                 particle_data.append(list(oneframe))
                 oneframe = []
+            elif len(oneframe) == 0 and emptycounter == 1:
+                p = new_cython.TempParticle()
+                p.frame = frame
+                p.x,p.y,p.width_x,p.width_y,p.height,p.amplitude,p.sn,p.volume = [np.nan]*8
+                oneframe.append(p)
+                particle_data.append(list(oneframe))
+                oneframe = []
         elif line[0] == '#':
+            first = False
+            emptycounter = 0
             hashcounter += 1
             if hashcounter % 4 == 1:
-                print(line.split())
+                #print(line.split())
                 frame  = int(line.split()[1])
             elif hashcounter % 4 == 2:
-                print(line.split())
+                #print(line.split())
                 partnum = float(line.split()[1])
             elif hashcounter % 4 == 3:
-                print(line.split())
+                #print(line.split())
                 cutoff = float(line.split()[1])
             elif hashcounter % 4 == 0:
                 oneframe = []
@@ -104,7 +115,12 @@ def readDetectedParticles(filename):
             p.frame = frame
             p.x,p.y,p.width_x,p.width_y,p.height,p.amplitude,p.sn,p.volume = b
             oneframe.append(p)
-    if len(oneframe) > 0:
+    if emptycounter == 0:
+        if len(oneframe) == 0:
+            p = new_cython.TempParticle()
+            p.frame = frame
+            p.x,p.y,p.width_x,p.width_y,p.height,p.amplitude,p.sn,p.volume = [np.nan]*8
+            oneframe.append(p)
         particle_data.append(list(oneframe))
         if len(oneframe) != partnum:
             print("Number of particles and Frame content don't match!")

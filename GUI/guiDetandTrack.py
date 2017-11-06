@@ -46,7 +46,7 @@ class guiDetandTrack(tk.Frame):
 
         self.inImagesVar = tk.StringVar()
         self.inImagesVar.set("Please select Image Folder")
-        ttk.Button(self.labelframe, text="Input Images", command = lambda:self.inImagesVar.set(filedialog.askdirectory())).grid(column=1, row=1, sticky='W')
+        ttk.Button(self.labelframe, text="Input Images", command = self.setFileName).grid(column=1, row=1, sticky='W')
         ttk.Entry(self.labelframe, textvariable = self.inImagesVar).grid(column=2, row=1, sticky='W')
 
         
@@ -55,7 +55,7 @@ class guiDetandTrack(tk.Frame):
         tk.Checkbutton(self.labelframe,text="Drift Correction",variable=self.dcvar).grid(column=1,row=14,sticky='W')
         self.feducialVar = tk.StringVar()
         self.feducialVar.set(os.path.abspath(os.path.join(self.inImagesVar.get(), '..', 'Analysis')))
-        ttk.Button(self.labelframe, text="Fiducial Markers", command = lambda:self.feducialVar.set(filedialog.askdirectory())).grid(column=1, row=15, sticky='W')
+        ttk.Button(self.labelframe, text="Fiducial Markers", command = lambda:self.feducialVar.set(filedialog.askopenfilename())).grid(column=1, row=15, sticky='W')
         ttk.Entry(self.labelframe, textvariable = self.feducialVar).grid(column=2, row=15, sticky='W')
 
         self.outDirVar = tk.StringVar()
@@ -97,11 +97,16 @@ class guiDetandTrack(tk.Frame):
 
         return
 
+    def setFileName(self):
+        self.inImagesVar.set(filedialog.askopenfilename())
+        self.outDirVar.set(os.path.abspath(os.path.join(os.path.dirname(self.inImagesVar.get()), 'Analysis')))
+        return
+
 
     def checkInputs(self):
         try:
             #Input Images Folder exists
-            if not os.path.isdir(self.inImagesVar.get()):
+            if not os.path.isfile(self.inImagesVar.get()):
                 messagebox.showerror("No Images", "Images could not be located.")
                 return False
 
@@ -170,7 +175,7 @@ class guiDetandTrack(tk.Frame):
 
             def handle_calc():
                 def calculator():
-                    images = Detection.det_and_track.readImageList(fn[0])
+                    images = fn[0]
                     if not os.path.isdir(fn[1]):
                         os.mkdir(fn[1])
                     os.chdir(fn[1])

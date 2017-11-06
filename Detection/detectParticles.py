@@ -9,6 +9,7 @@ try:
 except ImportError:
     import convertFiles
 from scipy import ndimage, optimize
+from skimage import io
 
 
 ################################
@@ -68,10 +69,11 @@ def multiImageDetect(img,
     print(('_' * 52))
     sys.stdout.write("[")
     sys.stdout.flush()
-    for i in range(len(img)):
+    imagearray = io.imread(img)
+    for i in range(len(imagearray)):
 
         #Read image
-        image = readImage.readImage(img[i])
+        image = imagearray[i]/np.iinfo(imagearray.dtype).max
 
         frame += 1
         #TODO: computationally better adding up of frames
@@ -93,6 +95,7 @@ def multiImageDetect(img,
             continue
         '''
         #Computationally expensive Adding up images
+        '''
         if frame < numAdder:
             continue
         else:
@@ -100,6 +103,7 @@ def multiImageDetect(img,
             for j in range(numAdder):
                 a += readImage.readImage(img[i-j])
             a /= numAdder
+            '''
             
         if output:
             readImage.saveImageToFile(a,path+"/01sanityCheck{:0004d}.png".format(frame))
@@ -107,7 +111,7 @@ def multiImageDetect(img,
         #print("\n==== Doing image no " + str(frame) + " ====")
         if local_max is None:
             particles = detectParticles(
-                    a,
+                    image,
                     sigma,
                     local_max_window,
                     signal_power,
@@ -120,7 +124,7 @@ def multiImageDetect(img,
                     path=path)
         else:
             particles = detectParticles(
-                    a,
+                    image,
                     sigma,
                     local_max_window,
                     signal_power,
@@ -135,7 +139,7 @@ def multiImageDetect(img,
 
         if (imageOutput):
             outMarkedImages(a,particles,"out{:0004d}.tif".format(frame),path=path)
-        a = np.zeros(image.shape)
+        #a = np.zeros(image.shape)
         particle_data.append(particles)
 
         writeDetectedParticles(particles,frame,outfile)

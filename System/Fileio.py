@@ -15,6 +15,7 @@ import sys
 import csv
 
 import numpy as np
+from skimage import io
 import copy
 
 
@@ -350,10 +351,10 @@ def makeImage(positions,framenumber,dirname,numPixels,sigma,background,backnoise
         msig.fill(background)
         np.clip(data+msig,0,2**16-1,data)
     
-    h,w = data.shape
-     
-    im = Image.frombytes('I;16',(w,h),data.tostring())
-    im.save(dirname+'/frame{0:04d}.tif'.format(framenumber))
+    #h,w = data.shape
+    # 
+    #im = Image.frombytes('I;16',(w,h),data.tostring())
+    #im.save(dirname+'/frame{0:04d}.tif'.format(framenumber))
     
     return data
 
@@ -370,8 +371,11 @@ def createImages(dirname,frames,numPixels,sigma,background,backnoise):
         pass
     print("creating images now")
     sys.stdout.flush()
+
+    outarray = []
     for i in range(len(frames)):
-        makeImage(frames[i],i,dirname,numPixels,sigma,background,backnoise)
+        outarray.append(makeImage(frames[i],i,dirname,numPixels,sigma,background,backnoise))
+    io.imsave(dirname + "/" + "SimulatedImages.tif",np.array(outarray))
     return
     
 

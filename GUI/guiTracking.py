@@ -31,8 +31,8 @@ class guiTracking(tk.Frame):
         self.mainframe = ttk.Frame(self)
         self.mainframe.grid(column=1, row=1)
 
-        ttk.Button(self, text="Run", command=self.runTracking).grid(column=2,row=2, sticky="SE")
-        ttk.Button(self, text="Cancel", command=self.parent.destroy).grid(column=2,row=3, sticky='E')
+        ttk.Button(self, text="Run", command=self.runTracking).grid(column=1,row=2, sticky="SW")
+        ttk.Button(self, text="Cancel", command=self.parent.destroy).grid(column=1,row=3, sticky='W')
         
         self.labelframe = ttk.Frame(self.mainframe)
         self.labelframe.grid(column=0, row=0)

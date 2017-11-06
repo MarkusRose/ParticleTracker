@@ -174,7 +174,7 @@ def simulateTracks(inVars=None,path=".",imageoutput=True):
     if imageoutput:
         if particle_size < 0.61*wavelength/numAperture:
             #TODO: additional factor for sigma = sigma*2
-            Fileio.createImages(path+"/SimulatedImages",framelist,numPixels,
+            Fileio.createImages(path,framelist,numPixels,
                     2*0.211*wavelength/numAperture*mag/pixel_size,background,backnoise)
         else:
             pass
