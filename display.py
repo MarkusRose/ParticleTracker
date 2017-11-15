@@ -1,6 +1,7 @@
-from StagingArea.Visualization import imageReader as ir
+from Visualization import imageReader as ir
 from Detection import ctrack
 from Detection import convertFiles as cf
+from skimage import io
 
 Simulation = False
 
@@ -18,9 +19,11 @@ else:
     particlefile = "foundParticles.txt"
     anapath = "SimData/Analysis/"
 
+images = io.imread(impath+images)
 
 tracks = ctrack.readTrajectoriesFromFile(anapath+trackfile)
-ir.showTracks(impath+images,tracks)
+print(tracks)
+ir.showTracks(images,tracks)
 
 #parts = cf.readDetectedParticles(anapath+particlefile)
 #ir.showDetections(impath+images,parts)

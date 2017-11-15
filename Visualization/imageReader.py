@@ -17,9 +17,7 @@ from .videofig import videofig
 
 #io.call_plugin('imread','tifffile')
 
-def showDetections(images,detections):
-
-    im = io.imread(images)
+def showDetections(im,detections):
 
     if im.shape[0] != len(detections):
         print("Difference in detection frames and num of images.")
@@ -62,12 +60,7 @@ def showDetections(images,detections):
     videofig.videofig(len(im), redraw_fn, play_fps=2)
     return
 
-def showTracks(images,tracks):
-
-    im = io.imread(images)
-    print((im.shape))
-
-
+def showTracks(im,tracks):
     particles = []
     steps = []
     id_frames = []

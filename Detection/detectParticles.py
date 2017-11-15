@@ -47,7 +47,64 @@ def outMarkedImages(image,partdata,out,path='.'):
     markPosition.saveRGBImage(outar,path+'/'+out)
     return
 
-def multiImageDetect(img,
+def previewImageDetect(imagearray,
+                    sigma,
+                    local_max_window,
+                    signal_power,
+                    bit_depth,
+                    eccentricity_thresh,
+                     sigma_thresh,numAdder,local_max=None,output=False,lmmethod=False,
+                     imageOutput=False,path='.',pfilename="foundParticles.txt"):
+    particle_data = []
+    frame = 0
+    count = 0
+    for i in range(len(imagearray)):
+
+        #Read image
+        image = imagearray[i]/np.iinfo(imagearray.dtype).max
+
+        frame += 1
+        #TODO: computationally better adding up of frames
+
+        #print("\n==== Doing image no " + str(frame) + " ====")
+        if local_max is None:
+            particles = detectParticles(
+                    image,
+                    sigma,
+                    local_max_window,
+                    signal_power,
+                    bit_depth,
+                    frame,
+                    eccentricity_thresh,
+                    sigma_thresh,
+                    output=output,
+                    lmm=lmmethod,
+                    path=path)
+        else:
+            particles = detectParticles(
+                    image,
+                    sigma,
+                    local_max_window,
+                    signal_power,
+                    bit_depth,
+                    frame,
+                    eccentricity_thresh,
+                    sigma_thresh,
+                    local_max_pixels=local_max_pixels[i],
+                    output=output,
+                    lmm=lmmethod,
+                    path=path)
+
+        particle_data.append(particles)
+
+    pd = []
+    for fr in particle_data:
+        pd.append(fr[0])
+    return pd
+
+
+
+def multiImageDetect(imagearray,
                     sigma,
                     local_max_window,
                     signal_power,
@@ -69,7 +126,6 @@ def multiImageDetect(img,
     print(('_' * 52))
     sys.stdout.write("[")
     sys.stdout.flush()
-    imagearray = io.imread(img)
     for i in range(len(imagearray)):
 
         #Read image
@@ -144,7 +200,7 @@ def multiImageDetect(img,
 
         writeDetectedParticles(particles,frame,outfile)
         #Progress Bar
-        aaa = int(i * 50/len(img))
+        aaa = int(i * 50/len(imagearray))
         if aaa > count:
             sys.stdout.write("#"*(aaa-count))
             sys.stdout.flush()

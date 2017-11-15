@@ -33,3 +33,5 @@ System/__init__.pyc
 *.png
 *.tif
 *.eps
+*.swp
+
