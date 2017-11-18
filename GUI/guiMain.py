@@ -9,6 +9,7 @@ from GUI import guiTracking
 from GUI import guiDetection
 from GUI import guiDetandTrack
 from GUI import guiSimulation
+from GUI import guiVisualization
 
 class mainWindow(tk.Tk):
     def __init__(self,parent):
@@ -90,6 +91,20 @@ class mainWindow(tk.Tk):
             self.anawin.geometry("{:}x{:}+{:}+{:}".format(w,h,posx,posy))
             return
         
+        def runVis():
+            self.Viswin = tk.Toplevel(self)
+            self.Viswin.title("Visualization")
+            app = guiVisualization.guiVisualization(self.Viswin)
+            app.grid(column=1,row=0,rowspan=12,sticky="NWSE")
+            app.grid_columnconfigure(0,weight=1)
+            self.update()
+            w = self.Viswin.winfo_width()
+            h = self.Viswin.winfo_height()
+            posx = self.winfo_x()+self.winfo_width()
+            posy = self.winfo_y()
+            self.Viswin.geometry("{:}x{:}+{:}+{:}".format(w,h,posx,posy))
+            return
+        
         simbutton = tk.Button(self, text="Simulation",command=runSimulation)
         simbutton.grid(column=0,row=1,sticky="EW")
         detbutton = tk.Button(self, text="Detection",command=runDetection)
@@ -100,6 +115,8 @@ class mainWindow(tk.Tk):
         detatrabutton.grid(column=0,row=4,sticky="EW")
         anabutton = tk.Button(self, text="Analysis",command=runAnalysis)
         anabutton.grid(column=0,row=5,sticky="EW")
+        Visbutton = tk.Button(self, text="Visualize",command=runVis)
+        Visbutton.grid(column=0,row=5,sticky="EW")
         exibutton = tk.Button(self, text="Quit", command=self.destroy)
         exibutton.grid(column=0,row=6,sticky="EW")
         #exibutton.pack()
