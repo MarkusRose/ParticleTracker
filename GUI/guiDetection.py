@@ -20,6 +20,8 @@ import os
 
 import Detection
 import AnalysisTools.driftCorrection as dc
+from Visualization import imageReader as ir
+from skimage import io
 
 class guiDetection(tk.Frame):
     def __init__(self,parent):
@@ -34,6 +36,8 @@ class guiDetection(tk.Frame):
     def doSetup(self):
         self.mainframe = ttk.Frame(self)
         self.mainframe.grid(column=1, row=1)
+
+        ttk.Button(self, text="Preview", command=self.runPreview).grid(column=2,row=1, sticky="SE")
 
         ttk.Button(self, text="Run", command=self.runDetection).grid(column=2,row=2, sticky="SE")
         ttk.Button(self, text="Cancel", command=self.parent.destroy).grid(column=2,row=3, sticky='E')
@@ -51,11 +55,12 @@ class guiDetection(tk.Frame):
         self.dcvar.set(0)
         tk.Checkbutton(self.labelframe,text="Drift Correction",variable=self.dcvar).grid(column=1,row=14,sticky='W')
         self.feducialVar = tk.StringVar()
+        self.feducialVar.set("Select Feducial Marker Images")
         ttk.Button(self.labelframe, text="Fiducial Markers", command = lambda:self.feducialVar.set(filedialog.askopenfilename())).grid(column=1, row=15, sticky='W')
         ttk.Entry(self.labelframe, textvariable = self.feducialVar).grid(column=2, row=15, sticky='W')
 
         self.outDirVar = tk.StringVar()
-        self.outDirVar.set(os.path.abspath(os.path.join(os.path.dirname(self.inImagesVar.get()), 'Analysis')))
+        self.outDirVar.set("Set Output Folder")
         ttk.Button(self.labelframe, text="Output Folder", command = lambda:self.outDirVar.set(filedialog.askdirectory())).grid(column=1, row=13, sticky='W')
         ttk.Entry(self.labelframe, textvariable = self.outDirVar).grid(column=2, row=13, sticky='W')
 
@@ -66,8 +71,9 @@ class guiDetection(tk.Frame):
 
         for i in range(len(dependency)):
             var = tk.StringVar()
-            ttk.Label(self.labelframe, text=dependency[i]).grid(column=1, row=2+i, sticky='W')
-            ttk.Entry(self.labelframe, textvariable = var).grid(column=2, row=2+i, sticky='W')
+            if i != 3:
+                ttk.Label(self.labelframe, text=dependency[i]).grid(column=1, row=2+i, sticky='W')
+                ttk.Entry(self.labelframe, textvariable = var).grid(column=2, row=2+i, sticky='W')
             self.vars.append(var)
 
         self.vars[0].set("2")
@@ -112,9 +118,11 @@ class guiDetection(tk.Frame):
             
             #Initial Positions File
             #Output Folder
+            '''
             if os.path.isdir(self.outDirVar.get()):
                 if not messagebox.askyesno("Folder Exists!", "This folder exists. Do you want to copy over its content?"):
                     return False
+                    '''
             
         except ValueError:
             messagebox.showerror("NaN", "One of the entries is not correct (not a number).")
@@ -137,7 +145,7 @@ class guiDetection(tk.Frame):
             outvars.append(1)
 
         return outvars, filenames
-            
+
             
     def runDetection(self):
         if self.checkInputs():
@@ -169,28 +177,59 @@ class guiDetection(tk.Frame):
 
             def handle_calc():
                 def calculator():
-                    images = fn[0]
+                    images = io.imread(fn[0])
                     if not os.path.isdir(fn[1]):
                         os.mkdir(fn[1])
                     notCentroid = (outv[-1] == 1)
-                    particle_data = Detection.detectParticles.multiImageDetect(images,outv[0],outv[6],outv[1],outv[2],outv[5],outv[4],int(outv[3]),local_max=None,output=False,lmmethod=notCentroid,imageOutput=False,path=fn[1])
+                    particle_data = Detection.detectParticles.multiImageDetect(images,outv[0],
+                            outv[6],outv[1],outv[2],outv[5],outv[4],int(outv[3]),
+                            local_max=None,output=False,lmmethod=notCentroid,
+                            imageOutput=False,path=fn[1])
                     if self.dcvar.get():
                         print("True")
                         sys.stdout.flush()
-                        drift_images= Detection.det_and_track.readImageList(fn[2])
-                        drift_data = Detection.detectParticles.multiImageDetect(drift_images,outv[0],outv[6],outv[1]+2,outv[2],outv[5],outv[4],int(outv[3]),local_max=None,output=False,lmmethod=notCentroid,imageOutput=False,path=fn[1])
-                        pdata = dc.position_with_driftcorrect([particle_data,drift_data],path=fn[1])
+                        drift_images= io.imread(fn[2])
+                        drift_data = Detection.detectParticles.multiImageDetect(drift_images,
+                                outv[0],outv[6],outv[1]+2,outv[2],outv[5],outv[4],
+                                int(outv[3]),local_max=None,output=False,lmmethod=notCentroid,
+                                imageOutput=False,path=fn[1])
+                        particle_data = dc.position_with_driftcorrect([particle_data,drift_data],path=fn[1])
+
+                    ir.showDetections(images,particle_data)
                     on_main_thread(top.destroy)
                     on_main_thread(done_mssg)
-                    on_main_thread(self.parent.destroy)
-                t = threading.Thread(target=calculator)
-                t.start()
+                    #on_main_thread(self.parent.destroy)
+                #t = threading.Thread(target=calculator)
+                #t.start()
+                calculator()
             self.after(1,handle_calc)
             self.after(100,check_queue)
             print("Done")
         else:
             print("Wrong inputs")
         return
+
+    def runPreview(self):
+        if self.checkInputs():
+            outv,fn = self.variablesToProgram()
+
+            def handle_calc():
+                images = io.imread(fn[0])
+                if not os.path.isdir(fn[1]):
+                    os.mkdir(fn[1])
+                notCentroid = (outv[-1] == 1)
+                particle_data = Detection.detectParticles.previewImageDetect(images[:1],
+                        outv[0],
+                        outv[6],outv[1],outv[2],outv[5],outv[4],int(outv[3]),
+                        local_max=None,output=False,lmmethod=notCentroid,
+                        imageOutput=False,path=fn[1])
+                ir.showDetections(images[0:1],particle_data)
+            self.after(1,handle_calc)
+            print("Done")
+        else:
+            print("Wrong inputs")
+        return
+
 
 
 
