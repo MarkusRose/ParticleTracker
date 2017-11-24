@@ -17,6 +17,23 @@ from .videofig import videofig
 
 #io.call_plugin('imread','tifffile')
 
+def showImages(im):
+    #redraw_fn draw frame f in a image sequence
+    def redraw_fn(f, axes):
+        img = im[f]
+        if not redraw_fn.initialized:
+            image = axes.imshow(img, animated=True)
+            redraw_fn.im = image
+            redraw_fn.initialized = True
+        else:
+            redraw_fn.im.set_array(img)
+        return
+
+    redraw_fn.initialized = False
+    videofig.videofig(len(im), redraw_fn, play_fps=2)
+    return
+
+
 def showDetections(im,detections):
 
     if im.shape[0] != len(detections):

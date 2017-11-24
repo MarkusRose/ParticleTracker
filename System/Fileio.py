@@ -313,14 +313,14 @@ def makeImage(positions,framenumber,dirname,numPixels,sigma,background,backnoise
 
     intensity = 0
     for k in range(len(positions)):
-        px = int(round(positions[k].x))
-        py = int(round(positions[k].y))
+        px = int(round(positions[k].y))
+        py = int(round(positions[k].x))
         intensity += positions[k].amplitude
         #xnum = min(len(data)-1,px+10)-max(0,px-10)
         #ynum = min(len(data[0])-1,py+10)-max(0,py-10)
         for i in range(max(0,px-30),min(len(data)-1,px+30),1):
             for j in range(max(0,py-30),min(len(data[i])-1,py+30),1):
-                msig = gauss(i,j,positions[k].x,positions[k].y,positions[k].amplitude,sigma)
+                msig = gauss(i,j,positions[k].y,positions[k].x,positions[k].amplitude,sigma)
                 if msig >= 2**16:
                     msig = 2**16-1
                 elif msig < 0:
