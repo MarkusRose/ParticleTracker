@@ -17,78 +17,29 @@ import os
 #========================================
 # User Input Variables
 #========================================
-Cel="9A"
-SR=3
+infilename = "foundTracks-SR5.0_20180322-155847.txt"
 
-frametime = 0.1
-pixelsize = 0.100
+frametime = 0.054
+#frametime = 0.030
+pixelsize = 0.097*100/60
 Dfactor = pixelsize*pixelsize/frametime
 
 bCleanUpTracks = False
 bSingleTrackEndToEnd = False
-bSingleTrackMSDanalysis = False
+bSingleTrackMSDanalysis = True
 bCombineTrack = True
 
 #combined Track input
-lenMSD_ct = 50
+lenMSD_ct = 1000
 plotlen = 30 #gives the range of the distribution plots
 numberofbins = 200
 
-LII = 30
-path = "D:/LipidSD/AnalyzedData-Li{:}/".format(LII)
-SR = 20
-Cel = ""
-if LII == 22:
-    if SR == 20:
-        infilename = "foundTracks-SR20_20170411-045006.txt"
-elif LII == 24:
-    if SR == 10:
-        infilename = "foundTracks-SR10_20170411-020113.txt"
-    elif SR == 20:
-        infilename = "foundTracks-SR20_20170411-020152.txt"
-    elif SR == 30:
-        infilename = "foundTracks-SR30_20170411-020242.txt"
-elif LII == 27:
-    if SR == 10:
-        infilename = "foundTracks-SR10_20170411-020450.txt"
-    elif SR == 20:
-        infilename = "foundTracks-SR20_20170411-020530.txt"
-    elif SR == 30:
-        infilename = "foundTracks-SR30_20170411-020623.txt"
-elif LII == 30:
-    if SR == 10:
-        infilename = "foundTracks-SR10_20170411-015207.txt"
-    elif SR == 20:
-        infilename = "foundTracks-SR20_20170411-015803.txt"
-    elif SR == 30:
-        infilename = "foundTracks-SR30_20170411-020335.txt"
-
-if LII == 22:
-    infilename = "foundTracks-SR20.0_20170427-161855.txt"
-elif LII == 23:
-    infilename = "foundTracks-SR20.0_20170427-071011.txt"
-elif LII == 24:
-    infilename = "foundTracks-SR20.0_20170427-161733.txt"
-elif LII == 25:
-    infilename = "foundTracks-SR20.0_20170427-070931.txt"
-elif LII == 26:
-    infilename = "foundTracks-SR20.0_20170427-070946.txt"
-elif LII == 27:
-    infilename = "foundTracks-SR20.0_20170427-161653.txt"
-elif LII == 28:
-    infilename = "foundTracks-SR20.0_20170427-071039.txt"
-elif LII == 30:
-    infilename = "foundTracks-SR20.0_20170427-192925.txt"
-
-
-small = 20
-large = 100
 
 pixel_size = 0.100 #um
 timestep = 0.1 #s
 
 #single track analysis input
-minTrLength = 0
+minTrLength = 10
 
 #debugging variables:
 testing = False
@@ -124,7 +75,7 @@ def readTracks(infile):
                 brt = True
                 track = []
             continue
-        track.append(np.array(map(float,line.split()[0:-1])))
+        track.append(np.array(list(map(float,line.split()[0:-1]))))
         if len(trid) == 0 or trid[-1] != line.split()[-1]:
             trid.append(line.split()[-1])
 
@@ -273,7 +224,7 @@ def plotMSD(msd,D,title="Mean-Squared-Displacement",save=True,labelname="labelna
 def plotDistro(distro,xlabel,title,save=True):
     dbox = distro[1][1] - distro[1][0]
     xran = distro
-    print xran
+    print(xran)
     plt.plot(distro[1][:-1]+dbox*0.5,distro[0],'k')
     plt.xlabel(xlabel)
     plt.ylabel("Normalized counts")
@@ -362,9 +313,9 @@ def endToEnd2(track):
 
 #=== Single Track Analysis ==============
 def eedispllist(tracks):
-    eedispl2 = map(endToEnd2,tracks)
+    eedispl2 = list(map(endToEnd2,tracks))
     eedispl = np.sqrt(eedispl2)
-    print "Analyzing the End-To-End distribution of " + str(len(tracks)) + " tracks."
+    print("Analyzing the End-To-End distribution of " + str(len(tracks)) + " tracks.")
     histo = np.histogram(eedispl,bins=numberofbins,range=(0,10),density=True)
     plt.plot(histo[1][1:]-(histo[1][1]-histo[1][0])/2,histo[0],'ro',histo[1][1:]-(histo[1][1]-histo[1][0])/2,histo[0],'-')
     #plt.axis([0,3,0,1])
@@ -379,32 +330,31 @@ def eedispllist(tracks):
     outarray = np.array([histo[1][1:]-(histo[1][1]-histo[1][0])/2,histo[0]]).transpose()
     fo = open("end2EndDistro.txt",'w')
     printArrayToFile(outarray,fo,head=["displacement(pixel)","relativeCounts"])
-    print "End-To-End Displacement has been saved to folder."
+    print("End-To-End Displacement has been saved to folder.")
     return histo
     
 
 def diffConstDistrib(tracks,trid):
 
-    print "Starting Analysis of " + str(len(tracks)) + " single tracks."
-    print "....This will take a while..."
-    print "........(creating a list of MSD from all tracks; this takes long...)"
-    msdlist = map(msd,tracks)
-    print "........(finding diffusion coefficient from all MSDs from list)"
+    print("Starting Analysis of " + str(len(tracks)) + " single tracks.")
+    print("....This will take a while...")
+    print("........(creating a list of MSD from all tracks; this takes long...")
+    msdlist = list(map(msd,tracks))
+    print("........(finding diffusion coefficient from all MSDs from list)")
     
     Dlist = findDiffConsts(msdlist)
     if len(Dlist) != len(trid):
-        print "Problem in lengths"
-        print len(Dlist) len(trid)
+        print("Problem in lengths")
     else:
         ofopen = open("singleStateAnalysis.txt",'w')
         ofopen.write("Dlen D id\n".format(Dlist[i],trid[i]))
         for i in range(len(trid)):
             ofopen.write("{:} {:} {:}\n".format(Dlist[i][0],Dlist[i][1],trid[i]))
-    print ">>>> The average diffusion coefficient is: " + str(Dlist.mean()*Dfactor) + " +- " + str(Dlist.std()*Dfactor) + " um^2/s"
-    print "........(finding the lengths of the single tracks)"
-    lenList= np.array(map(len,tracks))
-    print ">>>> The average track length is: " + str(lenList.mean()*frametime) + " +- " + str(lenList.std()*frametime) + " s"
-    print "Showing: Diffusion coefficient distribution of " + str(len(tracks)) + " tracks."
+    print(">>>> The average diffusion coefficient is: " + str(Dlist.mean()*Dfactor) + " +- " + str(Dlist.std()*Dfactor) + " um^2/s")
+    print("........(finding the lengths of the single tracks)")
+    lenList= np.array(list(map(len,tracks)))
+    print(">>>> The average track length is: " + str(lenList.mean()*frametime) + " +- " + str(lenList.std()*frametime) + " s")
+    print("Showing: Diffusion coefficient distribution of " + str(len(tracks)) + " tracks.")
     histo = np.histogram(Dlist,bins=numberofbins,density=True)
     plt.plot(histo[1][1:]-(histo[1][1]-histo[1][0])/2,histo[0],'ro',label="{:} +- {:} um^2/s".format(Dlist.mean()*Dfactor,Dlist.std()*Dfactor))
     #plt.axis([0,10,0,1])
@@ -420,7 +370,7 @@ def diffConstDistrib(tracks,trid):
     fo = open("diffConstDistro.txt",'w')
     printArrayToFile(outarray,fo,head=["diffConst(pixel**2/frame)","relativeCounts"])
     
-    print "Showing: Length of tracks distribution for " + str(len(tracks)) + " tracks."
+    print("Showing: Length of tracks distribution for " + str(len(tracks)) + " tracks.")
     lenhist = np.histogram(lenList,bins=numberofbins,density=True)
     plt.plot(lenhist[1][1:]-(lenhist[1][1]-lenhist[1][0])/2,lenhist[0],'ro')
     #plt.axis([0,30,0,1])
@@ -433,7 +383,7 @@ def diffConstDistrib(tracks,trid):
     fo = open("lengthDistro.txt",'w')
     printArrayToFile(outarray,fo,head=["track-length(frame)","relativeCounts"])
 
-    print "Showing: Dependence of the diffusion coefficient on the track length of " + str(len(tracks)) + " individual tracks."
+    print("Showing: Dependence of the diffusion coefficient on the track length of " + str(len(tracks)) + " individual tracks.")
     nubin = 30
     wbin = (lenhist[1][-1]-lenhist[1][0])/nubin
     bincount = 1
@@ -444,7 +394,6 @@ def diffConstDistrib(tracks,trid):
         while Dlist[i,0] > bincount * wbin+lenhist[1][0]:
             bincount+=1
             if bincount > nubin:
-                print "Oh no, yes"
                 bincount -= 1
                 break
         Dmean[1,bincount-1] += 1
@@ -470,6 +419,7 @@ def diffConstDistrib(tracks,trid):
 
 #=== Combined Tracks analysis =================
 def combineTracks(tracks):
+    print(tracks[0][0][0])
     lastpart = np.zeros((len(tracks[0][0])))
     combtr = [np.array(lastpart)]
     for tr in tracks:
@@ -491,27 +441,27 @@ def combineTracks(tracks):
 
 
 def analyzeCombinedTrack(tracks,lenMSD=500):
-    print "Combining " + str(len(tracks)) + " tracks."
+    print("Combining " + str(len(tracks)) + " tracks.")
     ct = combineTracks(tracks)
     plotTrack(ct.transpose())
-    print "Creating MSD for combined track."
+    print("Creating MSD for combined track.")
     ct_msd = msd(ct,length=lenMSD)
     ct_diffconst = findDiffConsts([ct_msd])[0]
-    print ">>>> Found diffusion coefficient: " + str(ct_diffconst[1]*Dfactor) + " um^2/s"
+    print(">>>> Found diffusion coefficient: " + str(ct_diffconst[1]*Dfactor) + " um^2/s")
     of = open("MSD-combinedTrack.txt",'w')
     printArrayToFile(ct_msd,of,head=["Stpngize","MSD"])
     plotMSD(ct_msd,ct_diffconst[1],labelname="{:} um^2/s".format(ct_diffconst[1]*Dfactor))
-    print "Starting Distribution Analysis"
+    print("Starting Distribution Analysis")
     distributionAnalysis(ct,plotlen)
     return ct_diffconst
 
 def distributionAnalysis(track,plotlen):
     dipllist = relativeStpng(track)
-    print "....Saving Displacements to file."
+    print("....Saving Displacements to file.")
     outfile = open("combinedTrack-relativeXYDisplacements.txt",'w')
     printArrayToFile(dipllist,outfile,["Steppingtime","dx","dy"])
     
-    print "....Creating r^2-distribution"
+    print("....Creating r^2-distribution")
     r2 = r2distro(dipllist)
     histograms = []
     counter = 0
@@ -521,7 +471,7 @@ def distributionAnalysis(track,plotlen):
         histograms.append(list(histo))
     plotMultidistro([histograms[i] for i in [0,4,8,16]],xlabel="r^2 [px^2]",title="r2-Distribution-combTr")
     
-    print "....Creating distribution of stpngizes in x and y"
+    print("....Creating distribution of stpngizes in x and y")
     dispdist = displacementDistro(dipllist)
     histograms = []
     counter = 0
@@ -555,21 +505,19 @@ def main():
     if (not bSingleTrackEndToEnd) and (not bSingleTrackMSDanalysis) and (not bCombineTrack):
         return
 
-    os.chdir(path)
-    
     tracks,trid = readTracks(infilename)
 
 
-    spng = os.path.join(path,"Tracks-Cel{:}-SR{:}".format(Cel,SR),"SingleStateAnalysis")
-    if not os.path.isdir(spng):
-        os.mkdir(spng)
-    os.chdir(spng)
+    path = "SingleStateAnalysis-longMSD"
+    if not os.path.isdir(path):
+        os.mkdir(path)
+    os.chdir(path)
 
     
     if bCleanUpTracks:
-        print
-        print "Cleaning Track File from NAN"
-        print "----------------------------"
+        print()
+        print("Cleaning Track File from NAN")
+        print("----------------------------")
         cleanTracksFile(tracks)
     
     considered = []
@@ -577,31 +525,33 @@ def main():
         if len(i) >= minTrLength:
             considered.append(i)
     if len(considered) == 0:
-        print "Tracks are too short! Please adjust 'minTrackLen' to a lower value!"
-        raw_input("Please restart again...")
+        print("Tracks are too short! Please adjust 'minTrackLen' to a lower value!")
+        input("Please restart again...")
         return
     if bSingleTrackEndToEnd:
-        print
-        print
-        print "Starting End-To-End Displacement Analysis for single tracks"
-        print "-----------------------------------------------------------"
+        print()
+        print()
+        print("Starting End-To-End Displacement Analysis for single tracks")
+        print("-----------------------------------------------------------")
         eehisto = eedispllist(considered)
+    '''
     if len(considered) > 100:
         considered = considered[:100]
+    '''
     
     if bSingleTrackMSDanalysis:
-        print
-        print
-        print "Starting Diffusion Constant Analysis for single tracks"
-        print "------------------------------------------------------"
+        print()
+        print()
+        print("Starting Diffusion Constant Analysis for single tracks")
+        print( "------------------------------------------------------")
         diffChisto = diffConstDistrib(considered,trid)
     if bCombineTrack:
-        print
-        print
-        print "Starting Combined Track Analysis"
-        print "--------------------------------"
+        print()
+        print()
+        print("Starting Combined Track Analysis")
+        print("--------------------------------")
         analyzeCombinedTrack(considered,lenMSD=lenMSD_ct)
-    raw_input("Press Enter to finish...")
+    input("Press Enter to finish...")
     return
 #=====================================
 
@@ -617,46 +567,5 @@ if __name__ == "__main__":
 
 
 #=== unused =======================
-def minimumEndToEnd(tracks):
-    minEE = []
-    for i in range(len(tracks)):
-        if endToEnd2(tracks[i]) > 400:
-            minEE.append([i,endToEnd2(tracks[i])])
-    return minEE
-
-
-def oldmain(tracks):
-    tlt =  tenLongTracks(tracks)
-    tmtl = tenMediumTracks(tracks)
-    print tlt, map(len,[tracks[x] for x in tlt])
-    #print tmtl, map(len,[tracks[x] for x in tmtl])
-    
-    subTracks = [tracks[i] for i in tlt]
-    minEE = minimumEndToEnd(subTracks)
-    print minEE
-    allmsds = map(msd,tracks[:])
-    alldiffs = findDiffConsts(allmsds)
-    print "Mean of all tracks: " + str(alldiffs.mean()) + " +- " + str(alldiffs.std())
-    allmsds = []
-    for i in range(len(subTracks)):
-        allmsds.append(msd(subTracks[i]))
-
-    alldiffs = findDiffConsts(allmsds)
-    print alldiffs.mean()
-
-    numtra = np.arange(len(subTracks))
-    firstmsd = map(msd,[subTracks[int(k)] for k in numtra])
-    diffconstant = findDiffConsts(firstmsd)
-    print diffconstant
-
-
-    for i in range(len(subTracks)):
-        plotTrack(subTracks[i])
-        plotMSD(firstmsd[i],diffconstant[i][1])
-
-    
-    fo = open("allMSD.txt",'w')
-    head = ["FrameStpng","MSD","err(MSD)"]
-    printMultiArrayToFile(allmsds,fo,sepword="MSD",head=head)
 #===============================================
 
