@@ -35,3 +35,11 @@ System/__init__.pyc
 *.eps
 *.swp
 
+*.aux
+*.blg
+*.lof
+*.lot
+*.out
+*.toc
+*.bbl
+
