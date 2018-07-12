@@ -1,0 +1,99 @@
+\documentclass[oneside,letterpaper]{scrartcl}
+
+% Used Packages
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage[]{tocbibind}
+
+\parindent 0pt
+
+% Commands
+\newcommand{\PN}{LTOS}
+
+% Title details
+\author{Markus Rose}
+\title{\PN\ Quick Guide}
+\date{\today}
+
+
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+
+%==========
+\section{About}
+\PN\ is a program for localization and detection and tracking of single particles in two-dimensional greyscale TIFF images and videos.
+
+%==========
+\section{Installation}
+
+\PN\ is available at \url{https://github.com/MarkusRose/ParticleTracker} under the GPL. It requires a python interpreter, as well as some additional packages provided below. It can be run from the command line, or with a GUI.
+
+\subsection{Getting Python}
+
+\PN\ is written in Python 3.6. The distribution that was used during development and testing is 
+Anaconda Python 3 (\url{https://www.anaconda.com/}).
+
+
+\subsection{Required Packages}
+
+\begin{itemize}
+\item numpy
+\item scipy
+\item pandas
+\item matplotlib
+\item tkinter
+\end{itemize}
+
+
+\subsection{Running \PN}
+
+\begin{verbatim} python main.py \end{verbatim}
+
+%=================
+\section{Using \PN}\parindent 0pt
+
+\subsection{The Graphical User Interface}
+
+\subsubsection{The Main Window}
+\begin{figure}
+\includegraphics[scale=1.]{Figures/MainGUI.jpg}
+\end{figure}
+\subsubsection{The Detection Menu}
+\begin{figure}
+\includegraphics[scale=1.]{Figures/DetectionGUI.jpg}
+\end{figure}
+\subsubsection{The Tracking Menu}
+\begin{figure}
+\includegraphics[scale=1.]{Figures/TrackingGUI.jpg}
+\end{figure}
+\subsubsection{Detect and Track in one Window}
+\begin{figure}
+\includegraphics[scale=1.]{Figures/DetandTrackGUI.jpg}
+\end{figure}
+\subsubsection{Visualization of Images, Detections and Tracks}
+\begin{figure}
+\includegraphics[scale=1.]{Figures/VisualizationGUI.jpg}
+\end{figure}
+\subsubsection{Simulation Window}
+\begin{figure}
+\includegraphics[scale=1]{Figures/SimulationGUI.jpg}
+\end{figure}
+\subsubsection{Analysis Tools for obtained Tracks}
+\begin{figure}
+\includegraphics[scale=1.]{Figures/AnalysisGUI.jpg}
+\end{figure}
+\subsection{Working from Command Line}
+
+%=================
+\section{Program Output}
+
+\bibliographystyle{ieeetr}
+\bibliography{biblio}
+
+\end{document}
