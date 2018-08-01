@@ -50,7 +50,7 @@ class ParticleTrack(object):
                 
     def insert_particle(self, particle, frame):
         for name in self.track.dtype.names:
-            #TODO: FIX ERROR
+            #TODO: FIX ERROR - Which error?
             try:
                 self.track[name][frame-1] = getattr(particle, name)
             except:
@@ -286,18 +286,10 @@ def link_particles(particle_data, max_displacement,
                         #print(cur_particle.next.shape)
                         #if j >= len(cur_particle.next[0]):
                         #    print("Problem: j out of bounds ( j > len(cur_particle.next[0]))")
-                        #TODO problem with link_range = 2 (out of bounds)
                         cur_particle.next[0][link] = j
                         
         #print("Done with linking Particles for image " + str(frame+1))
 
-        '''
-        m = 0
-        print(m)
-        if m == (num_frames - cur_link_range - 1) and cur_link_range > 1:
-            cur_link_range -= 1
-            '''
-    
     sys.stdout.write("#"*(50-aaa)+"]\n")
     sys.stdout.flush()
     #######################################
@@ -343,7 +335,6 @@ def link_particles(particle_data, max_displacement,
                 link_index = particle.next[0][n]
                 #print( i+n+1, link_index )
                 #print( len(particle_data),len(particle_data[i+n+1]) )
-                #TODO: List index out of range
                 linked_particle = particle_data[i + n + 1][link_index]
                 
                 if linked_particle.special == 1:
@@ -359,8 +350,8 @@ def link_particles(particle_data, max_displacement,
                                                particle.frame)
                 
                 
-                k = i
-                m = j
+                k = i #frame number starting at i, will be increased until track is complete, then need to go back to i.
+                m = j #Particle number in frame k
                 
                 ##############################################
                 # Build Trajectory from current particle
@@ -390,11 +381,10 @@ def link_particles(particle_data, max_displacement,
                                 break
                            
                             # If current particle is linked to a 
-                            # real particle that is not already linked
-                            # stop building the trajectory
+                            # real particle that is already linked
+                            # check next link range index!
                             else:
-                                break
-                    
+                                continue
                     # Stop building the trajectory
                     # when link is not found
                     if found == -1:
@@ -428,7 +418,6 @@ def link_particles(particle_data, max_displacement,
     
     print("Done Linking")
     writeTrajectories(trajectories,filename=outfile)
-    #Fileio.setTrackFile(trajectories)
     return trajectories
                         
 def build_cost_matrix(
@@ -478,6 +467,7 @@ def lap_assoc_matrix(
     #cdef int ok
     #cdef double reduced_cost, min
     
+    #Initialize association matrix:
     #loop over rows
     for i in range(num_particles):
         min = max_cost
@@ -509,7 +499,6 @@ def lap_assoc_matrix(
             association_matrix[i, num_particles_next] = 1
     
     #look for columns that are zero (no links)
-    #TODO: CHECK THIS
     for j in range(num_particles_next):
         ok = 1
         
@@ -519,10 +508,11 @@ def lap_assoc_matrix(
 
         if ok == 1:
             association_matrix[num_particles, j] = 1
-    
+    #end initializing association matrix
+
+    #begin optimization:
     reduced_cost = 0.0
     min = -1.0
-    
     while (min < 0.0):
         
         #reinitalize values through each iteration 
@@ -533,9 +523,11 @@ def lap_assoc_matrix(
         prevS_x = 0
         prevS_y = 0
         
+        #loop through all matrix elements:
         for i in range(num_particles + 1):
             for j in range(num_particles_next + 1):
                 
+                #skip last element manually, since cost < max_cost.
                 if i == num_particles and j == num_particles_next:
                     continue
                 
@@ -551,19 +543,19 @@ def lap_assoc_matrix(
                             break
                     
                     #look along the y-axis including
-                    #the ummy particles
+                    #the dummy particles
                     for k in range(num_particles_next + 1):
                         if association_matrix[i, k] == 1:
                             y = k
                             break
                     
-                    #z is the reduced cost
+                    #How to handle the dummy row/column:
                     if j == num_particles_next:
                         x = num_particles
-                    
                     if i == num_particles:
                         y = num_particles_next
                     
+                    #calculate the reduced cost after swapping links from positions (i,y) and (x,j) to (i,j) and (x,y)
                     reduced_cost = (cost_matrix[i, j] + cost_matrix[x, y] -
                                     cost_matrix[i, y] - cost_matrix[x, j])
                                     

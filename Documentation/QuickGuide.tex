@@ -7,11 +7,14 @@
 \usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage[]{tocbibind}
+\usepackage{wrapfig}
+\usepackage{blindtext}
 
 \parindent 0pt
 
 % Commands
 \newcommand{\PN}{LTOS}
+\def\myscale{0.55}
 
 % Title details
 \author{Markus Rose}
@@ -61,33 +64,62 @@ Anaconda Python 3 (\url{https://www.anaconda.com/}).
 \subsection{The Graphical User Interface}
 
 \subsubsection{The Main Window}
-\begin{figure}
-\includegraphics[scale=1.]{Figures/MainGUI.jpg}
-\end{figure}
+\begin{wrapfigure}{r}{0.3\textwidth}
+\centering
+\includegraphics[scale=\myscale]{Figures/MainGUI.jpg}
+\caption{Main Menu}
+\end{wrapfigure}
+\blindtext
+
 \subsubsection{The Detection Menu}
-\begin{figure}
-\includegraphics[scale=1.]{Figures/DetectionGUI.jpg}
-\end{figure}
+Well
+\begin{wrapfigure}{r}{0.5\textwidth}
+\centering
+\includegraphics[scale=\myscale]{Figures/DetectionGUI.jpg}
+\caption{Detection Menu}
+\end{wrapfigure}
+\Blindtext
+
 \subsubsection{The Tracking Menu}
-\begin{figure}
-\includegraphics[scale=1.]{Figures/TrackingGUI.jpg}
-\end{figure}
+\begin{wrapfigure}{r}{0.6\textwidth}
+\centering
+\includegraphics[scale=\myscale]{Figures/TrackingGUI.jpg}
+\caption{Tracking Menu}
+\end{wrapfigure}
+\blindtext
+
 \subsubsection{Detect and Track in one Window}
-\begin{figure}
-\includegraphics[scale=1.]{Figures/DetandTrackGUI.jpg}
-\end{figure}
+\begin{wrapfigure}{r}{0.6\textwidth}
+\centering
+\includegraphics[scale=\myscale]{Figures/DetandTrackGUI.jpg}
+\caption{Detect and Track Menu}
+\end{wrapfigure}
+\blindtext
+
 \subsubsection{Visualization of Images, Detections and Tracks}
-\begin{figure}
-\includegraphics[scale=1.]{Figures/VisualizationGUI.jpg}
-\end{figure}
+\begin{wrapfigure}{r}{0.6\textwidth}
+\centering
+\includegraphics[scale=\myscale]{Figures/VisualizationGUI.jpg}
+\caption{Visualization Menu}
+\end{wrapfigure}
+\blindtext
+
 \subsubsection{Simulation Window}
-\begin{figure}
-\includegraphics[scale=1]{Figures/SimulationGUI.jpg}
-\end{figure}
+\begin{wrapfigure}{r}{0.6\textwidth}
+\centering
+\includegraphics[scale=\myscale]{Figures/SimulationGUI.jpg}
+\caption{Simulation Menu}
+\end{wrapfigure}
+\blindtext
+
 \subsubsection{Analysis Tools for obtained Tracks}
-\begin{figure}
-\includegraphics[scale=1.]{Figures/AnalysisGUI.jpg}
-\end{figure}
+\begin{wrapfigure}{r}{0.6\textwidth}
+\centering
+\includegraphics[scale=\myscale]{Figures/AnalysisGUI.jpg}
+\caption{Analysis Menu}
+\end{wrapfigure}
+\blindtext
+
 \subsection{Working from Command Line}
 
 %=================

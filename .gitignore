@@ -42,4 +42,10 @@ System/__init__.pyc
 *.out
 *.toc
 *.bbl
+*.synctex.gz
+*.log
+*.tks
+Documentation/QuickGuide.log
+Documentation/QuickGuide.pdf
+Documentation/QuickGuide.synctex.gz
 
