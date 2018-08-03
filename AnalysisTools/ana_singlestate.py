@@ -202,7 +202,8 @@ def plotTrack(track,title="Track",save=True,path='.'):
     if save:
         plt.savefig(path+'/'+title+"-plot.png",format="png", dpi=600)
     plt.title(title)
-    plt.show()
+    #plt.show()
+    plt.close()
     return
     
 def plotMSD(msd,D,title="Mean-Squared-Displacement",save=True,labelname="labelname",path='.'):
@@ -215,7 +216,9 @@ def plotMSD(msd,D,title="Mean-Squared-Displacement",save=True,labelname="labelna
     plt.title(title)
     if save:
         plt.savefig(path+'/'+title+"-plot.png",format="png", dpi=600)
-    plt.show()
+    #plt.show()
+    plt.close()
+    return
 
 def plotDistro(distro,xlabel,title,save=True,path='.'):
     dbox = distro[1][1] - distro[1][0]
@@ -227,7 +230,8 @@ def plotDistro(distro,xlabel,title,save=True,path='.'):
     if save:
         plt.savefig(path+'/'+title+"-plot.png",format="png", dpi=600)
     plt.title(title)
-    plt.show()
+    #plt.show()
+    plt.close()
     return
 
 def plotMultidistro(distarray,xlabel,title,save=True,path='.'):
@@ -239,7 +243,8 @@ def plotMultidistro(distarray,xlabel,title,save=True,path='.'):
     if save:
         plt.savefig(path+'/'+title+"-plot.png",format="png", dpi=600)
     plt.title(title)
-    plt.show()
+    #plt.show()
+    plt.close()
     return
 
 #=====================================
@@ -321,7 +326,8 @@ def eedispllist(tracks,numberofbins=50,path='.'):
     plt.xscale('log')
     #plt.axis([0.05,12,0,1])
     plt.savefig(path+'/EndToEndDistrib.png', format='png', dpi=600)
-    plt.show()
+    #plt.show()
+    plt.close()
 
     outarray = np.array([histo[1][1:]-(histo[1][1]-histo[1][0])/2,histo[0]]).transpose()
     fo = open(path+"/end2EndDistro.txt",'w')
@@ -351,7 +357,8 @@ def diffConstDistrib(tracks,pixelsize,frametime,Dfactor,numberofbins=50,path='.'
     plt.xlabel("Diffusion Constants (px^2*framerate)")
     plt.legend()
     plt.savefig(path+'/DiffConstDistrib.png', format='png', dpi=600)
-    plt.show()
+    #plt.show()
+    plt.close()
     
 
     outarray = np.array([histo[1][1:]-(histo[1][1]-histo[1][0])/2,histo[0]]).transpose()
@@ -366,7 +373,8 @@ def diffConstDistrib(tracks,pixelsize,frametime,Dfactor,numberofbins=50,path='.'
     plt.ylabel("relative Counts")
     plt.xlabel("Track length (frames)")
     plt.savefig(path+'/lengthDistribution.png', format='png', dpi=600)
-    plt.show()
+    #plt.show()
+    plt.close()
     outarray = np.array([lenhist[1][1:]-(lenhist[1][1]-lenhist[1][0])/2,lenhist[0]]).transpose()
     fo = open(path+"/lengthDistro.txt",'w')
     printArrayToFile(outarray,fo,head=["track-length(frame)","relativeCounts"])
@@ -397,7 +405,8 @@ def diffConstDistrib(tracks,pixelsize,frametime,Dfactor,numberofbins=50,path='.'
     plt.ylabel("averaged diffusion constant (px^2*framerate")
     plt.xlabel("Track length (frames)")
     plt.savefig(path+'/trLengthDiffConstDependence.png', format='png', dpi=600)
-    plt.show()
+    #plt.show()
+    plt.close()
     outarray = np.array([Dmean[0],Dmean[2]]).transpose()
     fo = open(path+"/Length-Diffconst-Relation.txt",'w')
     printArrayToFile(outarray,fo,head=["track-length(frame)","meanDiffConst"])
@@ -481,14 +490,14 @@ def doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,bCleanUpTracks=True,bSing
     #plotting parameters
     Dfactor = pixelsize*pixelsize/frametime
 
-    lenMSD_ct = 50
+    lenMSD_ct = 300
     plotlen = 30 #gives the range of the distribution plots
     numberofbins = 200
     small = 20
     large = 100
 
     #single track analysis input
-    minTrLength = 1
+    minTrLength = 15
     
     if (not bSingleTrackEndToEnd) and (not bSingleTrackMSDanalysis) and (not bCombineTrack):
         return

@@ -13,7 +13,7 @@
 \parindent 0pt
 
 % Commands
-\newcommand{\PN}{LTOS}
+\newcommand{\PN}{PyLDTracker}
 \def\myscale{0.55}
 
 % Title details
@@ -35,7 +35,7 @@
 %==========
 \section{Installation}
 
-\PN\ is available at \url{https://github.com/MarkusRose/ParticleTracker} under the GPL. It requires a python interpreter, as well as some additional packages provided below. It can be run from the command line, or with a GUI.
+\PN\ is available at \url{https://github.com/MarkusRose/ParticleTracker} under the GPL. It requires a python interpreter, as well as some additional packages listed below. It can be run from the command line, or with a GUI.
 
 \subsection{Getting Python}
 
@@ -56,6 +56,8 @@ Anaconda Python 3 (\url{https://www.anaconda.com/}).
 
 \subsection{Running \PN}
 
+\PN is a python 3.6 program. Running it in the interpreter will start the GUI.
+
 \begin{verbatim} python main.py \end{verbatim}
 
 %=================
@@ -63,22 +65,39 @@ Anaconda Python 3 (\url{https://www.anaconda.com/}).
 
 \subsection{The Graphical User Interface}
 
+\PN comes with a graphical user interface (GUI) written entirely in Tkinter. 
+
 \subsubsection{The Main Window}
+
 \begin{wrapfigure}{r}{0.3\textwidth}
 \centering
 \includegraphics[scale=\myscale]{Figures/MainGUI.jpg}
 \caption{Main Menu}
 \end{wrapfigure}
-\blindtext
+
+The main window shows all available operations than can be performed. Each button opens a new window with the specific option required for the wanted task. The available choices are
+
+\begin{description}
+\item[Simulation] A simulation of diffusing particles, which outputs both track files and frame files, as well as a TIFF stack file.
+\item[Detection] With a TIFF stack (video) as input file, the fluorescent particles are detected and displayed.
+\item[Tracking] Tracking is performed on the file "foundParticles.txt". A TIFF stack can be included, if a visualization is wanted after tracking is complete.
+\item[Detect and Track] This option performs the two previous steps with one click. As input file, only a TIFF stack is required.
+\item[Visualize] Here either just the TIFF stack, the detections or the full tracks can be displayed. A TIFF stack is required.
+\item[Analysis] With a track file as input, various useful analysis tools are located here.
+\item[Quit] Exits the program.
+\end{description}
+
+\subsubsection{The Simulation Menu}
 
 \subsubsection{The Detection Menu}
-Well
+
 \begin{wrapfigure}{r}{0.5\textwidth}
 \centering
 \includegraphics[scale=\myscale]{Figures/DetectionGUI.jpg}
 \caption{Detection Menu}
 \end{wrapfigure}
-\Blindtext
+
+
 
 \subsubsection{The Tracking Menu}
 \begin{wrapfigure}{r}{0.6\textwidth}
@@ -86,7 +105,7 @@ Well
 \includegraphics[scale=\myscale]{Figures/TrackingGUI.jpg}
 \caption{Tracking Menu}
 \end{wrapfigure}
-\blindtext
+
 
 \subsubsection{Detect and Track in one Window}
 \begin{wrapfigure}{r}{0.6\textwidth}
@@ -94,7 +113,7 @@ Well
 \includegraphics[scale=\myscale]{Figures/DetandTrackGUI.jpg}
 \caption{Detect and Track Menu}
 \end{wrapfigure}
-\blindtext
+
 
 \subsubsection{Visualization of Images, Detections and Tracks}
 \begin{wrapfigure}{r}{0.6\textwidth}
@@ -102,7 +121,7 @@ Well
 \includegraphics[scale=\myscale]{Figures/VisualizationGUI.jpg}
 \caption{Visualization Menu}
 \end{wrapfigure}
-\blindtext
+
 
 \subsubsection{Simulation Window}
 \begin{wrapfigure}{r}{0.6\textwidth}
@@ -110,7 +129,7 @@ Well
 \includegraphics[scale=\myscale]{Figures/SimulationGUI.jpg}
 \caption{Simulation Menu}
 \end{wrapfigure}
-\blindtext
+
 
 \subsubsection{Analysis Tools for obtained Tracks}
 \begin{wrapfigure}{r}{0.6\textwidth}
@@ -118,7 +137,7 @@ Well
 \includegraphics[scale=\myscale]{Figures/AnalysisGUI.jpg}
 \caption{Analysis Menu}
 \end{wrapfigure}
-\blindtext
+
 
 \subsection{Working from Command Line}
 
