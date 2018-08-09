@@ -1,6 +1,7 @@
 
 import sys
 import os
+import os.path
 import threading
 import time
 try:
@@ -42,7 +43,7 @@ class guiAnalysis(tk.Frame):
         self.file_opt = options = {}
         options['defaultextension'] = '.txt'
         options['filetypes'] = [('text files', '.txt'),('all files', '.*')]
-        options['initialdir'] = os.environ["HOME"]+'/Desktop/'
+        options['initialdir'] = os.path.expanduser("~")+'/Desktop/'
         options['parent'] = self
         options['title'] = 'Select Track File'
 
