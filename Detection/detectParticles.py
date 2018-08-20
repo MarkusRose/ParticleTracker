@@ -407,6 +407,7 @@ def addParticleToList(particle_list,frame,row_min,row_max,col_min,col_max,fitdat
         # (for our purposes a simple calc of amplitude of signal minus 
         # the background over the intensity of the background)
         p.sn = (p.amplitude + p.height) / p.height
+        p.particle_id = 'aaaaaaaa'
         particle_list.append(p)
         return
 

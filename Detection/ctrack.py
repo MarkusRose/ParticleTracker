@@ -15,6 +15,7 @@ import sys
 from Detection.pysm import new_cython
 import System.Fileio as Fileio
 from scipy import io
+import pandas as pd
 import string
 import random
 
@@ -24,7 +25,7 @@ import numpy as np
 
 class ParticleTrack(object):
     
-    struct_type = [('particle_id', np.str_),
+    struct_type = [('particle_id', np.object),
                    ('frame', np.uint32),
                    ('sn', np.double),
                    ('x', np.double),
@@ -79,6 +80,21 @@ def writeTrajectories(tracks,filename="foundTracks.txt"):
     outfile.close()
     print("Done writing Tracks")
     print(("Number of Tracks found: {:}".format(len(tracks))))
+    return
+
+    
+def writeTracks(tracks,filename="foundTracks.txt"):
+    columns = ["frame","x","y","width_x","width_y","height","amplitude","sn","volume","particle_id"]
+    df = pd.DataFrame(columns=columns)
+    for track in tracks:
+        for particle in track.track:
+            partdict = {}
+            for name in particle.dtype.names:
+                partdict[name] = [particle[name]]
+            df2 = pd.DataFrame(partdict,columns=columns)
+            df = df.append(df2,ignore_index=True)
+    print(df)
+    df.to_csv(filename,index=False)
     return
 
 def makeParticle(frame,x,y,width_x,width_y,height,amplitude,part_id):
@@ -346,6 +362,7 @@ def link_particles(particle_data, max_displacement,
                 particle_track = ParticleTrack(id=track_id, 
                                                num_elements=num_frames)
                 
+                particle.particle_id = particle_track.id
                 particle_track.insert_particle(particle, 
                                                particle.frame)
                 
@@ -401,6 +418,8 @@ def link_particles(particle_data, max_displacement,
                         linked_particle = particle_data[k][m]
                         linked_particle.special = 1
                     
+                        linked_particle.particle_id=particle_track.id
+                        print(linked_particle.particle_id)
                         particle_track.insert_particle(linked_particle,
                                                    linked_particle.frame)
                         #print("Linked Particle frame: " + str(linked_particle.frame))
@@ -417,7 +436,8 @@ def link_particles(particle_data, max_displacement,
                 trajectories.append(particle_track)   
     
     print("Done Linking")
-    writeTrajectories(trajectories,filename=outfile)
+    #writeTrajectories(trajectories,filename=outfile)
+    writeTracks(trajectories,filename=outfile)
     return trajectories
                         
 def build_cost_matrix(

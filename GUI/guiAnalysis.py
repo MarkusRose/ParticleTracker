@@ -24,7 +24,7 @@ except ImportError:
     import queue
     
 
-import AnalysisTools.ana_singlestate as ANA
+import AnalysisTools.ana_singlestate_legacy as ANA
 import AnalysisTools.hiddenMarkov as HMM
 import AnalysisTools.speedCorrelationIndex as SCI
 
