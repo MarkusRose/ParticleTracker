@@ -207,10 +207,13 @@ def plotDistro(distro,xlabel,title,save=True,path='.'):
     plt.close()
     return
 
-def plotMultidistro(distarray,xlabel,title,save=True,path='.'):
+def plotMultidistro(distarray,xlabel,title,save=True,path='.',bar=True):
     for elem in distarray:
         dbox = elem[1][1]-elem[1][0]
-        plt.bar(elem[1][:-1]+dbox*0.5,elem[0],width=dbox)
+        if bar:
+            plt.bar(elem[1][:-1]+dbox*0.5,elem[0],width=dbox)
+        else:
+            plt.plot(elem[1][:-1]+dbox*0.5,elem[0],'o')
     plt.xlabel(xlabel)
     plt.ylabel("Counts")
     if save:
@@ -442,7 +445,7 @@ def distributionAnalysis(track,pixelsize,frametime,Dfactor,plotlen,numberofbins=
         histo = np.histogram(elr2,bins=numberofbins,range=(0,plotlen),density=False)
         counter += 1
         histograms.append(list(histo))
-    plotMultidistro([histograms[i] for i in [0,4,8,16]],xlabel="r^2 [px^2]",title="r2-Distribution-combTr",path=path)
+    plotMultidistro([histograms[i] for i in [0,4,8,16]],xlabel="r^2 [px^2]",title="r2-Distribution-combTr",path=path,bar=False)
     
     print("....Creating distribution of stpngizes in x and y")
     dispdist = displacementDistro(dipllist)
@@ -452,7 +455,7 @@ def distributionAnalysis(track,pixelsize,frametime,Dfactor,plotlen,numberofbins=
         histo = np.histogram(elr2*pixelsize,bins=numberofbins,range=(-plotlen*pixelsize,plotlen*pixelsize),density=False)
         counter += 1
         histograms.append(list(histo))
-    plotMultidistro([histograms[i] for i in [0,4,8,16]],xlabel="dx and dy [um]",title="xy-Distribution-combTr",path=path)
+    plotMultidistro([histograms[i] for i in [0,4,8,16]],xlabel="dx and dy [um]",title="xy-Distribution-combTr",path=path,bar=False)
     return
     
 #===========================================
@@ -467,7 +470,7 @@ def doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,bCleanUpTracks=True,bSing
 
     lenMSD_ct = 300
     plotlen = 30 #gives the range of the distribution plots
-    numberofbins = 200
+    numberofbins = 70
     small = 20
     large = 100
 
