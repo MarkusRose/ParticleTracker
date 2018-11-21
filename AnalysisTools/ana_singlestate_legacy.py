@@ -183,7 +183,7 @@ def plotMSD(msd,D,title="Mean-Squared-Displacement",save=True,labelname="labelna
     plt.plot(msd[:,0],msd[:,1],'ro')
     ran = np.arange(msd[-1,0])
     plt.plot(ran,4*D*ran,'k',label=labelname)
-    plt.xlabel("time lag [s]")
+    plt.xlabel("Lag Time [s]")
     plt.ylabel("MSD [um^2/s]")
     plt.legend()
     plt.title(title)
@@ -197,9 +197,9 @@ def plotDistro(distro,xlabel,title,save=True,path='.'):
     dbox = distro[1][1] - distro[1][0]
     xran = distro
     print(xran)
-    plt.plot(distro[1][:-1]+dbox*0.5,distro[0],'k')
+    plt.bar(distro[1][:-1]+dbox*0.5,distro[0],width=dbox)
     plt.xlabel(xlabel)
-    plt.ylabel("Normalized counts")
+    plt.ylabel("Counts")
     if save:
         plt.savefig(path+'/'+title+"-plot.png",format="png", dpi=600)
     plt.title(title)
@@ -210,9 +210,9 @@ def plotDistro(distro,xlabel,title,save=True,path='.'):
 def plotMultidistro(distarray,xlabel,title,save=True,path='.'):
     for elem in distarray:
         dbox = elem[1][1]-elem[1][0]
-        plt.plot(elem[1][:-1]+dbox*0.5,elem[0],'o')
+        plt.bar(elem[1][:-1]+dbox*0.5,elem[0],width=dbox)
     plt.xlabel(xlabel)
-    plt.ylabel("Normalized counts")
+    plt.ylabel("Counts")
     if save:
         plt.savefig(path+'/'+title+"-plot.png",format="png", dpi=600)
     plt.title(title)
@@ -323,7 +323,8 @@ def diffConstDistrib(tracks,pixelsize,frametime,Dfactor,numberofbins=50,path='.'
     print((">>>> The average track length is: " + str(lenList.mean()*frametime) + " +- " + str(lenList.std()*frametime) + " s"))
     print(("Showing: Diffusion coefficient distribution of " + str(len(tracks)) + " tracks."))
     histo = np.histogram(Dlist,bins=numberofbins,density=True)
-    plt.plot(histo[1][1:]-(histo[1][1]-histo[1][0])/2,histo[0],'ro',label="{:} +- {:} um^2/s".format(Dlist.mean()*Dfactor,Dlist.std()*Dfactor))
+    width = (histo[1][1]-histo[1][0])/2
+    plt.bar(histo[1][1:]-(histo[1][1]-histo[1][0])/2,histo[0],width=width,label="{:} +- {:} um^2/s".format(Dlist.mean()*Dfactor,Dlist.std()*Dfactor))
     #plt.axis([0,10,0,1])
     plt.title("Diffusion Coefficient Distribution")
     plt.ylabel("relative Counts")
@@ -340,7 +341,8 @@ def diffConstDistrib(tracks,pixelsize,frametime,Dfactor,numberofbins=50,path='.'
     
     print(("Showing: Length of tracks distribution for " + str(len(tracks)) + " tracks."))
     lenhist = np.histogram(lenList,bins=numberofbins,density=True)
-    plt.plot(lenhist[1][1:]-(lenhist[1][1]-lenhist[1][0])/2,lenhist[0],'ro')
+    width = (lenhist[1][1]-lenhist[1][0])/2
+    plt.bar(lenhist[1][1:]-(lenhist[1][1]-lenhist[1][0])/2,lenhist[0],width=width)
     #plt.axis([0,30,0,1])
     plt.title("Length Distribution of single tracks")
     plt.ylabel("relative Counts")
@@ -415,6 +417,7 @@ def analyzeCombinedTrack(tracks,pixelsize,frametime,Dfactor,lenMSD=500,numberofb
     ct = combineTracks(tracks,path=path)
     plotTrack(ct.transpose(),path=path)
     print("Creating MSD for combined track.")
+    lenMSD = min(lenMSD,int(len(ct)*0.2))
     ct_msd = msd(ct,length=lenMSD)
     ct_diffconst = findDiffConsts([ct_msd])[0]
     print((">>>> Found diffusion coefficient: " + str(ct_diffconst[1]*Dfactor) + " um^2/s"))
@@ -436,7 +439,7 @@ def distributionAnalysis(track,pixelsize,frametime,Dfactor,plotlen,numberofbins=
     histograms = []
     counter = 0
     for elr2 in r2:
-        histo = np.histogram(elr2,bins=numberofbins,range=(0,plotlen),density=True)
+        histo = np.histogram(elr2,bins=numberofbins,range=(0,plotlen),density=False)
         counter += 1
         histograms.append(list(histo))
     plotMultidistro([histograms[i] for i in [0,4,8,16]],xlabel="r^2 [px^2]",title="r2-Distribution-combTr",path=path)
@@ -446,7 +449,7 @@ def distributionAnalysis(track,pixelsize,frametime,Dfactor,plotlen,numberofbins=
     histograms = []
     counter = 0
     for elr2 in dispdist:
-        histo = np.histogram(elr2*pixelsize,bins=numberofbins,range=(-plotlen*pixelsize,plotlen*pixelsize),density=True)
+        histo = np.histogram(elr2*pixelsize,bins=numberofbins,range=(-plotlen*pixelsize,plotlen*pixelsize),density=False)
         counter += 1
         histograms.append(list(histo))
     plotMultidistro([histograms[i] for i in [0,4,8,16]],xlabel="dx and dy [um]",title="xy-Distribution-combTr",path=path)
@@ -459,7 +462,6 @@ def distributionAnalysis(track,pixelsize,frametime,Dfactor,plotlen,numberofbins=
 #The big MAIN
 #====================================
 def doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,bCleanUpTracks=True,bSingleTrackEndToEnd=False,bSingleTrackMSDanalysis=True,bCombineTrack=True):
-    #combined Track input
     #plotting parameters
     Dfactor = pixelsize*pixelsize/frametime
 
