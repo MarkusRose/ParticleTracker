@@ -293,11 +293,11 @@ def eedispllist(tracks,numberofbins=50,path='.'):
     eedispl2 = list(map(endToEnd2,tracks))
     eedispl = np.sqrt(eedispl2)
     print(("Analyzing the End-To-End distribution of " + str(len(tracks)) + " tracks."))
-    histo = np.histogram(eedispl,bins=numberofbins,range=(0,10),density=True)
+    histo = np.histogram(eedispl,bins=numberofbins,range=(0,10),density=False)
     plt.plot(histo[1][1:]-(histo[1][1]-histo[1][0])/2,histo[0],'ro',histo[1][1:]-(histo[1][1]-histo[1][0])/2,histo[0],'-')
     #plt.axis([0,3,0,1])
     plt.title("End-To-End Track Length Distribution")
-    plt.ylabel("relative Counts")
+    plt.ylabel("Counts")
     plt.xlabel("End to end displacement (pixel)")
     plt.xscale('log')
     #plt.axis([0.05,12,0,1])
@@ -307,7 +307,7 @@ def eedispllist(tracks,numberofbins=50,path='.'):
 
     outarray = np.array([histo[1][1:]-(histo[1][1]-histo[1][0])/2,histo[0]]).transpose()
     fo = open(path+"/end2EndDistro.txt",'w')
-    printArrayToFile(outarray,fo,head=["displacement(pixel)","relativeCounts"])
+    printArrayToFile(outarray,fo,head=["displacement(pixel)","Counts"])
     print("End-To-End Displacement has been saved to folder.")
     return histo
     
@@ -325,12 +325,12 @@ def diffConstDistrib(tracks,pixelsize,frametime,Dfactor,numberofbins=50,path='.'
     lenList= np.array(list(map(len,tracks)))
     print((">>>> The average track length is: " + str(lenList.mean()*frametime) + " +- " + str(lenList.std()*frametime) + " s"))
     print(("Showing: Diffusion coefficient distribution of " + str(len(tracks)) + " tracks."))
-    histo = np.histogram(Dlist,bins=numberofbins,density=True)
+    histo = np.histogram(Dlist,bins=numberofbins,density=False)
     width = (histo[1][1]-histo[1][0])/2
     plt.bar(histo[1][1:]-(histo[1][1]-histo[1][0])/2,histo[0],width=width,label="{:} +- {:} um^2/s".format(Dlist.mean()*Dfactor,Dlist.std()*Dfactor))
     #plt.axis([0,10,0,1])
     plt.title("Diffusion Coefficient Distribution")
-    plt.ylabel("relative Counts")
+    plt.ylabel("Counts")
     plt.xlabel("Diffusion Constants (px^2*framerate)")
     plt.legend()
     plt.savefig(path+'/DiffConstDistrib.png', format='png', dpi=600)
@@ -340,22 +340,22 @@ def diffConstDistrib(tracks,pixelsize,frametime,Dfactor,numberofbins=50,path='.'
 
     outarray = np.array([histo[1][1:]-(histo[1][1]-histo[1][0])/2,histo[0]]).transpose()
     fo = open(path+"/diffConstDistro.txt",'w')
-    printArrayToFile(outarray,fo,head=["diffConst(pixel**2/frame)","relativeCounts"])
+    printArrayToFile(outarray,fo,head=["diffConst(pixel**2/frame)","Counts"])
     
     print(("Showing: Length of tracks distribution for " + str(len(tracks)) + " tracks."))
-    lenhist = np.histogram(lenList,bins=numberofbins,density=True)
+    lenhist = np.histogram(lenList,bins=numberofbins,density=False)
     width = (lenhist[1][1]-lenhist[1][0])/2
     plt.bar(lenhist[1][1:]-(lenhist[1][1]-lenhist[1][0])/2,lenhist[0],width=width)
     #plt.axis([0,30,0,1])
     plt.title("Length Distribution of single tracks")
-    plt.ylabel("relative Counts")
+    plt.ylabel("Counts")
     plt.xlabel("Track length (frames)")
     plt.savefig(path+'/lengthDistribution.png', format='png', dpi=600)
     #plt.show()
     plt.close()
     outarray = np.array([lenhist[1][1:]-(lenhist[1][1]-lenhist[1][0])/2,lenhist[0]]).transpose()
     fo = open(path+"/lengthDistro.txt",'w')
-    printArrayToFile(outarray,fo,head=["track-length(frame)","relativeCounts"])
+    printArrayToFile(outarray,fo,head=["track-length(frame)","Counts"])
 
     print(("Showing: Dependence of the diffusion coefficient on the track length of " + str(len(tracks)) + " individual tracks."))
     nubin = 30

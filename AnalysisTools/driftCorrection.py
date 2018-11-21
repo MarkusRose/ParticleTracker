@@ -244,7 +244,7 @@ def track_with_driftcorrect(fn,searchRadius,link_range=2,path='.'):
     print("Correcting for Drift now")
     sys.stdout.flush()
     pparts = driftCorrection_particles(fn[0],drifttracks)
-    conFiles.writeParticleFile(pparts,filename=path+"driftlessParticles.txt")
+    conFiles.writeParticleFile(pparts,filename=path+"/driftlessParticles.txt")
     date = strftime("%Y%m%d-%H%M%S")
     t = doTrack_direct(pparts,outfile="driftcorrectedTracks-SR{:}_{:}.txt".format(searchRadius,date),infilename=fn[0],linkRange=link_range,path=path)
     return t
