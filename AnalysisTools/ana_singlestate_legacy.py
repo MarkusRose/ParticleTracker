@@ -494,6 +494,7 @@ def doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,bCleanUpTracks=True,bSing
             considered.append(i)
     if len(considered) == 0:
         print("Tracks are too short! Please adjust 'minTrackLen' to a lower value!")
+        sys.stdout.flush()
         #raw_input("Please restart again...")
         return
     if bSingleTrackEndToEnd:
@@ -517,6 +518,7 @@ def doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,bCleanUpTracks=True,bSing
         print("Starting Combined Track Analysis")
         print("--------------------------------")
         analyzeCombinedTrack(considered,pixelsize,frametime,Dfactor,lenMSD=lenMSD_ct,numberofbins=numberofbins,plotlen=plotlen,path=spng)
+    sys.stdout.flush()
     return
 #=====================================
 

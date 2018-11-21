@@ -236,6 +236,7 @@ class guiAnalysis(tk.Frame):
                 self.states[0] = False
                 self.states[1] = False
                 print("combined and individual")
+                sys.stdout.flush()
                 top1 = tk.Toplevel(self)
                 top1.title("All Track Analysis")
                 top1.geometry("150x150+50+50")
@@ -246,6 +247,7 @@ class guiAnalysis(tk.Frame):
             elif int(self.f_individTrack.get()) == 1:
                 self.states[0] = False
                 print("individual tracks")
+                sys.stdout.flush()
                 top1 = tk.Toplevel(self)
                 top1.title("Individual Track")
                 top1.geometry("150x150+50+50")
@@ -256,13 +258,14 @@ class guiAnalysis(tk.Frame):
             elif int(self.f_combTrack.get()) == 1:
                 self.states[1] = False
                 print("Combined Track")
+                sys.stdout.flush()
                 top1 = tk.Toplevel(self)
                 top1.title("Combined Track")
                 top1.geometry("150x150+200+50")
                 tk.Message(top1, text="Combining Tracks and analyzing all. This might take a while.", padx=20, pady=20).pack()
                 #t1 = threading.Thread(target=calc_comb_track)
                 #t1.start()
-                self.after(100,calc_comb_tracks)
+                self.after(100,calc_comb_track)
 
             if int(self.f_mcmc.get()) == 1:
                 self.states[2] = False

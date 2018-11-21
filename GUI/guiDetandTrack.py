@@ -201,7 +201,7 @@ class guiDetandTrack(tk.Frame):
                     else:     
                         track_data = dc.doTrack_direct(particle_data, searchRadius=outv[7],
                                 minTracklen=int(outv[8]),linkRange=int(outv[9]),
-                                outfile="foundTracks.txt",infilename="Not Defined",path=fn[1])
+                                infilename="Not Defined",path=fn[1])
                     listnames = []
                     for i in range(len(track_data)):
                         listnames.append(track_data[i].id)
