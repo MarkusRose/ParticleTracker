@@ -84,8 +84,12 @@ def writeTrajectories(tracks,filename="foundTracks.txt"):
 
     
 def writeTracks(tracks,filename="foundTracks.txt"):
+    print("Writing Tracks now!")
+    sys.stdout.flush()
     columns = ["frame","x","y","width_x","width_y","height","amplitude","sn","volume","particle_id"]
     df = pd.DataFrame(columns=columns)
+    print(len(tracks))
+    sys.stdout.flush()
     for track in tracks:
         for particle in track.track:
             partdict = {}
@@ -95,6 +99,8 @@ def writeTracks(tracks,filename="foundTracks.txt"):
             df = df.append(df2,ignore_index=True)
     print(df)
     df.to_csv(filename,index=False)
+    print("Done")
+    sys.stdout.flush()
     return
 
 def makeParticle(frame,x,y,width_x,width_y,height,amplitude,part_id):

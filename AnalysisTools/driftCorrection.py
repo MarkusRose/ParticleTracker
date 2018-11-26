@@ -162,6 +162,7 @@ def driftCorrection_particles(part_positions,drifttracks,rotcorrection=True):
     return part_positions
 
 def doTrack(particle_file,searchRadius=2,minTracklen=1,linkRange=2):
+    print("Tracking from File")
     date = strftime("%Y%m%d-%H%M%S")
     path = os.path.dirname(particle_file)
     particles = conFiles.readDetectedParticles(particle_file)
@@ -183,6 +184,7 @@ def doTrack(particle_file,searchRadius=2,minTracklen=1,linkRange=2):
     for track in tracks:
         outfile.write("{:}\n".format(track.id))
     outfile.close()
+    print("Done")
 
     return tracks
 
