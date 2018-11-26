@@ -184,7 +184,7 @@ def plotMSD(msd,D,title="Mean-Squared-Displacement",save=True,labelname="labelna
     ran = np.arange(msd[-1,0])
     plt.plot(ran,4*D*ran,'k',label=labelname)
     plt.xlabel("Lag Time [s]")
-    plt.ylabel("MSD [um^2/s]")
+    plt.ylabel(r"MSD [um$^2$/s]")
     plt.legend()
     plt.title(title)
     if save:
@@ -327,11 +327,11 @@ def diffConstDistrib(tracks,pixelsize,frametime,Dfactor,numberofbins=50,path='.'
     print(("Showing: Diffusion coefficient distribution of " + str(len(tracks)) + " tracks."))
     histo = np.histogram(Dlist,bins=numberofbins,density=False)
     width = (histo[1][1]-histo[1][0])/2
-    plt.bar(histo[1][1:]-(histo[1][1]-histo[1][0])/2,histo[0],width=width,label="{:} +- {:} um^2/s".format(Dlist.mean()*Dfactor,Dlist.std()*Dfactor))
+    plt.bar(histo[1][1:]-(histo[1][1]-histo[1][0])/2,histo[0],width=width,label=r"{:} +- {:} $\mu$m$^2$/s".format(Dlist.mean()*Dfactor,Dlist.std()*Dfactor))
     #plt.axis([0,10,0,1])
     plt.title("Diffusion Coefficient Distribution")
     plt.ylabel("Counts")
-    plt.xlabel("Diffusion Constants (px^2*framerate)")
+    plt.xlabel(r"Diffusion Constants (px$^2$*framerate)")
     plt.legend()
     plt.savefig(path+'/DiffConstDistrib.png', format='png', dpi=600)
     #plt.show()
@@ -380,7 +380,7 @@ def diffConstDistrib(tracks,pixelsize,frametime,Dfactor,numberofbins=50,path='.'
     
     plt.plot(Dmean[0],Dmean[2],'ro')
     plt.title("Dependence of the diffusion coefficient on the track length")
-    plt.ylabel("averaged diffusion constant (px^2*framerate")
+    plt.ylabel(r"averaged diffusion constant (px$^2$*framerate")
     plt.xlabel("Track length (frames)")
     plt.savefig(path+'/trLengthDiffConstDependence.png', format='png', dpi=600)
     #plt.show()
@@ -426,7 +426,7 @@ def analyzeCombinedTrack(tracks,pixelsize,frametime,Dfactor,lenMSD=500,numberofb
     print((">>>> Found diffusion coefficient: " + str(ct_diffconst[1]*Dfactor) + " um^2/s"))
     of = open(path+"/MSD-combinedTrack.txt",'w')
     printArrayToFile(ct_msd,of,head=["Stpngize","MSD"])
-    plotMSD(ct_msd,ct_diffconst[1],labelname="{:} um^2/s".format(ct_diffconst[1]*Dfactor),path=path)
+    plotMSD(ct_msd,ct_diffconst[1],labelname=r"{:} $\mu$m$^2$/s".format(ct_diffconst[1]*Dfactor),path=path)
     print("Starting Distribution Analysis")
     distributionAnalysis(ct,pixelsize,frametime,Dfactor,plotlen,numberofbins=numberofbins,path=path)
     return ct_diffconst
@@ -442,10 +442,10 @@ def distributionAnalysis(track,pixelsize,frametime,Dfactor,plotlen,numberofbins=
     histograms = []
     counter = 0
     for elr2 in r2:
-        histo = np.histogram(elr2,bins=numberofbins,range=(0,plotlen),density=False)
+        histo = np.histogram(elr2*pixelsize**2,bins=numberofbins,range=(0,plotlen*pixelsize**2),density=False)
         counter += 1
         histograms.append(list(histo))
-    plotMultidistro([histograms[i] for i in [0,4,8,16]],xlabel="r^2 [px^2]",title="r2-Distribution-combTr",path=path,bar=False)
+    plotMultidistro([histograms[i] for i in [0,4,8,16]],xlabel=r"$r^2$ Distribution [$\mu$m$^2$]",title="r2-Distribution-combTr",path=path,bar=False)
     
     print("....Creating distribution of stpngizes in x and y")
     dispdist = displacementDistro(dipllist)
@@ -455,7 +455,7 @@ def distributionAnalysis(track,pixelsize,frametime,Dfactor,plotlen,numberofbins=
         histo = np.histogram(elr2*pixelsize,bins=numberofbins,range=(-plotlen*pixelsize,plotlen*pixelsize),density=False)
         counter += 1
         histograms.append(list(histo))
-    plotMultidistro([histograms[i] for i in [0,4,8,16]],xlabel="dx and dy [um]",title="xy-Distribution-combTr",path=path,bar=False)
+    plotMultidistro([histograms[i] for i in [0,4,8,16]],xlabel=r"dx and dy [$\mu$m]",title="xy-Distribution-combTr",path=path,bar=False)
     return
     
 #===========================================
