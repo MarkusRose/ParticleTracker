@@ -475,7 +475,7 @@ def doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,bCleanUpTracks=True,bSing
     large = 100
 
     #single track analysis input
-    minTrLength = 15
+    minTrLength = 2
     
     if (not bSingleTrackEndToEnd) and (not bSingleTrackMSDanalysis) and (not bCombineTrack):
         return

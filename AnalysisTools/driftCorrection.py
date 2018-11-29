@@ -168,6 +168,7 @@ def doTrack(particle_file,searchRadius=2,minTracklen=1,linkRange=2):
     particles = conFiles.readDetectedParticles(particle_file)
 
     tracks = ctrack.link_particles(particles,searchRadius,link_range=linkRange,min_track_len=minTracklen,outfile=path+"/foundTracks-SR{:}_{:}.txt".format(searchRadius,date))
+    print("Done Linking\n Writing log file now")
 
     outfile = open(path+"/tracking-SR{:}_{:}.log".format(searchRadius,date),'w')
     timestr = strftime("%Y-%m-%d %H:%M:%S")
@@ -196,6 +197,8 @@ def doTrack_direct(particles, searchRadius=2,minTracklen=1,linkRange=2,infilenam
         tracks = ctrack.link_particles(particles,searchRadius,link_range=int(linkRange),min_track_len=minTracklen,outfile=path+'/fiducialTracks-SR{:}_{:}.txt'.format(searchRadius,date))#"foundTracks-SR{:}_{:}.txt".format(searchRadius,date))
     else:
         tracks = ctrack.link_particles(particles,searchRadius,link_range=int(linkRange),min_track_len=minTracklen,outfile=path+'/foundTracks-SR{:}_{:}.txt'.format(searchRadius,date))#"foundTracks-SR{:}_{:}.txt".format(searchRadius,date))
+
+    print("Done Linking\n Writing log file now")
 
     outfile = open(path+"/tracking-SR{:}_{:}.log".format(searchRadius,date),'w')
     timestr = strftime("%Y-%m-%d %H:%M:%S")

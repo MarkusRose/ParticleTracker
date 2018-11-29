@@ -88,18 +88,22 @@ def writeTracks(tracks,filename="foundTracks.txt"):
     sys.stdout.flush()
     columns = ["frame","x","y","width_x","width_y","height","amplitude","sn","volume","particle_id"]
     df = pd.DataFrame(columns=columns)
+    numtracks = len(tracks)
     print(len(tracks))
     sys.stdout.flush()
+    counter = 1
     for track in tracks:
+        print("Writing track {:} of {:}.".format(counter,numtracks))
         for particle in track.track:
             partdict = {}
             for name in particle.dtype.names:
-                partdict[name] = [particle[name]]
+                partdict[name] = particle[name]
             df2 = pd.DataFrame(partdict,columns=columns)
             df = df.append(df2,ignore_index=True)
+        counter+=1
     print(df)
     df.to_csv(filename,index=False)
-    print("Done")
+    print("Done writing track file")
     sys.stdout.flush()
     return
 
@@ -425,7 +429,7 @@ def link_particles(particle_data, max_displacement,
                         linked_particle.special = 1
                     
                         linked_particle.particle_id=particle_track.id
-                        print(linked_particle.particle_id)
+                        #print(linked_particle.particle_id)
                         particle_track.insert_particle(linked_particle,
                                                    linked_particle.frame)
                         #print("Linked Particle frame: " + str(linked_particle.frame))
@@ -442,8 +446,8 @@ def link_particles(particle_data, max_displacement,
                 trajectories.append(particle_track)   
     
     print("Done Linking")
-    #writeTrajectories(trajectories,filename=outfile)
-    writeTracks(trajectories,filename=outfile)
+    writeTrajectories(trajectories,filename=outfile)
+    #writeTracks(trajectories,filename=outfile)
     return trajectories
                         
 def build_cost_matrix(
