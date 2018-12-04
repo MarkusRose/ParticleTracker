@@ -103,7 +103,7 @@ def displacementDistro(relstpng):
 
 
     
-def msd(track,length=500):
+def msd(track,length=300):
     msd = []
     l = length + 1
     if l > len(track):
@@ -173,24 +173,28 @@ def plotTrack(track,title="Track",save=True,path='.'):
     plt.xlabel("x [px]")
     plt.ylabel("y [px]")
     if save:
-        plt.savefig(path+'/'+title+"-plot.png",format="png", dpi=600)
+        plt.savefig(path+'/'+title+"-plot.png",format="png", dpi=200)
     plt.title(title)
     #plt.show()
     plt.close()
     return
     
-def plotMSD(msd,D,title="Mean-Squared-Displacement",save=True,labelname="labelname",path='.'):
-    plt.plot(msd[:,0],msd[:,1],'ro')
+def plotMSD(msd,D,xaxisrange,pxsize=1,frametime=1,title="Mean-Squared-Displacement",save=True,labelname="labelname",path='.'):
+    mask = msd[:,0] <= xaxisrange
+    fig = plt.figure(figsize=(9,7))
+    ax = fig.add_subplot(111)
+    ax.plot(msd[:,0][mask]*frametime,msd[:,1][mask]*pxsize**2,'ro')
     ran = np.arange(msd[-1,0])
-    plt.plot(ran,4*D*ran,'k',label=labelname)
-    plt.xlabel("Lag Time [s]")
-    plt.ylabel(r"MSD [um$^2$/s]")
-    plt.legend()
-    plt.title(title)
+    ax.plot(ran*frametime,4*D*ran*pxsize**2,'k',label=labelname)
+    ax.set_xlabel("Lag Time [s]")
+    ax.set_ylabel(r"MSD [$\mu m^2s^{-1}$]")
+    ax.legend()
+    ax.set_xlim((0,xaxisrange*frametime))
+    ax.set_title(title)
     if save:
-        plt.savefig(path+'/'+title+"-plot.png",format="png", dpi=600)
+        plt.savefig(path+'/'+title+"-plot.png",format="png", dpi=200)
     #plt.show()
-    plt.close()
+    plt.close('all')
     return
 
 def plotDistro(distro,xlabel,title,save=True,path='.'):
@@ -201,7 +205,7 @@ def plotDistro(distro,xlabel,title,save=True,path='.'):
     plt.xlabel(xlabel)
     plt.ylabel("Counts")
     if save:
-        plt.savefig(path+'/'+title+"-plot.png",format="png", dpi=600)
+        plt.savefig(path+'/'+title+"-plot.png",format="png", dpi=200)
     plt.title(title)
     #plt.show()
     plt.close()
@@ -217,10 +221,13 @@ def plotMultidistro(distarray,xlabel,title,save=True,path='.',bar=True):
     plt.xlabel(xlabel)
     plt.ylabel("Counts")
     if save:
-        plt.savefig(path+'/'+title+"-plot.png",format="png", dpi=600)
+        plt.savefig(path+'/'+title+"-plot.png",format="png", dpi=200)
     plt.title(title)
     #plt.show()
     plt.close()
+    return
+
+def plotMultidistroFit(distarray,fitfun,popt,arraylabels=None,pixelsize=1,frametime=1,xlabel=r"dx [$\mu m$]",title="Step-Size-Distribution",save=True,path='.',bar=True):
     return
 
 #=====================================
@@ -228,19 +235,17 @@ def plotMultidistro(distarray,xlabel,title,save=True,path='.',bar=True):
 def linfun(x,D):
     return 4*D*x
 
-def fitArray(msd,area=1):
-    if area > 1:
-        area = 1
+def fitArray(msd,msdlength):
     #print len(msd)
-    xdata = msd[0:int(len(msd)*area),0]
-    ydata = msd[0:int(len(msd)*area),1]
+    xdata = msd[0:min(msdlength,int(len(msd))),0]
+    ydata = msd[0:min(msdlength,int(len(msd))),1]
     iniguess = [1]
 
     popt, pcov = curve_fit(linfun, xdata, ydata, iniguess)
     return popt
 
 
-def findDiffConsts(msd):
+def findDiffConsts(msd,fitlength=0):
     diffC = []
     counter = 0
     for elem in msd:
@@ -249,10 +254,12 @@ def findDiffConsts(msd):
         if len(elem) == 0:
             counter -= 1
             continue
-        if True:
-            diffC.append(np.array([len(elem),fitArray(elem)]))
+        if fitlength == 0:
+            diffC.append(np.array([len(elem),fitArray(elem,int(len(elem)))]))
+        elif fitlength <= 1:
+            diffC.append(np.array([len(elem),fitArray(elem,max(5,int(len(elem)*fitlength)))]))
         else:
-            diffC.append(np.array([len(elem),fitArray(elem,area=0.3)]))
+            diffC.append(np.array([len(elem),fitArray(elem,fitlength)]))
     
     return np.array(diffC)
 
@@ -301,7 +308,7 @@ def eedispllist(tracks,numberofbins=50,path='.'):
     plt.xlabel("End to end displacement (pixel)")
     plt.xscale('log')
     #plt.axis([0.05,12,0,1])
-    plt.savefig(path+'/EndToEndDistrib.png', format='png', dpi=600)
+    plt.savefig(path+'/EndToEndDistrib.png', format='png', dpi=200)
     #plt.show()
     plt.close()
 
@@ -319,47 +326,56 @@ def diffConstDistrib(tracks,pixelsize,frametime,Dfactor,numberofbins=50,path='.'
     print("........(creating a list of MSD from all tracks; this takes long...)")
     msdlist = list(map(msd,tracks))
     print("........(finding diffusion coefficient from all MSDs from list)")
-    Dlist = findDiffConsts(msdlist)
+    Dlist = findDiffConsts(msdlist,fitlength=0.2)
     print((">>>> The average diffusion coefficient is: " + str(Dlist.mean()*Dfactor) + " +- " + str(Dlist.std()*Dfactor) + " um^2/s"))
     print("........(finding the lengths of the single tracks)")
-    lenList= np.array(list(map(len,tracks)))
+    def lengthoftrack(tr):
+        return tr[-1][0] - tr[0][0]
+    lenList= np.array(list(map(lengthoftrack,tracks)))
     print((">>>> The average track length is: " + str(lenList.mean()*frametime) + " +- " + str(lenList.std()*frametime) + " s"))
     print(("Showing: Diffusion coefficient distribution of " + str(len(tracks)) + " tracks."))
-    histo = np.histogram(Dlist,bins=numberofbins,density=False)
-    width = (histo[1][1]-histo[1][0])/2
-    plt.bar(histo[1][1:]-(histo[1][1]-histo[1][0])/2,histo[0],width=width,label=r"{:} +- {:} $\mu$m$^2$/s".format(Dlist.mean()*Dfactor,Dlist.std()*Dfactor))
+    histo = np.histogram(Dlist,bins=numberofbins,range=(0,Dlist.mean()+Dlist.std()*5),density=False)
+    bbs = np.array(list(histo[1])+[100000])
+    histo = np.histogram(Dlist,bins=bbs,density=False)
+    width = (histo[1][1]-histo[1][0])/2*Dfactor
+    fig = plt.figure(figsize=(9,7))
+    ax = fig.add_subplot(111)
+    ax.bar((histo[1][0:-1]+(histo[1][1]-histo[1][0])/2)*Dfactor,histo[0],width=width,label=r"{:} +- {:} $\mu$m$^2$/s".format(Dlist.mean()*Dfactor,Dlist.std()*Dfactor))
     #plt.axis([0,10,0,1])
-    plt.title("Diffusion Coefficient Distribution")
-    plt.ylabel("Counts")
-    plt.xlabel(r"Diffusion Constants (px$^2$*framerate)")
-    plt.legend()
-    plt.savefig(path+'/DiffConstDistrib.png', format='png', dpi=600)
+    ax.set_title("Diffusion Coefficient Distribution")
+    ax.set_ylabel("Counts")
+    ax.set_xlabel(r"Diffusion Constants [$\mu m^2 s^{-1}$]")
+    ax.legend()
+    plt.savefig(path+'/DiffConstDistrib.png', format='png', dpi=200)
     #plt.show()
-    plt.close()
+    plt.close('all')
     
 
-    outarray = np.array([histo[1][1:]-(histo[1][1]-histo[1][0])/2,histo[0]]).transpose()
+    outarray = np.array([(histo[1][:-1]+(histo[1][1]-histo[1][0])/2)*Dfactor,histo[0]]).transpose()
     fo = open(path+"/diffConstDistro.txt",'w')
-    printArrayToFile(outarray,fo,head=["diffConst(pixel**2/frame)","Counts"])
+    printArrayToFile(outarray,fo,head=["diffConst(um^2/s)","Counts"])
     
     print(("Showing: Length of tracks distribution for " + str(len(tracks)) + " tracks."))
-    lenhist = np.histogram(lenList,bins=numberofbins,density=False)
-    width = (lenhist[1][1]-lenhist[1][0])/2
-    plt.bar(lenhist[1][1:]-(lenhist[1][1]-lenhist[1][0])/2,lenhist[0],width=width)
-    #plt.axis([0,30,0,1])
-    plt.title("Length Distribution of single tracks")
-    plt.ylabel("Counts")
-    plt.xlabel("Track length (frames)")
-    plt.savefig(path+'/lengthDistribution.png', format='png', dpi=600)
+    lenhist = np.histogram(lenList,range=(0,lenList.mean()+lenList.std()*5),bins=numberofbins,density=False)
+    bbs = np.array(list(lenhist[1])+[100000])
+    lenhist = np.histogram(lenList,bins=bbs,density=False)
+    width = (lenhist[1][1]-lenhist[1][0])/2*frametime
+    fig = plt.figure(figsize=(9,7))
+    ax = fig.add_subplot(111)
+    ax.bar((lenhist[1][:-1]+(lenhist[1][1]-lenhist[1][0])/2)*frametime,lenhist[0],width=width)
+    ax.set_title("Length Distribution of single tracks")
+    ax.set_ylabel("Counts")
+    ax.set_xlabel("Track length (s)")
+    plt.savefig(path+'/lengthDistribution.png', format='png', dpi=200)
     #plt.show()
-    plt.close()
-    outarray = np.array([lenhist[1][1:]-(lenhist[1][1]-lenhist[1][0])/2,lenhist[0]]).transpose()
+    plt.close('all')
+    outarray = np.array([(lenhist[1][:-1]+(lenhist[1][1]-lenhist[1][0])/2)*frametime,lenhist[0]]).transpose()
     fo = open(path+"/lengthDistro.txt",'w')
-    printArrayToFile(outarray,fo,head=["track-length(frame)","Counts"])
+    printArrayToFile(outarray,fo,head=["track-length(s)","Counts"])
 
     print(("Showing: Dependence of the diffusion coefficient on the track length of " + str(len(tracks)) + " individual tracks."))
     nubin = 30
-    wbin = (lenhist[1][-1]-lenhist[1][0])/nubin
+    wbin = (lenhist[1][-2]-lenhist[1][0])/nubin
     bincount = 1
     Dmean = np.zeros((3,nubin))
     Dmean[0] = np.arange(nubin)*wbin+wbin/2+lenhist[1][0]
@@ -382,7 +398,7 @@ def diffConstDistrib(tracks,pixelsize,frametime,Dfactor,numberofbins=50,path='.'
     plt.title("Dependence of the diffusion coefficient on the track length")
     plt.ylabel(r"averaged diffusion constant (px$^2$*framerate")
     plt.xlabel("Track length (frames)")
-    plt.savefig(path+'/trLengthDiffConstDependence.png', format='png', dpi=600)
+    plt.savefig(path+'/trLengthDiffConstDependence.png', format='png', dpi=200)
     #plt.show()
     plt.close()
     outarray = np.array([Dmean[0],Dmean[2]]).transpose()
@@ -397,7 +413,9 @@ def diffConstDistrib(tracks,pixelsize,frametime,Dfactor,numberofbins=50,path='.'
 def combineTracks(tracks,path='.'):
     lastpart = np.zeros((len(tracks[0][0])))
     combtr = [np.array(lastpart)]
+    trlengths = []
     for tr in tracks:
+        trlengths.append(tr[-1][0]-tr[0][0])
         lastpart = np.array(combtr[-1])
         for part in range(1,len(tr),1):
             outpart = []
@@ -410,23 +428,26 @@ def combineTracks(tracks,path='.'):
     outfile = open(path+"/combinedTrack.txt",'w')
     head = ["Step","x","y","widthx","widthy","height","amplitude","sn","volume"]
     printArrayToFile(combtr,outfile,head)
-    return np.array(combtr)
+    return np.array(combtr),np.mean(trlengths),np.std(trlengths)
 
 
 
 
 def analyzeCombinedTrack(tracks,pixelsize,frametime,Dfactor,lenMSD=500,numberofbins=50,plotlen=30,path='.'):
     print(("Combining " + str(len(tracks)) + " tracks."))
-    ct = combineTracks(tracks,path=path)
+    ct,averageL,stdL = combineTracks(tracks,path=path)
+    print("Average Track length is {:} +- {:}".format(averageL,stdL))
     plotTrack(ct.transpose(),path=path)
     print("Creating MSD for combined track.")
     lenMSD = min(lenMSD,int(len(ct)*0.2))
+    fitlength = averageL
+    print("Using {:} steps for MSD and fitting with {:} steps.".format(lenMSD,int(fitlength)))
     ct_msd = msd(ct,length=lenMSD)
-    ct_diffconst = findDiffConsts([ct_msd])[0]
+    ct_diffconst = findDiffConsts([ct_msd],fitlength=fitlength)[0]
     print((">>>> Found diffusion coefficient: " + str(ct_diffconst[1]*Dfactor) + " um^2/s"))
     of = open(path+"/MSD-combinedTrack.txt",'w')
     printArrayToFile(ct_msd,of,head=["Stpngize","MSD"])
-    plotMSD(ct_msd,ct_diffconst[1],labelname=r"{:} $\mu$m$^2$/s".format(ct_diffconst[1]*Dfactor),path=path)
+    plotMSD(ct_msd,ct_diffconst[1],pxsize=pixelsize,frametime=frametime,xaxisrange=averageL+5*stdL,labelname=r"{:} $\mu$m$^2$/s".format(ct_diffconst[1]*Dfactor),path=path)
     print("Starting Distribution Analysis")
     distributionAnalysis(ct,pixelsize,frametime,Dfactor,plotlen,numberofbins=numberofbins,path=path)
     return ct_diffconst
@@ -437,6 +458,7 @@ def distributionAnalysis(track,pixelsize,frametime,Dfactor,plotlen,numberofbins=
     outfile = open(path+"/combinedTrack-relativeXYDisplacements.txt",'w')
     printArrayToFile(dipllist,outfile,["Steppingtime","dx","dy"])
     
+    '''
     print("....Creating r^2-distribution")
     r2 = r2distro(dipllist)
     histograms = []
@@ -446,18 +468,57 @@ def distributionAnalysis(track,pixelsize,frametime,Dfactor,plotlen,numberofbins=
         counter += 1
         histograms.append(list(histo))
     plotMultidistro([histograms[i] for i in [0,4,8,16]],xlabel=r"$r^2$ Distribution [$\mu$m$^2$]",title="r2-Distribution-combTr",path=path,bar=False)
-    
+    '''
+
+
+    def gaussfunc(x,sig,amp):
+        return amp * np.exp(-(x)**2/(2*sig))
+
+    def fitgauss(histo):
+        try:
+            popt,pcov = curve_fit(gaussfunc,histo[1][:-1]+(histo[1][1]-histo[1][0])/2,histo[0],bounds=[(0,0),(np.inf,np.inf)])
+        except RuntimeError:
+            print("Fit did not converge")
+            popt = [1,1]
+            pcov = [[1,1],[1,1]]
+        return popt,pcov
+
     print("....Creating distribution of stpngizes in x and y")
     dispdist = displacementDistro(dipllist)
     histograms = []
+    fitparams = []
     counter = 0
     for elr2 in dispdist:
         histo = np.histogram(elr2*pixelsize,bins=numberofbins,range=(-plotlen*pixelsize,plotlen*pixelsize),density=False)
+        popt,pcov = fitgauss(histo)
         counter += 1
         histograms.append(list(histo))
-    plotMultidistro([histograms[i] for i in [0,4,8,16]],xlabel=r"dx and dy [$\mu$m]",title="xy-Distribution-combTr",path=path,bar=False)
+        fitparams.append(list(popt))
+
+    print(len(dispdist))
+    selecttimes = [0,4,8,16]
+    fitparams = np.array(fitparams)
+    print("Average diffusion coefficent from fitting stepsize: {:} +- {:} um^2/s".format(fitparams[:,0].mean(),fitparams[:,0].std()))
+
+    fig = plt.figure(figsize=(9,7))
+    ax = fig.add_subplot(111)
+    colors = ['red','blue','orange','green']
+    counter = 0
+    title="Step-Size-Distribution"
+    for elem in selecttimes:
+        dbox = histograms[elem][1][1]-histograms[elem][1][0]
+        xvals = histograms[elem][1][:-1]+dbox*0.5
+        ax.plot(xvals,histograms[elem][0],'o',color=colors[counter],label=r"$\tau =$ {:.03f}s".format((int(elem)+1)*frametime))
+        xvals = (np.arange(1000)/500 - 1)*plotlen*pixelsize
+        ax.plot(xvals,gaussfunc(xvals,fitparams[elem][0],fitparams[elem][1]),'-',color=colors[counter],label=r"$D =$ {:.04f}".format(fitparams[elem][0]/(2*(int(elem)+1)*frametime))+r"$\mu m^2s^{-1}$")
+        counter += 1
+    ax.set_xlabel(r"Displacement [$\mu m$]")
+    ax.set_ylabel("Counts")
+    ax.legend(loc='best')
+    ax.set_title(title)
+    plt.savefig(path+'/'+title+"-plot.png",format="png", dpi=200)
+    plt.close('all')
     return
-    
 #===========================================
 
 
@@ -468,14 +529,14 @@ def doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,bCleanUpTracks=True,bSing
     #plotting parameters
     Dfactor = pixelsize*pixelsize/frametime
 
-    lenMSD_ct = 300
-    plotlen = 30 #gives the range of the distribution plots
+    lenMSD_ct = 100
+    plotlen = 10 #gives the range of the distribution plots
     numberofbins = 70
     small = 20
     large = 100
 
     #single track analysis input
-    minTrLength = 2
+    minTrLength = 10
     
     if (not bSingleTrackEndToEnd) and (not bSingleTrackMSDanalysis) and (not bCombineTrack):
         return
@@ -502,14 +563,19 @@ def doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,bCleanUpTracks=True,bSing
         sys.stdout.flush()
         #raw_input("Please restart again...")
         return
+    elif len(considered) < 10:
+        print("***** You have less then 10 eligible tracks available for analysis!! ******")
+        print("***** The algorithm may fail.                                        ******")
     if bSingleTrackEndToEnd:
         print()
         print()
         print("Starting End-To-End Displacement Analysis for single tracks")
         print("-----------------------------------------------------------")
-        eehisto = eedispllist(considered,numberofbins=numberofbins,path=spng)
+        #eehisto = eedispllist(considered,numberofbins=numberofbins,path=spng)
+    '''
     if len(considered) > 100:
         considered = considered[:]
+    '''
     
     if bSingleTrackMSDanalysis:
         print()

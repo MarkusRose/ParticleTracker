@@ -44,7 +44,7 @@ class guiAnalysis(tk.Frame):
         self.file_opt = options = {}
         options['defaultextension'] = '.txt'
         options['filetypes'] = [('text files', '.txt'),('all files', '.*')]
-        options['initialdir'] = os.path.expanduser("~")+'/Desktop/'
+        options['initialdir'] = './' #os.path.expanduser("~")+'/Desktop/'
         options['parent'] = self
         options['title'] = 'Select Track File'
 
@@ -179,7 +179,7 @@ class guiAnalysis(tk.Frame):
             def calc_tracks_all():
                 def done_mssg():
                     messagebox.showinfo("Done!", "All single-state Track Analysis finished without problems.")
-                ANA.doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,bCleanUpTracks=True,bSingleTrackEndToEnd=True,bSingleTrackMSDanalysis=True,bCombineTrack=True)
+                ANA.doAnalysis(trackfile,pixelsize=pxsize,frametime=frameT,bCleanUpTracks=True,bSingleTrackEndToEnd=True,bSingleTrackMSDanalysis=True,bCombineTrack=True)
                 on_main_thread(top1.destroy)
                 on_main_thread(done_mssg)
                 self.states[0] = True
@@ -189,7 +189,7 @@ class guiAnalysis(tk.Frame):
             def calc_indiv_track():
                 def done_mssg():
                     messagebox.showinfo("Done!", "Individual Track Analysis finished without problems.")
-                ANA.doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,bCleanUpTracks=True,bSingleTrackEndToEnd=True,bSingleTrackMSDanalysis=True,bCombineTrack=False)
+                ANA.doAnalysis(trackfile,pixelsize=pxsize,frametime=frameT,bCleanUpTracks=True,bSingleTrackEndToEnd=True,bSingleTrackMSDanalysis=True,bCombineTrack=False)
                 on_main_thread(top1.destroy)
                 on_main_thread(done_mssg)
                 self.states[0] = True
@@ -198,7 +198,7 @@ class guiAnalysis(tk.Frame):
             def calc_comb_track():
                 def done_mssg():
                     messagebox.showinfo("Done!", "Combined Track Analysis finished without problems.")
-                ANA.doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,bCleanUpTracks=True,bSingleTrackEndToEnd=False,bSingleTrackMSDanalysis=False,bCombineTrack=True)
+                ANA.doAnalysis(trackfile,pixelsize=pxsize,frametime=frameT,bCleanUpTracks=True,bSingleTrackEndToEnd=False,bSingleTrackMSDanalysis=False,bCombineTrack=True)
                 on_main_thread(top1.destroy)
                 on_main_thread(done_mssg)
                 self.states[1] = True
