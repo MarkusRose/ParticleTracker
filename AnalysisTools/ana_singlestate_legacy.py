@@ -332,12 +332,12 @@ def diffConstDistrib(tracks,pixelsize,frametime,Dfactor,numberofbins=50,path='.'
     Dlist = findDiffConsts(msdlist,fitlength=0.2)
     Doutput = Dlist[:,1].mean()*Dfactor
     Doutput_err = Dlist[:,1].std()*Dfactor
-    print((">>>> The average diffusion coefficient is: " + str(Doutput) + " +- " + str(Doutput_err) + " um^2/s"))
+    print((">>>> The average diffusion coefficient is: {:.05f}+-{:.05f} um^2/s".format(Doutput,Doutput_err)))
     print("........(finding the lengths of the single tracks)")
     def lengthoftrack(tr):
         return tr[-1][0] - tr[0][0]
     lenList= np.array(list(map(lengthoftrack,tracks)))
-    print((">>>> The average track length is: " + str(lenList.mean()*frametime) + " +- " + str(lenList.std()*frametime) + " s"))
+    print((">>>> The average track length is: {:.05f}+-{:.05f} s".format(lenList.mean()*frametime,lenList.std()*frametime)))
     print(("Showing: Diffusion coefficient distribution of " + str(len(tracks)) + " tracks."))
     histo = np.histogram(Dlist[:,1],bins=numberofbins,range=(0,Dlist[:,1].mean()+Dlist[:,1].std()*5),density=False)
     bbs = np.array(list(histo[1])+[100000])
@@ -447,7 +447,7 @@ def analyzeCombinedTrack(tracks,pixelsize,frametime,Dfactor,lenMSD=500,numberofb
     plotTrack(ct.transpose(),path=path)
     print("Creating MSD for combined track.")
     lenMSD = min(lenMSD,int(len(ct)*0.2))
-    fitlength = int(averageL*0.8)
+    fitlength = int(averageL*0.2)
     print("Using {:} steps for MSD and fitting with {:} steps.".format(lenMSD,int(fitlength)))
     sys.stdout.flush()
     ct_msd = msd(ct,length=lenMSD)
@@ -508,7 +508,7 @@ def distributionAnalysis(track,pixelsize,frametime,Dfactor,plotlen,numberofbins=
     fitparams = np.array(fitparams)
     factor = np.arange(1,len(fitparams)+1,1)*2*frametime
     Dfitlist = fitparams[:,0] / factor
-    print(">>>> Average diffusion coefficent from fitting stepsize: {:} +- {:} um^2/s".format(Dfitlist.mean(),Dfitlist.std()))
+    print(">>>> Average diffusion coefficent from fitting stepsize: {:.05f} +- {:.05f} um^2/s".format(Dfitlist.mean(),Dfitlist.std()))
 
     fig = plt.figure(figsize=(9,7))
     ax = fig.add_subplot(111)
