@@ -599,10 +599,6 @@ def doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,minTrLength=10,fitrange=0
         for tr in considered:
             if len(tr) == 0:
                 continue
-            elif len(tr([0])) == 0:
-                print("Issue with index! This should not happen.")
-                print("Is the Track File correct?")
-                return
             trlens.append(tr[-1][0] - tr[0][0])
         trlens = np.array(trlens)
         logfile.write("Average Track length: {:}+-{:} frames\n".format(trlens.mean(),trlens.std()))
