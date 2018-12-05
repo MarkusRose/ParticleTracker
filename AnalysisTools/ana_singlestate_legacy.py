@@ -355,6 +355,9 @@ def diffConstDistrib(tracks,pixelsize,frametime,Dfactor,numberofbins=50,path='.'
     #plt.show()
     plt.close('all')
     
+    fo = open(path+"/Track_D_List.txt",'w')
+    Doutlist = Dlist * np.array([frametime,Dfactor,Dfactor])
+    printArrayToFile(Dlist,fo,head=["TrackLength(s)","D(um^2/s)","D_err(um^2/s)"])
 
     outarray = np.array([(histo[1][:-1]+(histo[1][1]-histo[1][0])/2)*Dfactor,histo[0]]).transpose()
     fo = open(path+"/diffConstDistro.txt",'w')
@@ -440,14 +443,14 @@ def combineTracks(tracks,path='.'):
 
 
 
-def analyzeCombinedTrack(tracks,pixelsize,frametime,Dfactor,lenMSD=500,numberofbins=50,plotlen=30,path='.'):
+def analyzeCombinedTrack(tracks,pixelsize,frametime,Dfactor,lenMSD=500,fitrange=0.5,numberofbins=50,plotlen=30,path='.'):
     print(("Combining " + str(len(tracks)) + " tracks."))
     ct,averageL,stdL = combineTracks(tracks,path=path)
     print("Average Track length is {:} +- {:}".format(averageL,stdL))
     plotTrack(ct.transpose(),path=path)
     print("Creating MSD for combined track.")
-    lenMSD = max(int(averageL),min(lenMSD,int(len(ct)*0.2)))
-    fitlength = int(averageL*0.5)
+    lenMSD = max(int(averageL)-1,min(lenMSD,int(len(ct)*0.2)))
+    fitlength = min(int(lenMSD),int(averageL*fitrange))
     print("Using {:} steps for MSD and fitting with {:} steps.".format(lenMSD,int(fitlength)))
     sys.stdout.flush()
     ct_msd = msd(ct,length=lenMSD)
@@ -535,7 +538,7 @@ def distributionAnalysis(track,pixelsize,frametime,Dfactor,plotlen,numberofbins=
 #====================================
 #The big MAIN
 #====================================
-def doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,bCleanUpTracks=True,bSingleTrackEndToEnd=False,bSingleTrackMSDanalysis=True,bCombineTrack=True):
+def doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,minTrLength=10,fitrange=0.5,bCleanUpTracks=True,bSingleTrackEndToEnd=False,bSingleTrackMSDanalysis=True,bCombineTrack=True):
     #plotting parameters
     Dfactor = pixelsize*pixelsize/frametime
 
@@ -545,9 +548,6 @@ def doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,bCleanUpTracks=True,bSing
     small = 20
     large = 100
 
-    #single track analysis input
-    minTrLength = 10
-    
     if (not bSingleTrackEndToEnd) and (not bSingleTrackMSDanalysis) and (not bCombineTrack):
         return
 
@@ -576,15 +576,13 @@ def doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,bCleanUpTracks=True,bSing
     elif len(considered) < 10:
         print("***** You have less then 10 eligible tracks available for analysis!! ******")
         print("***** The algorithm may fail.                                        ******")
+    '''
     if bSingleTrackEndToEnd:
         print()
         print()
         print("Starting End-To-End Displacement Analysis for single tracks")
         print("-----------------------------------------------------------")
         #eehisto = eedispllist(considered,numberofbins=numberofbins,path=spng)
-    '''
-    if len(considered) > 100:
-        considered = considered[:]
     '''
     logfile = open(spng+'/analysis.log',"w")
     logfile.write("LogFile of the Analysis\n")
@@ -597,11 +595,23 @@ def doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,bCleanUpTracks=True,bSing
     logfile.write("\n")
     logfile.write("Number of considered tracks: {:}\n".format(len(considered)))
     trlens = []
-    for tr in considered:
-        trlens.append(tr[-1][0] - tr[0][0])
-    trlens = np.array(trlens)
-    logfile.write("Average Track length: {:}+-{:} frames\n".format(trlens.mean(),trlens.std()))
-    logfile.write("\n")
+    try:
+        for tr in considered:
+            if len(tr) == 0:
+                continue
+            trlens.append(tr[-1][0] - tr[0][0])
+        trlens = np.array(trlens)
+        logfile.write("Average Track length: {:}+-{:} frames\n".format(trlens.mean(),trlens.std()))
+        logfile.write("\n")
+    except RuntimeError:
+        print("!!!!! Tracks are too short !!!!!!\nSee Log file for details on track lengths.")
+        logfile.write("\nTracks are too short for analysis!!!\n")
+        count = 0
+        for tr in considered:
+            logfile.write("Track {:} length: {:}".format(count,len(tr)))
+            count += 1
+        logfile.close()
+        return
 
     
     if bSingleTrackMSDanalysis:
@@ -619,7 +629,7 @@ def doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,bCleanUpTracks=True,bSing
         print()
         print("Starting Combined Track Analysis")
         print("--------------------------------")
-        Dmsd,Dmsd_err,Dstep,Dstep_err = analyzeCombinedTrack(considered,pixelsize,frametime,Dfactor,lenMSD=lenMSD_ct,numberofbins=numberofbins,plotlen=plotlen,path=spng)
+        Dmsd,Dmsd_err,Dstep,Dstep_err = analyzeCombinedTrack(considered,pixelsize,frametime,Dfactor,lenMSD=lenMSD_ct,fitrange=fitrange,numberofbins=numberofbins,plotlen=plotlen,path=spng)
         logfile.write("Combined Track Analysis\n")
         logfile.write("-----------------------\n")
         logfile.write("MSD diffusion constant: {:}+-{:} um^2/s\n".format(Dmsd,Dmsd_err))

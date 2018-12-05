@@ -65,7 +65,14 @@ class guiAnalysis(tk.Frame):
         self.f_combTrack = tk.IntVar()
         tk.Checkbutton(self, text="MSD and step-size distribution - Combined Track", variable=self.f_combTrack).pack(anchor='w')
         frame_CT = tk.Frame(self)
-        tk.Label(frame_CT, text="").grid(sticky='e')
+        tk.Label(frame_CT, text="Minimum Track Length").grid(row=0,sticky='w')
+        self.v_minTrLength = tk.StringVar()
+        self.v_minTrLength.set("10")
+        tk.Entry(frame_CT, textvariable=self.v_minTrLength).grid(row=0,column=1,sticky='ew')
+        tk.Label(frame_CT, text="Fitrange in multiples of average Track length").grid(row=1,sticky='w')
+        self.v_fitrange = tk.StringVar()
+        self.v_fitrange.set("0.5")
+        tk.Entry(frame_CT, textvariable=self.v_fitrange).grid(row=1,column=1,sticky='ew')
         tk.Label(frame_CT, text="").grid(sticky='e')
         frame_CT.pack()
         ttk.Separator(self).pack(fill='x',expand=1)
@@ -138,6 +145,10 @@ class guiAnalysis(tk.Frame):
             if int(self.v_montecarlo.get()) <= 0:
                 print("Invalid number of Monte Carlo runs")
                 return False
+            if int(self.v_minTrLength.get()) <= 0 :
+                print("MinimumTrLength must be larger than 0.")
+            if float(self.v_fitrange.get()) < 0:
+                print("The fitrange must be positive.")
             #if self.v_mcmcID.get() <= 0:
             #    print("Invalid search radius for MCMC")
             #    return False
@@ -154,6 +165,8 @@ class guiAnalysis(tk.Frame):
             trackfile = self.v_trackFile.get()
             pxsize = float(self.v_pixelSize.get())
             frameT = float(self.v_frameTime.get())
+            fitrange = float(self.v_fitrange.get())
+            minTrLength= int(self.v_minTrLength.get())
             mcmcruns = int(self.v_montecarlo.get())
             mcmcID = self.v_mcmcID.get()
             q = queue.Queue()
@@ -179,7 +192,7 @@ class guiAnalysis(tk.Frame):
             def calc_tracks_all():
                 def done_mssg():
                     messagebox.showinfo("Done!", "All single-state Track Analysis finished without problems.")
-                ANA.doAnalysis(trackfile,pixelsize=pxsize,frametime=frameT,bCleanUpTracks=True,bSingleTrackEndToEnd=True,bSingleTrackMSDanalysis=True,bCombineTrack=True)
+                ANA.doAnalysis(trackfile,pixelsize=pxsize,frametime=frameT,minTrLength=minTrLength,fitrange=fitrange,bCleanUpTracks=True,bSingleTrackEndToEnd=True,bSingleTrackMSDanalysis=True,bCombineTrack=True)
                 on_main_thread(top1.destroy)
                 on_main_thread(done_mssg)
                 self.states[0] = True
@@ -189,7 +202,7 @@ class guiAnalysis(tk.Frame):
             def calc_indiv_track():
                 def done_mssg():
                     messagebox.showinfo("Done!", "Individual Track Analysis finished without problems.")
-                ANA.doAnalysis(trackfile,pixelsize=pxsize,frametime=frameT,bCleanUpTracks=True,bSingleTrackEndToEnd=True,bSingleTrackMSDanalysis=True,bCombineTrack=False)
+                ANA.doAnalysis(trackfile,pixelsize=pxsize,frametime=frameT,minTrLength=minTrLength,fitrange=fitrange,bCleanUpTracks=True,bSingleTrackEndToEnd=True,bSingleTrackMSDanalysis=True,bCombineTrack=False)
                 on_main_thread(top1.destroy)
                 on_main_thread(done_mssg)
                 self.states[0] = True
@@ -198,7 +211,7 @@ class guiAnalysis(tk.Frame):
             def calc_comb_track():
                 def done_mssg():
                     messagebox.showinfo("Done!", "Combined Track Analysis finished without problems.")
-                ANA.doAnalysis(trackfile,pixelsize=pxsize,frametime=frameT,bCleanUpTracks=True,bSingleTrackEndToEnd=False,bSingleTrackMSDanalysis=False,bCombineTrack=True)
+                ANA.doAnalysis(trackfile,pixelsize=pxsize,frametime=frameT,minTrLength=minTrLength,fitrange=fitrange,bCleanUpTracks=True,bSingleTrackEndToEnd=False,bSingleTrackMSDanalysis=False,bCombineTrack=True)
                 on_main_thread(top1.destroy)
                 on_main_thread(done_mssg)
                 self.states[1] = True
