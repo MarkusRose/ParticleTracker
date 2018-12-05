@@ -187,7 +187,7 @@ def plotMSD(msd,D,xaxisrange,pxsize=1,frametime=1,title="Mean-Squared-Displaceme
     ran = np.arange(msd[-1,0])
     ax.plot(ran*frametime,4*D*ran*pxsize**2,'k',label=labelname)
     ax.set_xlabel("Lag Time [s]")
-    ax.set_ylabel(r"MSD [$\mu m^2s^{-1}$]")
+    ax.set_ylabel(r"MSD [$\mu m^2$]")
     ax.legend()
     ax.set_xlim((0,xaxisrange*frametime))
     ax.set_title(title)
@@ -242,9 +242,8 @@ def fitArray(msd,msdlength):
     iniguess = [1]
 
     popt, pcov = curve_fit(linfun, xdata, ydata, iniguess)
-    print("Done fit")
     sys.stdout.flush()
-    return popt
+    return popt,pcov
 
 
 def findDiffConsts(msd,fitlength=0):
@@ -256,11 +255,14 @@ def findDiffConsts(msd,fitlength=0):
             counter -= 1
             continue
         if fitlength == 0:
-            diffC.append(np.array([len(elem),fitArray(elem,int(len(elem)))]))
+            Dsaver,Dcov = fitArray(elem,int(len(elem)))
+            diffC.append(np.array([len(elem),Dsaver,np.sqrt(np.diag(Dcov))]))
         elif fitlength <= 1:
-            diffC.append(np.array([len(elem),fitArray(elem,max(5,int(len(elem)*fitlength)))]))
+            Dsaver,Dcov = fitArray(elem,max(5,int(len(elem)*fitlength)))
+            diffC.append(np.array([len(elem),Dsaver,np.sqrt(np.diag(Dcov))]))
         else:
-            diffC.append(np.array([len(elem),fitArray(elem,fitlength)]))
+            Dsaver,Dcov = fitArray(elem,fitlength)
+            diffC.append(np.array([len(elem),Dsaver,np.sqrt(np.diag(Dcov))]))
     
     return np.array(diffC)
 
@@ -328,8 +330,9 @@ def diffConstDistrib(tracks,pixelsize,frametime,Dfactor,numberofbins=50,path='.'
     msdlist = list(map(msd,tracks))
     print("........(finding diffusion coefficient from all MSDs from list)")
     Dlist = findDiffConsts(msdlist,fitlength=0.2)
-    print(Dlist)
-    print((">>>> The average diffusion coefficient is: " + str(Dlist[:,1].mean()*Dfactor) + " +- " + str(Dlist[:,1].std()*Dfactor) + " um^2/s"))
+    Doutput = Dlist[:,1].mean()*Dfactor
+    Doutput_err = Dlist[:,1].std()*Dfactor
+    print((">>>> The average diffusion coefficient is: " + str(Doutput) + " +- " + str(Doutput_err) + " um^2/s"))
     print("........(finding the lengths of the single tracks)")
     def lengthoftrack(tr):
         return tr[-1][0] - tr[0][0]
@@ -397,19 +400,18 @@ def diffConstDistrib(tracks,pixelsize,frametime,Dfactor,numberofbins=50,path='.'
         if Dmean[1,i] == 0:
             continue
         Dmean[2,i] = Dmean[2,i]/Dmean[1,i]
-    
     '''
-    plt.plot(Dlist[:,0],Dlist[:,1],'ro')
+    plt.plot(Dlist[:,0]*frametime,Dlist[:,1]*Dfactor,'kx')
     plt.title("Dependence of the diffusion coefficient on the track length")
-    plt.ylabel(r"Diffusion constant (px$^2$*framerate")
-    plt.xlabel("Track length (frames)")
+    plt.ylabel(r"Diffusion constant [$\mu m^2s^{-1}$]")
+    plt.xlabel(r"Track length [s]")
     plt.savefig(path+'/trLengthDiffConstDependence.png', format='png', dpi=200)
     #plt.show()
     plt.close('all')
     outarray = np.array([Dlist[:,0],Dlist[:,1]]).transpose()
     fo = open(path+"/Length-Diffconst-Relation.txt",'w')
     printArrayToFile(outarray,fo,head=["track-length(frame)","meanDiffConst"])
-    return histo
+    return Doutput, Doutput_err
 #=======================================
 
 
@@ -450,14 +452,14 @@ def analyzeCombinedTrack(tracks,pixelsize,frametime,Dfactor,lenMSD=500,numberofb
     sys.stdout.flush()
     ct_msd = msd(ct,length=lenMSD)
     ct_diffconst = findDiffConsts([ct_msd],fitlength=fitlength)[0]
-    print((">>>> Found diffusion coefficient: " + str(ct_diffconst[1]*Dfactor) + " um^2/s"))
+    print((">>>> Found diffusion coefficient: {:.05f}+-{:.05f} um^2/s".format(ct_diffconst[1]*Dfactor,ct_diffconst[2]*Dfactor)))
     of = open(path+"/MSD-combinedTrack.txt",'w')
     printArrayToFile(ct_msd,of,head=["Stpngize","MSD"])
-    plotMSD(ct_msd,ct_diffconst[1],pxsize=pixelsize,frametime=frametime,xaxisrange=averageL+5*stdL,labelname=r"{:} $\mu$m$^2$/s".format(ct_diffconst[1]*Dfactor),path=path)
+    plotMSD(ct_msd,ct_diffconst[1],pxsize=pixelsize,frametime=frametime,xaxisrange=averageL+5*stdL,labelname=r"{:.04f}$\pm$ {:.04f} $\mu$m$^2$/s".format(ct_diffconst[1]*Dfactor,ct_diffconst[2]*Dfactor),path=path)
     print("Starting Distribution Analysis")
-    distributionAnalysis(ct,pixelsize,frametime,Dfactor,plotlen,numberofbins=numberofbins,path=path)
+    distD, distDerr = distributionAnalysis(ct,pixelsize,frametime,Dfactor,plotlen,numberofbins=numberofbins,path=path)
     sys.stdout.flush()
-    return ct_diffconst
+    return ct_diffconst[1]*Dfactor, ct_diffconst[2]*Dfactor, distD, distDerr
 
 def distributionAnalysis(track,pixelsize,frametime,Dfactor,plotlen,numberofbins=50,path='.'):
     dipllist = relativeStpng(track)
@@ -502,10 +504,11 @@ def distributionAnalysis(track,pixelsize,frametime,Dfactor,plotlen,numberofbins=
         histograms.append(list(histo))
         fitparams.append(list(popt))
 
-    print(len(dispdist))
     selecttimes = [0,4,8,16]
     fitparams = np.array(fitparams)
-    print("Average diffusion coefficent from fitting stepsize: {:} +- {:} um^2/s".format(fitparams[:,0].mean(),fitparams[:,0].std()))
+    factor = np.arange(1,len(fitparams)+1,1)*2*frametime
+    Dfitlist = fitparams[:,0] / factor
+    print(">>>> Average diffusion coefficent from fitting stepsize: {:} +- {:} um^2/s".format(Dfitlist.mean(),Dfitlist.std()))
 
     fig = plt.figure(figsize=(9,7))
     ax = fig.add_subplot(111)
@@ -517,7 +520,7 @@ def distributionAnalysis(track,pixelsize,frametime,Dfactor,plotlen,numberofbins=
         xvals = histograms[elem][1][:-1]+dbox*0.5
         ax.plot(xvals,histograms[elem][0],'o',color=colors[counter],label=r"$\tau =$ {:.03f}s".format((int(elem)+1)*frametime))
         xvals = (np.arange(1000)/500 - 1)*plotlen*pixelsize
-        ax.plot(xvals,gaussfunc(xvals,fitparams[elem][0],fitparams[elem][1]),'-',color=colors[counter],label=r"$D =$ {:.04f}".format(fitparams[elem][0]/(2*(int(elem)+1)*frametime))+r"$\mu m^2s^{-1}$")
+        ax.plot(xvals,gaussfunc(xvals,fitparams[elem][0],fitparams[elem][1]),'-',color=colors[counter],label=r"$D =$ {:.04f}".format(Dfitlist[elem])+r"$\mu m^2s^{-1}$")
         counter += 1
     ax.set_xlabel(r"Displacement [$\mu m$]")
     ax.set_ylabel("Counts")
@@ -525,7 +528,7 @@ def distributionAnalysis(track,pixelsize,frametime,Dfactor,plotlen,numberofbins=
     ax.set_title(title)
     plt.savefig(path+'/'+title+"-plot.png",format="png", dpi=200)
     plt.close('all')
-    return
+    return Dfitlist.mean(), Dfitlist.std()
 #===========================================
 
 
@@ -583,20 +586,48 @@ def doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,bCleanUpTracks=True,bSing
     if len(considered) > 100:
         considered = considered[:]
     '''
+    logfile = open(spng+'/analysis.log',"w")
+    logfile.write("LogFile of the Analysis\n")
+    logfile.write("=======================\n")
+    logfile.write("\n")
+    logfile.write("Pixel Size : {:} um\n".format(pixelsize))
+    logfile.write("Frame Interval: {:} s\n".format(frametime))
+    logfile.write("Minimum Track length: {:} frames\n".format(minTrLength))
+    logfile.write("Maximum frame lag for combined MSD: {:} frames\n".format(lenMSD_ct))
+    logfile.write("\n")
+    logfile.write("Number of considered tracks: {:}\n".format(len(considered)))
+    trlens = []
+    for tr in considered:
+        trlens.append(tr[-1][0] - tr[0][0])
+    trlens = np.array(trlens)
+    logfile.write("Average Track length: {:}+-{:} frames\n".format(trlens.mean(),trlens.std()))
+    logfile.write("\n")
+
     
     if bSingleTrackMSDanalysis:
         print()
         print()
         print("Starting Diffusion Constant Analysis for single tracks")
         print("------------------------------------------------------")
-        diffChisto = diffConstDistrib(considered,pixelsize,frametime,Dfactor,numberofbins=numberofbins,path=spng)
+        diffC = diffConstDistrib(considered,pixelsize,frametime,Dfactor,numberofbins=numberofbins,path=spng)
+        sys.stdout.flush()
+        logfile.write("Individual Track Analysis\n")
+        logfile.write("-------------------------\n")
+        logfile.write("Average Diffusion Constant: {:}+-{:} um^2/s\n\n".format(diffC[0],diffC[1]))
     if bCombineTrack:
         print()
         print()
         print("Starting Combined Track Analysis")
         print("--------------------------------")
-        analyzeCombinedTrack(considered,pixelsize,frametime,Dfactor,lenMSD=lenMSD_ct,numberofbins=numberofbins,plotlen=plotlen,path=spng)
+        Dmsd,Dmsd_err,Dstep,Dstep_err = analyzeCombinedTrack(considered,pixelsize,frametime,Dfactor,lenMSD=lenMSD_ct,numberofbins=numberofbins,plotlen=plotlen,path=spng)
+        logfile.write("Combined Track Analysis\n")
+        logfile.write("-----------------------\n")
+        logfile.write("MSD diffusion constant: {:}+-{:} um^2/s\n".format(Dmsd,Dmsd_err))
+        logfile.write("Step Distribution D: {:}+-{:} um^2/s\n".format(Dstep,Dstep_err))
     sys.stdout.flush()
+
+    logfile.close()
+
     return
 #=====================================
 
