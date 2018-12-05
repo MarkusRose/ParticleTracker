@@ -242,6 +242,8 @@ def fitArray(msd,msdlength):
     iniguess = [1]
 
     popt, pcov = curve_fit(linfun, xdata, ydata, iniguess)
+    print("Done fit")
+    sys.stdout.flush()
     return popt
 
 
@@ -250,7 +252,6 @@ def findDiffConsts(msd,fitlength=0):
     counter = 0
     for elem in msd:
         counter += 1
-        #print "Track {}".format(counter)
         if len(elem) == 0:
             counter -= 1
             continue
@@ -327,20 +328,21 @@ def diffConstDistrib(tracks,pixelsize,frametime,Dfactor,numberofbins=50,path='.'
     msdlist = list(map(msd,tracks))
     print("........(finding diffusion coefficient from all MSDs from list)")
     Dlist = findDiffConsts(msdlist,fitlength=0.2)
-    print((">>>> The average diffusion coefficient is: " + str(Dlist.mean()*Dfactor) + " +- " + str(Dlist.std()*Dfactor) + " um^2/s"))
+    print(Dlist)
+    print((">>>> The average diffusion coefficient is: " + str(Dlist[:,1].mean()*Dfactor) + " +- " + str(Dlist[:,1].std()*Dfactor) + " um^2/s"))
     print("........(finding the lengths of the single tracks)")
     def lengthoftrack(tr):
         return tr[-1][0] - tr[0][0]
     lenList= np.array(list(map(lengthoftrack,tracks)))
     print((">>>> The average track length is: " + str(lenList.mean()*frametime) + " +- " + str(lenList.std()*frametime) + " s"))
     print(("Showing: Diffusion coefficient distribution of " + str(len(tracks)) + " tracks."))
-    histo = np.histogram(Dlist,bins=numberofbins,range=(0,Dlist.mean()+Dlist.std()*5),density=False)
+    histo = np.histogram(Dlist[:,1],bins=numberofbins,range=(0,Dlist[:,1].mean()+Dlist[:,1].std()*5),density=False)
     bbs = np.array(list(histo[1])+[100000])
-    histo = np.histogram(Dlist,bins=bbs,density=False)
+    histo = np.histogram(Dlist[:,1],bins=bbs,density=False)
     width = (histo[1][1]-histo[1][0])/2*Dfactor
     fig = plt.figure(figsize=(9,7))
     ax = fig.add_subplot(111)
-    ax.bar((histo[1][0:-1]+(histo[1][1]-histo[1][0])/2)*Dfactor,histo[0],width=width,label=r"{:} +- {:} $\mu$m$^2$/s".format(Dlist.mean()*Dfactor,Dlist.std()*Dfactor))
+    ax.bar((histo[1][0:-1]+(histo[1][1]-histo[1][0])/2)*Dfactor,histo[0],width=width,label=r"{:.04f} +- {:.04f} $\mu$m$^2$/s".format(Dlist[:,1].mean()*Dfactor,Dlist[:,1].std()*Dfactor))
     #plt.axis([0,10,0,1])
     ax.set_title("Diffusion Coefficient Distribution")
     ax.set_ylabel("Counts")
@@ -374,6 +376,8 @@ def diffConstDistrib(tracks,pixelsize,frametime,Dfactor,numberofbins=50,path='.'
     printArrayToFile(outarray,fo,head=["track-length(s)","Counts"])
 
     print(("Showing: Dependence of the diffusion coefficient on the track length of " + str(len(tracks)) + " individual tracks."))
+    sys.stdout.flush()
+    '''
     nubin = 30
     wbin = (lenhist[1][-2]-lenhist[1][0])/nubin
     bincount = 1
@@ -394,14 +398,15 @@ def diffConstDistrib(tracks,pixelsize,frametime,Dfactor,numberofbins=50,path='.'
             continue
         Dmean[2,i] = Dmean[2,i]/Dmean[1,i]
     
-    plt.plot(Dmean[0],Dmean[2],'ro')
+    '''
+    plt.plot(Dlist[:,0],Dlist[:,1],'ro')
     plt.title("Dependence of the diffusion coefficient on the track length")
-    plt.ylabel(r"averaged diffusion constant (px$^2$*framerate")
+    plt.ylabel(r"Diffusion constant (px$^2$*framerate")
     plt.xlabel("Track length (frames)")
     plt.savefig(path+'/trLengthDiffConstDependence.png', format='png', dpi=200)
     #plt.show()
-    plt.close()
-    outarray = np.array([Dmean[0],Dmean[2]]).transpose()
+    plt.close('all')
+    outarray = np.array([Dlist[:,0],Dlist[:,1]]).transpose()
     fo = open(path+"/Length-Diffconst-Relation.txt",'w')
     printArrayToFile(outarray,fo,head=["track-length(frame)","meanDiffConst"])
     return histo
@@ -440,8 +445,9 @@ def analyzeCombinedTrack(tracks,pixelsize,frametime,Dfactor,lenMSD=500,numberofb
     plotTrack(ct.transpose(),path=path)
     print("Creating MSD for combined track.")
     lenMSD = min(lenMSD,int(len(ct)*0.2))
-    fitlength = averageL
+    fitlength = int(averageL*0.8)
     print("Using {:} steps for MSD and fitting with {:} steps.".format(lenMSD,int(fitlength)))
+    sys.stdout.flush()
     ct_msd = msd(ct,length=lenMSD)
     ct_diffconst = findDiffConsts([ct_msd],fitlength=fitlength)[0]
     print((">>>> Found diffusion coefficient: " + str(ct_diffconst[1]*Dfactor) + " um^2/s"))
@@ -450,6 +456,7 @@ def analyzeCombinedTrack(tracks,pixelsize,frametime,Dfactor,lenMSD=500,numberofb
     plotMSD(ct_msd,ct_diffconst[1],pxsize=pixelsize,frametime=frametime,xaxisrange=averageL+5*stdL,labelname=r"{:} $\mu$m$^2$/s".format(ct_diffconst[1]*Dfactor),path=path)
     print("Starting Distribution Analysis")
     distributionAnalysis(ct,pixelsize,frametime,Dfactor,plotlen,numberofbins=numberofbins,path=path)
+    sys.stdout.flush()
     return ct_diffconst
 
 def distributionAnalysis(track,pixelsize,frametime,Dfactor,plotlen,numberofbins=50,path='.'):

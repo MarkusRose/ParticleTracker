@@ -183,8 +183,8 @@ def simulateTracks(inVars=None,path=".",imageoutput=True):
     return framelist,btracks
 
 def writeTracks(tracks,filename):
-    #ct.writeTrajectories(tracks,filename=filename)
-    ct.writeTracks(tracks,filename=filename)
+    ct.writeTrajectories(tracks,filename=filename)
+    #ct.writeTracks(tracks,filename=filename)
     return
 
 def writeFrames(framelist,filename):
