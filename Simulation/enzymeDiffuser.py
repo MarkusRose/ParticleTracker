@@ -60,10 +60,9 @@ def simulateTracks(inVars=None,path=".",imageoutput=True):
     pixel_size = sV[15]/1e6
     print(pixel_size)
     numAperture = sV[16]
-    mag = sV[17]
-    background = sV[18]
-    backnoise = sV[19]
-    intensity = sV[20]
+    background = sV[17]
+    backnoise = sV[18]
+    intensity = sV[19]
     particle_size = 1e-9 #meter
     print("Done with userInput")
     sys.stdout.flush()
@@ -83,6 +82,10 @@ def simulateTracks(inVars=None,path=".",imageoutput=True):
     statProbs.append((sV[6]+sV[7])/sumprobs)
 
     debug("Done probs init")
+
+    #TODO: Blinking and Bleaching
+    p_on = 0.3
+    p_off = 0.1
      
     #output variable
     atracks = []
@@ -91,6 +94,18 @@ def simulateTracks(inVars=None,path=".",imageoutput=True):
     for n in range(N):
         #one individual track
         track = []
+        state_chain = [1]
+        for i in range(1,frames,1):
+            if state_chain[-1] == 1:
+                if p_off > random.uniform(0,1):
+                    state_chain.append(0)
+                else:
+                    state_chain.append(1)
+            else:
+                if p_on > random.uniform(0,1):
+                    state_chain.append(1)
+                else:
+                    state_chain.append(0)
 
         track_id = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(8))
         trk = ct.ParticleTrack(id=track_id, num_elements=frames)
@@ -102,12 +117,13 @@ def simulateTracks(inVars=None,path=".",imageoutput=True):
      
             #frame number
             particle[0] = i
+
      
             #first or not?
             if len(track)  == 0:
                 #initial position
-                particle[3] = random.uniform(0,(numPixels-1)*1.*pixel_size/mag)
-                particle[4] = random.uniform(0,(numPixels-1)*1.*pixel_size/mag)
+                particle[3] = random.uniform(0,(numPixels-1)*1.*pixel_size)
+                particle[4] = random.uniform(0,(numPixels-1)*1.*pixel_size)
      
                 #choose state
                 u = random.random()
@@ -142,8 +158,9 @@ def simulateTracks(inVars=None,path=".",imageoutput=True):
 
             #Set Intensity:
             particle[6] = intensity
-            particle[7] = 2*0.211*wavelength/numAperture
-            particle[8] = 2*0.211*wavelength/numAperture
+            #particle width is n*0.211*lambda/NA; n = 1.51 for oil 1.33 for water, 1 for air
+            particle[7] = 1.51*0.211*wavelength/numAperture
+            particle[8] = 1.51*0.211*wavelength/numAperture
      
             #Rest of particle variables
             for k in range(9,10,1):
@@ -153,9 +170,10 @@ def simulateTracks(inVars=None,path=".",imageoutput=True):
      
             #Append particle to track
             track.append(particle)
-            pfac = pixel_size/mag
+            pfac = pixel_size
             prtcl = ct.makeParticle(i+1,particle[3]/pfac,particle[4]/pfac,particle[7]/pfac,particle[8]/pfac,background,particle[6],track_id)
-            framelist[i].append(prtcl)            
+            if state_chain[i] == 1:
+                framelist[i].append(prtcl)            
             trk.insert_particle(prtcl,i+1)
 
         #Append Track to output var
@@ -173,9 +191,9 @@ def simulateTracks(inVars=None,path=".",imageoutput=True):
 
     if imageoutput:
         if particle_size < 0.61*wavelength/numAperture:
-            #TODO: additional factor for sigma = sigma*2
+            #Sigma = n * 0.211* lambda/NA; n = index of refraction (1.51 in oil, 1.33 in water, 1 in air)
             Fileio.createImages(path,framelist,numPixels,
-                    2*0.211*wavelength/numAperture*mag/pixel_size,background,backnoise)
+                    1.51*0.211*wavelength/numAperture/pixel_size,background,backnoise)
         else:
             pass
     debug("Written output Images")

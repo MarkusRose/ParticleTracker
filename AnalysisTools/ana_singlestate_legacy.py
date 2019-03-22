@@ -256,13 +256,13 @@ def findDiffConsts(msd,fitlength=0):
             continue
         if fitlength == 0:
             Dsaver,Dcov = fitArray(elem,int(len(elem)))
-            diffC.append(np.array([len(elem),Dsaver,np.sqrt(np.diag(Dcov))]))
+            diffC.append(np.array([len(elem),Dsaver[0],np.sqrt(np.diag(Dcov))[0]]))
         elif fitlength <= 1:
             Dsaver,Dcov = fitArray(elem,max(5,int(len(elem)*fitlength)))
-            diffC.append(np.array([len(elem),Dsaver,np.sqrt(np.diag(Dcov))]))
+            diffC.append(np.array([len(elem),Dsaver[0],np.sqrt(np.diag(Dcov))[0]]))
         else:
             Dsaver,Dcov = fitArray(elem,fitlength)
-            diffC.append(np.array([len(elem),Dsaver,np.sqrt(np.diag(Dcov))]))
+            diffC.append(np.array([len(elem),Dsaver[0],np.sqrt(np.diag(Dcov))[0]]))
     
     return np.array(diffC)
 
@@ -330,9 +330,11 @@ def diffConstDistrib(tracks,pixelsize,frametime,Dfactor,numberofbins=50,path='.'
     msdlist = list(map(msd,tracks))
     print("........(finding diffusion coefficient from all MSDs from list)")
     Dlist = findDiffConsts(msdlist,fitlength=0.2)
+    print(Dlist)
     Doutput = Dlist[:,1].mean()*Dfactor
     Doutput_err = Dlist[:,1].std()*Dfactor
-    print((">>>> The average diffusion coefficient is: {:.05f}+-{:.05f} um^2/s".format(Doutput,Doutput_err)))
+    print(Doutput,Doutput_err)
+    print(">>>> The average diffusion coefficient is: {:.05f}+-{:.05f} um^2/s".format(Doutput,Doutput_err))
     print("........(finding the lengths of the single tracks)")
     def lengthoftrack(tr):
         return tr[-1][0] - tr[0][0]
@@ -470,17 +472,6 @@ def distributionAnalysis(track,pixelsize,frametime,Dfactor,plotlen,numberofbins=
     outfile = open(path+"/combinedTrack-relativeXYDisplacements.txt",'w')
     printArrayToFile(dipllist,outfile,["Steppingtime","dx","dy"])
     
-    '''
-    print("....Creating r^2-distribution")
-    r2 = r2distro(dipllist)
-    histograms = []
-    counter = 0
-    for elr2 in r2:
-        histo = np.histogram(elr2*pixelsize**2,bins=numberofbins,range=(0,plotlen*pixelsize**2),density=False)
-        counter += 1
-        histograms.append(list(histo))
-    plotMultidistro([histograms[i] for i in [0,4,8,16]],xlabel=r"$r^2$ Distribution [$\mu$m$^2$]",title="r2-Distribution-combTr",path=path,bar=False)
-    '''
 
 
     def gaussfunc(x,sig,amp):

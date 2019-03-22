@@ -330,7 +330,6 @@ def makeImage(positions,framenumber,dirname,numPixels,sigma,background,backnoise
                     data[i][j] = 2**16-1
                 elif data[i][j] < 0:
                     data[i][j] = 0
-    intensity /= len(positions)
     
     if backnoise > 0:
         if True:

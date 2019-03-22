@@ -55,23 +55,21 @@ class Simulation_App(tk.Frame):
         self.numPartVar = tk.StringVar()
         self.numPartVar.set("10")
         self.tauVar = tk.StringVar()
-        self.tauVar.set("0.1")
+        self.tauVar.set("0.06")
         self.frameLengthVar = tk.StringVar()
         self.frameLengthVar.set("512")
         self.lambdaVar = tk.StringVar()
         self.lambdaVar.set("700")
         self.pixsizeVar = tk.StringVar()
-        self.pixsizeVar.set("16")
+        self.pixsizeVar.set("0.1")
         self.naVar = tk.StringVar()
         self.naVar.set("1.45")
-        self.magnifVar = tk.StringVar()
-        self.magnifVar.set("100")
         self.backgroundVar = tk.StringVar()
-        self.backgroundVar.set("500")
+        self.backgroundVar.set("300")
         self.backnoiseVar = tk.StringVar()
         self.backnoiseVar.set("100")
         self.intensityVar = tk.StringVar()
-        self.intensityVar.set("1000")
+        self.intensityVar.set("3000")
         self.saveDir = tk.StringVar()
         self.saveDir.set(".")
 
@@ -124,7 +122,7 @@ class Simulation_App(tk.Frame):
                 messagebox.showerror("Wrong Particle Number", "Number of particles must be larger than 0!")
                 return False
             
-            #Test wavelength, acquisition time, NA, magnification
+            #Test wavelength, acquisition time, NA
             if float(self.tauVar.get()) <= 0:
                 messagebox.showerror("A.Time","Acquisition time has to be larger than 0.")
                 return False
@@ -133,9 +131,6 @@ class Simulation_App(tk.Frame):
                 return False
             if float(self.naVar.get()) <=0:
                 messagebox.showerror("NA","Numerical aperture must be larger than 0.")
-                return False
-            if float(self.magnifVar.get()) <= 0:
-                messagebox.showerror("Magnification", "Magnification must be larger than 0.")
                 return False
 
             #Image properties: frame length, pixel size, signal to noise, intensity
@@ -257,11 +252,6 @@ class Simulation_App(tk.Frame):
         naLabel.grid(column=0,row=10,sticky="EW")
         naText = tk.Entry(self, textvariable=self.naVar)
         naText.grid(column=1,row=10, sticky="EW")
-        #Magnification
-        magnifLabel = tk.Label(self,text="Magnification")
-        magnifLabel.grid(column=0,row=11,sticky="EW")
-        magnifText = tk.Entry(self, textvariable=self.magnifVar)
-        magnifText.grid(column=1,row=11, sticky="EW")
         #Background
         backgroundLabel = tk.Label(self,text="Background mean")
         backgroundLabel.grid(column=0,row=12,sticky="EW")
@@ -384,7 +374,6 @@ class Simulation_App(tk.Frame):
         outvar.append(float(self.lambdaVar.get())) 
         outvar.append(float(self.pixsizeVar.get())) 
         outvar.append(float(self.naVar.get())) 
-        outvar.append(float(self.magnifVar.get())) 
         outvar.append(float(self.backgroundVar.get()))
         outvar.append(float(self.backnoiseVar.get()))
         outvar.append(float(self.intensityVar.get())) 

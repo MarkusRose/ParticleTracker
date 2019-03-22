@@ -80,7 +80,7 @@ def readDetectedParticles(filename):
             if len(oneframe) != 0 and emptycounter == 1:
                 if len(oneframe) != partnum:
                     print("Number of particles and Frame content don't match!")
-                    raise
+                    #raise
                 particle_data.append(list(oneframe))
                 oneframe = []
             elif len(oneframe) == 0 and emptycounter == 1:
@@ -124,7 +124,7 @@ def readDetectedParticles(filename):
         particle_data.append(list(oneframe))
         if len(oneframe) != partnum:
             print("Number of particles and Frame content don't match!")
-            raise
+            #raise
         del oneframe
 
 #    print("Empty lines: {:}".format(emptycounter))
