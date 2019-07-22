@@ -20,7 +20,7 @@ def boxcarFilter(image,boxsize=3,cutoff=1.0):
                 if ksaver < 0 or ksaver >= len(image):
                     continue
                 for l in range(boxsize):
-                    lsaver = int(j+k-halfsize)
+                    lsaver = int(j+l-halfsize)
                     if lsaver < 0 or lsaver >= len(image[i]):
                         continue
                     counter += 1
