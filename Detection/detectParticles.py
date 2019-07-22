@@ -436,7 +436,7 @@ def filterImage(image,sigma,local_max_window,signal_power,output,lmm):
         cutoff = 1e-10
         #print "setting cutoff to {}".format(cutoff)
 
-    boxcarImage = filters.boxcarFilter(image,boxsize=5,cutoff=cutoff)
+    boxcarImage = ndimage.morphology.white_tophat(image,size=[5,5])
     if output:
         readImage.saveImageToFile(boxcarImage,"02boxFilter.png")
 
