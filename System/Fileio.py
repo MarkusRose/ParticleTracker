@@ -296,66 +296,30 @@ def setImages():
 def getImages():
     pass
 
+
 def makeImage(positions,framenumber,dirname,numPixels,sigma,background,backnoise):
-    data = np.zeros((numPixels,numPixels),np.uint16)
+    data = np.zeros((numPixels,numPixels))
      
-    def gauss(i,j,posx,posy,intensity,sig):
-        return math.exp(-((i-posx)**2+(j-posy)**2)/(2.0*sig**2))*intensity
+    def gauss(image,posx,posy,intensity,sig):
+        xgauss = np.exp(-((np.arange(len(image[0]))-posx)**2)/(2.0*sig**2))
+        ygauss = np.exp(-((np.arange(len(image[:,0]))-posy)**2)/(2.0*sig**2))
+        ygauss = ygauss.reshape((len(ygauss),1))
+        return xgauss*ygauss*intensity
 
-    def integauss(i,j,posx,posy,intensity,sig):
-        #int_i^(i+1) int_j^(j+1) dx dy exp(-((i-posx)^2+(j-posy)^2)/2*sig^2) * intensity
-        px = (math.erf((posx-i)/(math.sqrt(2)*sig))-math.erf((posx-i-1)/(math.sqrt(2)*sig)))
-        py = (math.erf((posy-j)/(math.sqrt(2)*sig))-math.erf((posy-j-1)/(math.sqrt(2)*sig)))
-        return intensity/4*px*py
-
-    def noise():
-        return random.gauss(background,backnoise)
-
-    intensity = 0
-    for k in range(len(positions)):
-        px = int(round(positions[k].y))
-        py = int(round(positions[k].x))
-        intensity += positions[k].amplitude
-        #xnum = min(len(data)-1,px+10)-max(0,px-10)
-        #ynum = min(len(data[0])-1,py+10)-max(0,py-10)
-        for i in range(max(0,px-30),min(len(data)-1,px+30),1):
-            for j in range(max(0,py-30),min(len(data[i])-1,py+30),1):
-                msig = gauss(i,j,positions[k].y,positions[k].x,positions[k].amplitude,sigma)
-                if msig >= 2**16:
-                    msig = 2**16-1
-                elif msig < 0:
-                    msig = 0
-                data[i][j] += msig
-                if data[i][j] >= 2**16:
-                    data[i][j] = 2**16-1
-                elif data[i][j] < 0:
-                    data[i][j] = 0
-    
+    for pos in positions:
+        data += gauss(data,pos.y,pos.x,pos.amplitude,sigma)
     if backnoise > 0:
-        if True:
-            msig = np.random.normal(loc=background,scale=backnoise,size=data.shape)
-            np.clip(data+msig,0,2**16-1,data)
-        else:
-            for i in range(len(data)):
-                for j in range(len(data[i])):
-                    msig = np.random.normal(background,backnoise)
-                    if msig >= 2**16:
-                        msig = 2**16 -1
-                    elif msig < 0:
-                        msig = 0
-                    data[i][j] += msig
+        msig = np.random.normal(loc=background,scale=backnoise,size=data.shape)
+        data += msig
     else:
         msig = np.zeros(data.shape,np.uint16)
-
         msig.fill(background)
-        np.clip(data+msig,0,2**16-1,data)
-    
-    #h,w = data.shape
-    # 
-    #im = Image.frombytes('I;16',(w,h),data.tostring())
-    #im.save(dirname+'/frame{0:04d}.tif'.format(framenumber))
-    
-    return data
+        data += msig
+    np.clip(data,0,2**16-1,data)
+    data = np.random.poisson(data)
+    np.clip(data,0,2**16-1,data)
+
+    return np.array(data,dtype=np.uint16)
 
 
 def createImages(dirname,frames,numPixels,sigma,background,backnoise):
