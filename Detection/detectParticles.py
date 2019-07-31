@@ -3,6 +3,8 @@ from .pysm import new_cython
 from . import readImage
 from . import filters
 from . import markPosition
+from . import radial_centers as rc
+from . import centroidDetection as centDet
 import sys
 try:
     from . import convertFiles
@@ -53,7 +55,7 @@ def previewImageDetect(imagearray,
                     signal_power,
                     bit_depth,
                     eccentricity_thresh,
-                     sigma_thresh,numAdder,local_max=None,output=False,lmmethod=False,
+                     sigma_thresh,numAdder,local_max=None,output=False,method='gaussian',
                      imageOutput=False,path='.',pfilename="foundParticles.txt"):
     particle_data = []
     frame = 0
@@ -78,7 +80,7 @@ def previewImageDetect(imagearray,
                     eccentricity_thresh,
                     sigma_thresh,
                     output=output,
-                    lmm=lmmethod,
+                    method=method,
                     path=path)
         else:
             particles = detectParticles(
@@ -92,7 +94,7 @@ def previewImageDetect(imagearray,
                     sigma_thresh,
                     local_max_pixels=local_max_pixels[i],
                     output=output,
-                    lmm=lmmethod,
+                    method=method,
                     path=path)
 
         particle_data.append(particles)
@@ -110,7 +112,7 @@ def multiImageDetect(imagearray,
                     signal_power,
                     bit_depth,
                     eccentricity_thresh,
-                     sigma_thresh,numAdder,local_max=None,output=False,lmmethod=False,
+                     sigma_thresh,numAdder,local_max=None,output=False,method='gaussian',
                      imageOutput=False,path='.',pfilename="foundParticles.txt"):
     particle_data = []
     frame = 0
@@ -132,34 +134,6 @@ def multiImageDetect(imagearray,
         image = imagearray[i]/np.iinfo(imagearray.dtype).max
 
         frame += 1
-        #TODO: computationally better adding up of frames
-        '''
-        #Good: (but not working) Adding up images
-        if frame == 1:
-            a = np.zeros(image.shape)
-        a += image
-
-        if frame > numAdder:
-            #remove last image
-            b = readImage.readImage(img[i-numAdder])
-            a -= b
-            ch = a != (image + readImage.readImage(img[i-1]) + readImage.readImage(img[i-2]))
-            if ch.all():
-                sys.exit("Oh man, what's going on in frame {:}?".format(frame))
-                    
-        else:
-            continue
-        '''
-        #Computationally expensive Adding up images
-        '''
-        if frame < numAdder:
-            continue
-        else:
-            a = np.zeros(image.shape)
-            for j in range(numAdder):
-                a += readImage.readImage(img[i-j])
-            a /= numAdder
-            '''
             
         if output:
             readImage.saveImageToFile(a,path+"/01sanityCheck{:0004d}.png".format(frame))
@@ -176,7 +150,7 @@ def multiImageDetect(imagearray,
                     eccentricity_thresh,
                     sigma_thresh,
                     output=output,
-                    lmm=lmmethod,
+                    method=method,
                     path=path)
         else:
             particles = detectParticles(
@@ -190,7 +164,7 @@ def multiImageDetect(imagearray,
                     sigma_thresh,
                     local_max_pixels=local_max_pixels[i],
                     output=output,
-                    lmm=lmmethod,
+                    method=method,
                     path=path)
 
         if (imageOutput):
@@ -215,6 +189,22 @@ def multiImageDetect(imagearray,
 #    print pd
     return pd
 
+
+def radial_center(data):
+    height = np.nan
+    amp = np.nan
+    width_x = np.nan
+    width_y = np.nan
+    x, y, trash, trash = rc.radial_center(data)
+    return (height, amp, x, y, width_x, width_y)
+
+def centroid(data):
+    height = np.nan
+    amp = np.nan
+    width_x = np.nan
+    width_y = np.nan
+    x,y = centDet.centroidMethod(data,data.max()/3)
+    return (height, amp, x, y, width_x, width_y)
 
 
 def fitgaussian2d(data, background_mean, user_moments = None):
@@ -335,13 +325,14 @@ def checkFit(fitdata,sigma,sigma_thresh,eccentricity_thresh,nunocon,nunoexc,nusi
     ##############
     #FIT CHECKING
     ##############
-    #if fitdata[0] <= 0 or fitdata[1] <=0:
+    #Check if fit converged
     if fitdata[1] <= 0:
         #print("Fit did not converge")
         #Fit did not converge
         nunocon += 1
         return False, nunocon,nunoexc,nusigma
 
+    #Check for eccentricity
     if (np.abs(fitdata[5]/fitdata[4]) > eccentricity_thresh or 
         np.abs(fitdata[4]/fitdata[5]) > eccentricity_thresh):
         
@@ -350,24 +341,7 @@ def checkFit(fitdata,sigma,sigma_thresh,eccentricity_thresh,nunocon,nunoexc,nusi
         nunoexc += 1
         return False, nunocon,nunoexc,nusigma
 
-    '''
-    if (fitdata[4] > (sigma_thresh * sigma) or 
-        fitdata[4] < (sigma / sigma_thresh) or
-        fitdata[5] > (sigma_thresh * sigma) or
-        fitdata[5] < (sigma / sigma_thresh)):
-        print("Fit too unlike theoretical psf")
-        if fitdata[4] > (sigma_thresh * sigma) :
-            print("spot x too large")
-        elif fitdata[4] < (sigma / sigma_thresh):
-            print("spot x too small")
-        elif fitdata[5] > (sigma_thresh * sigma):
-            print("spot y too large")
-        elif fitdata[5] < (sigma / sigma_thresh):   
-            print("spot y too small")
-        #Fit too unlike theoretical psf
-        nusigma += 1
-        return False, nunocon,nunoexc,nusigma
-    '''
+    #Check for particle size
     if ((fitdata[4]**2+fitdata[5]**2) > 2*((sigma_thresh+1) * sigma)**2 or 
         (fitdata[4]**2+fitdata[5]**2) < 2*(sigma / (sigma_thresh+1))**2):
         #Fit too unlike theoretical psf
@@ -423,7 +397,7 @@ def readBox(inf):
     
 ######### Important functions##############################
     
-def filterImage(image,sigma,local_max_window,signal_power,output,lmm):
+def filterImage(image,local_max_window,signal_power,output):
     median_img = ndimage.filters.median_filter(image, (21,21))
     if False:
         readImage.saveImageToFile(median_img,"05MedianFilter1.png")
@@ -440,20 +414,15 @@ def filterImage(image,sigma,local_max_window,signal_power,output,lmm):
     if output:
         readImage.saveImageToFile(boxcarImage,"02boxFilter.png")
 
-    gausFiltImage = ndimage.filters.gaussian_filter(boxcarImage,sigma,order=0)
+    gausFiltImage = ndimage.filters.gaussian_filter(boxcarImage,0.5,order=0)
     if output:
         readImage.saveImageToFile(gausFiltImage,"02gaussFilter.png")
     
     (background_mean,background_std) = (gausFiltImage.mean(),gausFiltImage.std())
     #cutoff = readImage.otsuMethod(image)
     cutoff = background_mean + signal_power * background_std
-    if lmm:
-        #LocalMaximaMethod
-        return (localMaximaMethod(gausFiltImage,local_max_window,cutoff,output),cutoff,background_mean)
-    else:
-        #CentroidMethod
-        #print "doing centroid"
-        return (centroidMethod(gausFiltImage,cutoff,output),cutoff,background_mean)
+    #LocalMaximaMethod
+    return (localMaximaMethod(gausFiltImage,local_max_window,cutoff,output),cutoff,background_mean)
 
 
 
@@ -492,167 +461,48 @@ def localMaximaMethod(gausFiltImage,local_max_window,cutoff,output):
     local_max_pixels = np.nonzero(imgMaxNoBack)
     return local_max_pixels
 
-def centroidMethod(gausFiltImage,cutoff,output):
-    #print 'doing centroid'
-    #for i in range(len(gausFiltImage)):
-    #    for j in range(len(gausFiltImage[i])):
-    #        if gausFiltImage[i,j] > 0:
-    #            print gausFiltImage[i,j]
-    binaryMap = (gausFiltImage > (cutoff))
-    '''
-    cccc = 0
-    for i in binaryMap:
-        for j in i:
-            if j:
-                cccc+=1
-    print cccc
-    '''
-    if True:
-        readImage.saveImageToFile(binaryMap,"05BinaryMap.png")
-    clusterImage = - binaryMap.astype(int)
 
-    def checkNN(i,j,clco):
-        if i > 0 and clusterImage[i-1,j] == -1:
-            clusterImage[i-1,j] = clco
-            toDo.append([i-1,j])
-        if i < len(clusterImage)-1 and clusterImage[i+1][j] == -1:
-            clusterImage[i+1,j] = clco
-            toDo.append([i+1,j])
-        if j > 0 and clusterImage[i,j-1] == -1:
-            clusterImage[i,j-1] = clco
-            toDo.append([i,j-1])
-        if j < len(clusterImage[0])-1 and clusterImage[i,j+1]:
-            clusterImage[i,j+1] = clco
-            toDo.append([i,j+1])
-    
-    toDo = []
-    clco = 0
-    countnet1 = 0
-    clusters = []
-    for i in range(len(clusterImage)):
-        for j in range(len(clusterImage[i])):
-            if clusterImage[i,j] == 0:
-                continue
-            elif clusterImage[i,j] == -1:
-                countnet1 += 1
-                #print i,j
-                clco += 1
-                clusters.append([])
-                clusterImage[i,j] = clco
-                toDo.append([i,j])
-                while len(toDo) > 0:
-                    checkNN(toDo[0][0],toDo[0][1],clco)
-                    clusters[clco-1].append(toDo[0])
-                    del toDo[0]
-    #print "done clustering"
-    #print countnet1
-    local_max_pixels = [[],[]]
-    '''
-    #DEBUG: check all is clustered
-    cccc = 0
-    for i in clusterImage:
-        for j in i:
-            if j==-1:
-                cccc+=1
-    print cccc
-    '''
-    '''
-    #OLD CLUSTERING METHOD (computationally unefficient)
-    while clco > 0:
-        #calculate center of mass
-        x = 0
-        y = 0
-        sizeOC = 0
-        for i in range(len(clusterImage)):
-            for j in range(len(clusterImage[i])):
-                if clusterImage[i,j] == clco:
-                    sizeOC += 1
-                    x += i
-                    y += j
-        local_max_pixels[0].append((1.0*x)/sizeOC)
-        local_max_pixels[1].append((1.0*y)/sizeOC)
-        clco -= 1
-    '''
-    #apply size restrictions
-    '''
-    sizecheck = []
-    i = 0
-    while i < len(clusters):
-        sizecheck.append(len(clusters[i]))
-        i += 1
-    print("\nNumber of clusters detected: " + str(len(clusters)))
-    print("Cluster size: " + str(np.array(sizecheck).mean()) + " +- " + str(np.array(sizecheck).std()) + "\n")
-    '''
-    #sizecheck = []
-    i = 0
-    while i < len(clusters):
-        if len(clusters[i]) < 5:
-            clusters.pop(i)
-            continue
-        else:
-            #sizecheck.append(len(clusters[i]))
-            i += 1
-    #print("\nNumber of clusters after restrict: " + str(len(clusters)))
-    #print("Cluster size: " + str(np.array(sizecheck).mean()) + " +- " + str(np.array(sizecheck).std()) + "\n")
-
-    for clust in clusters:
-        #calculate centroid for each cluster and append
-        x = 0
-        y = 0
-        sizeOC = 0
-        for part in clust:
-            sizeOC += 1
-            x += part[0]
-            y += part[1]
-        local_max_pixels[0].append((1.0*x)/sizeOC)
-        local_max_pixels[1].append((1.0*y)/sizeOC)
-    #print "done getting local maxs"
-    #print local_max_pixels
-    return local_max_pixels
-
-
-def findParticleAndAdd(image,frame,local_max_pixels,signal_power,sigma,background_mean,sigma_thresh,eccentricity_thresh,bit_depth,path='.'):
+def findParticleAndAdd(image,frame,local_max_pixels,sigma,background_mean,sigma_thresh,eccentricity_thresh,method='gaussian'):
     
     particle_list = []
 
+    #keeping track of all detections
     nunocon = 0
     nunoexc = 0
     nusigma = 0
     nupart = 0
     nuedge = 0
 
-    outf = open(path+"/localBoxes.txt",'w')
-    #print "local max pixels " + str(len(local_max_pixels[0]))
-    #print "length is: ", len(local_max_pixels[0])
+    #Go through all local maximum pixels
     for i in range(len(local_max_pixels[0])):
-        #print i
-        #print "setting ROI"
-        #isIt = determineFittingROI(image.shape,local_max_pixels[0][i],local_max_pixels[1][i],signal_power,sigma)
+        #Determine the fitting ROI
         isIt = setFittingROI(image.shape,local_max_pixels[0][i],local_max_pixels[1][i],11)
         if isIt:
             row_min,row_max,col_min,col_max = isIt
         else:
-            #print "ohoh"
             nuedge += 1
+            #Skip if too close to boarder
             continue
-        outf.write("{:} {:} {:} {:}\n".format(row_min,row_max,col_min,col_max))
 
-        #print "starting Fit"
-        fitdata = fitgaussian2d(
-                    image[row_min:row_max+1, col_min:col_max+1],
-                    background_mean)
-        #print fitdata
-        #print "checking fit"
-        checkedfit = checkFit(fitdata,sigma,sigma_thresh,eccentricity_thresh,nunocon,nunoexc,nusigma)
-        if not checkedfit[0]:
-            nunocon,nunoexc,nusigma = checkedfit[1:]
-            #print "Fit not correct! "+str(nunocon) + " " + str(nunoexc) + " " + str(nusigma)
-            continue
+        #Apply a detection method.
+        if method == "centroid":
+            fitdata = centroid(image[row_min:row_max+1, col_min:col_max+1])
+        elif method == "radial_center":
+            fitdata = radial_center(image[row_min:row_max+1, col_min:col_max+1])
+        else:
+            #Detect using a Gaussian fit [Default]
+            fitdata = fitgaussian2d(
+                        image[row_min:row_max+1, col_min:col_max+1],
+                        background_mean)
+
+            checkedfit = checkFit(fitdata,sigma,sigma_thresh,eccentricity_thresh,nunocon,nunoexc,nusigma)
+            if not checkedfit[0]:
+                nunocon,nunoexc,nusigma = checkedfit[1:]
+                #print "Fit not correct! "+str(nunocon) + " " + str(nunoexc) + " " + str(nusigma)
+                continue
         
-        #print "add a particle to the list"
         addParticleToList(particle_list,frame,row_min,row_max,col_min,col_max,fitdata)
         nupart += 1
-    outf.close()
     return particle_list,nupart,nunocon,nunoexc,nusigma,nuedge
 
 
@@ -661,13 +511,15 @@ def findParticleAndAdd(image,frame,local_max_pixels,signal_power,sigma,backgroun
 ##################################
 
 
-def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,eccentricity_thresh,sigma_thresh,local_max_pixels=None,output=False,lmm=False,path='.'):
+def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,eccentricity_thresh,sigma_thresh,local_max_pixels=None,output=False,method='gaussian',path='.'):
+
+    print("Method is "+method)
     
     #Check if initial positions are given
     if (local_max_pixels is None):
         #Filter Image and get initial particle positions
         #print "get local maxima"
-        local_max_pixels,cutoff,background_mean = filterImage(img,sigma,local_max_window,signal_power,output,lmm)
+        local_max_pixels,cutoff,background_mean = filterImage(img,local_max_window,signal_power,output)
     else:
         cutoff = 0
     #print "               1"
@@ -687,7 +539,7 @@ def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,ecce
     background_mean = median_img.mean()
 
     #Fit Gauss to Image and add to Particle list if ok
-    particle_list,nupart,nunocon,nunoexc,nusigma,nuedge = findParticleAndAdd(img,frame,local_max_pixels,signal_power,sigma,background_mean,sigma_thresh,eccentricity_thresh,bit_depth,path=path)
+    particle_list,nupart,nunocon,nunoexc,nusigma,nuedge = findParticleAndAdd(img,frame,local_max_pixels,sigma,background_mean,sigma_thresh,eccentricity_thresh,method)
 
     #Check, that all possible positions were considered.
     sumparts = nunocon+nunoexc+nusigma+int(nuedge)+nupart

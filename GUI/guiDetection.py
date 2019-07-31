@@ -27,7 +27,7 @@ class guiDetection(tk.Frame):
     def __init__(self,parent):
         tk.Frame.__init__(self,parent)
         self.parent = parent
-        self.detMethod = ['Centroid','Local Maximum']
+        self.detMethod = ['Gaussian Least Squares','Centroid','Radial Symmetry Centers']
         self.doSetup()
         self.grab_set()
         return
@@ -85,7 +85,7 @@ class guiDetection(tk.Frame):
         self.vars[6].set("10")
 
         self.detMethVar = tk.StringVar()
-        self.detMethVar.set(self.detMethod[1])
+        self.detMethVar.set(self.detMethod[0])
         ttk.Label(self.labelframe, text="Detection Method").grid(column=1, row=11, sticky='W')
         drop = tk.OptionMenu(self.labelframe,self.detMethVar,*(self.detMethod))
         drop.grid(column=2,row=11,sticky="EW")
@@ -139,10 +139,12 @@ class guiDetection(tk.Frame):
 
         for elem in self.vars:
             outvars.append(float(elem.get()))
-        if self.detMethVar.get() == self.detMethod[0]:
-            outvars.append(0)
+        if self.detMethVar.get() == self.detMethod[2]:
+            outvars.append('radial_center')
+        elif self.detMethVar.get() == self.detMethod[1]:
+            outvars.append('centroid')
         else:
-            outvars.append(1)
+            outvars.append('gaussian')
 
         return outvars, filenames
 
@@ -183,7 +185,7 @@ class guiDetection(tk.Frame):
                     notCentroid = (outv[-1] == 1)
                     particle_data = Detection.detectParticles.multiImageDetect(images,outv[0],
                             outv[6],outv[1],outv[2],outv[5],outv[4],int(outv[3]),
-                            local_max=None,output=False,lmmethod=notCentroid,
+                            local_max=None,output=False,method=outv[7],
                             imageOutput=False,path=fn[1])
                     if self.dcvar.get():
                         print("True")
@@ -191,7 +193,7 @@ class guiDetection(tk.Frame):
                         drift_images= io.imread(fn[2])
                         drift_data = Detection.detectParticles.multiImageDetect(drift_images,
                                 outv[0],outv[6],outv[1]+2,outv[2],outv[5],outv[4],
-                                int(outv[3]),local_max=None,output=False,lmmethod=notCentroid,
+                                int(outv[3]),local_max=None,output=False,method=outv[7],
                                 imageOutput=False,path=fn[1])
                         particle_data = dc.position_with_driftcorrect([particle_data,drift_data],path=fn[1])
 
@@ -221,7 +223,7 @@ class guiDetection(tk.Frame):
                 particle_data = Detection.detectParticles.previewImageDetect(images[:1],
                         outv[0],
                         outv[6],outv[1],outv[2],outv[5],outv[4],int(outv[3]),
-                        local_max=None,output=False,lmmethod=notCentroid,
+                        local_max=None,output=False,method=outv[-1],
                         imageOutput=False,path=fn[1])
                 ir.showDetections(images[0:1],particle_data)
             self.after(1,handle_calc)
