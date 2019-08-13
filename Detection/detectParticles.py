@@ -513,7 +513,7 @@ def findParticleAndAdd(image,frame,local_max_pixels,sigma,background_mean,sigma_
 
 def detectParticles(img,sigma,local_max_window,signal_power,bit_depth,frame,eccentricity_thresh,sigma_thresh,local_max_pixels=None,output=False,method='gaussian',path='.'):
 
-    print("Method is "+method)
+    #print("Method is "+method)
     
     #Check if initial positions are given
     if (local_max_pixels is None):
