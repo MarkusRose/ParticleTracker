@@ -70,6 +70,8 @@ class Simulation_App(tk.Frame):
         self.backnoiseVar.set("100")
         self.intensityVar = tk.StringVar()
         self.intensityVar.set("3000")
+        self.blinkingVar = tk.IntVar()
+        self.blinkingVar.set(0)
         self.saveDir = tk.StringVar()
         self.saveDir.set(".")
 
@@ -267,13 +269,16 @@ class Simulation_App(tk.Frame):
         intensityLabel.grid(column=0,row=14,sticky="EW")
         intensityText = tk.Entry(self, textvariable=self.intensityVar)
         intensityText.grid(column=1,row=14, sticky="EW")
+        #Blinking
+        blinkingText = tk.Checkbutton(self,text="Blinking",variable=self.blinkingVar)
+        blinkingText.grid(column=1,row=15, sticky="EW")
 
     
         #output directory location
         dirButton = tk.Button(self, text="Output Location", command = lambda:self.saveDir.set(filedialog.askdirectory()))
-        dirButton.grid(column=0, row=15, sticky='W')
+        dirButton.grid(column=0, row=16, sticky='W')
         directoryLabel = tk.Entry(self,textvariable=self.saveDir)
-        directoryLabel.grid(column=1,row=15)
+        directoryLabel.grid(column=1,row=16)
 
 
         #Save settings and run simulation or cancel with buttons
@@ -377,6 +382,7 @@ class Simulation_App(tk.Frame):
         outvar.append(float(self.backgroundVar.get()))
         outvar.append(float(self.backnoiseVar.get()))
         outvar.append(float(self.intensityVar.get())) 
+        outvar.append(float(self.blinkingVar.get()))
         directory = str(self.saveDir.get())
         return outvar,directory
 

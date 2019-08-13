@@ -63,6 +63,10 @@ def simulateTracks(inVars=None,path=".",imageoutput=True):
     background = sV[17]
     backnoise = sV[18]
     intensity = sV[19]
+    if sV[20] == 0:
+        blinkingBool = False
+    else:
+        blinkingBool = True
     particle_size = 1e-9 #meter
     print("Done with userInput")
     sys.stdout.flush()
@@ -94,18 +98,21 @@ def simulateTracks(inVars=None,path=".",imageoutput=True):
     for n in range(N):
         #one individual track
         track = []
-        state_chain = [1]
-        for i in range(1,frames,1):
-            if state_chain[-1] == 1:
-                if p_off > random.uniform(0,1):
-                    state_chain.append(0)
+        if blinkingBool:
+            state_chain = [1]
+            for i in range(1,frames,1):
+                if state_chain[-1] == 1:
+                    if p_off > random.uniform(0,1):
+                        state_chain.append(0)
+                    else:
+                        state_chain.append(1)
                 else:
-                    state_chain.append(1)
-            else:
-                if p_on > random.uniform(0,1):
-                    state_chain.append(1)
-                else:
-                    state_chain.append(0)
+                    if p_on > random.uniform(0,1):
+                        state_chain.append(1)
+                    else:
+                        state_chain.append(0)
+        else:
+            state_chain = [1]*frames
 
         track_id = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(8))
         trk = ct.ParticleTrack(id=track_id, num_elements=frames)
