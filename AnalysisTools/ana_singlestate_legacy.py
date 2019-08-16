@@ -9,11 +9,10 @@
 import numpy as np
 import math
 from scipy.optimize import curve_fit
-#import matplotlib
-#matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import sys
 import os
+from time import strftime
 
 
 #========================================
@@ -330,10 +329,8 @@ def diffConstDistrib(tracks,pixelsize,frametime,Dfactor,numberofbins=50,path='.'
     msdlist = list(map(msd,tracks))
     print("........(finding diffusion coefficient from all MSDs from list)")
     Dlist = findDiffConsts(msdlist,fitlength=0.2)
-    print(Dlist)
     Doutput = Dlist[:,1].mean()*Dfactor
     Doutput_err = Dlist[:,1].std()*Dfactor
-    print(Doutput,Doutput_err)
     print(">>>> The average diffusion coefficient is: {:.05f}+-{:.05f} um^2/s".format(Doutput,Doutput_err))
     print("........(finding the lengths of the single tracks)")
     def lengthoftrack(tr):
@@ -529,7 +526,7 @@ def distributionAnalysis(track,pixelsize,frametime,Dfactor,plotlen,numberofbins=
 #====================================
 #The big MAIN
 #====================================
-def doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,minTrLength=10,fitrange=0.5,bCleanUpTracks=True,bSingleTrackEndToEnd=False,bSingleTrackMSDanalysis=True,bCombineTrack=True):
+def doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,minTrLength=10,fitrange=0.5,bCleanUpTracks=False,bSingleTrackEndToEnd=False,bSingleTrackMSDanalysis=True,bCombineTrack=True):
     #plotting parameters
     Dfactor = pixelsize*pixelsize/frametime
 
@@ -542,17 +539,31 @@ def doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,minTrLength=10,fitrange=0
     if (not bSingleTrackEndToEnd) and (not bSingleTrackMSDanalysis) and (not bCombineTrack):
         return
 
+    print()
+    print()
+    print("Reading Tracks Now")
+    print("------------------")
+    sys.stdout.flush()
     tracks = readTracks(trackfile)
 
     path = os.path.dirname(trackfile)
-    spng = os.path.join(path,"SingleStateAnalysis")
+    trackfilename = trackfile[len(path)+1:]
+    if len(trackfilename) > 35:
+        spng = os.path.join(path,"SingleStateAnalysis_"+trackfilename[12:-4])
+    else:
+        spng = os.path.join(path,"SingleStateAnalysis")
     if not os.path.isdir(spng):
         os.mkdir(spng)
+    else:
+        spng = "-"+spng+strftime("%Y%m%d-%H%M%S")
+        os.mkdir(spng)
+    
     
     if bCleanUpTracks:
         print()
         print("Cleaning Track File from NAN")
         print("----------------------------")
+        sys.stdout.flush()
         cleanTracksFile(tracks,path+"/cleanedTracks.txt")
     
     considered = []
@@ -567,6 +578,7 @@ def doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,minTrLength=10,fitrange=0
     elif len(considered) < 10:
         print("***** You have less then 10 eligible tracks available for analysis!! ******")
         print("***** The algorithm may fail.                                        ******")
+        sys.stdout.flush()
     '''
     if bSingleTrackEndToEnd:
         print()
@@ -578,6 +590,7 @@ def doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,minTrLength=10,fitrange=0
     logfile = open(spng+'/analysis.log',"w")
     logfile.write("LogFile of the Analysis\n")
     logfile.write("=======================\n")
+    logfile.write("Filename : " + trackfile + "\n")
     logfile.write("\n")
     logfile.write("Pixel Size : {:} um\n".format(pixelsize))
     logfile.write("Frame Interval: {:} s\n".format(frametime))

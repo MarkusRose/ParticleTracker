@@ -167,7 +167,7 @@ class guiTracking(tk.Frame):
                     on_main_thread(done_mssg)
                     #on_main_thread(self.parent.destroy)
                     print("Displaying Tracks now.")
-                    ir.showTracks(images,[tracks,namelist])
+                    #ir.showTracks(images,[tracks,namelist])
 
                 #t = threading.Thread(target=calculator)
                 #t.start()

@@ -192,7 +192,8 @@ class guiAnalysis(tk.Frame):
             def calc_tracks_all():
                 def done_mssg():
                     messagebox.showinfo("Done!", "All single-state Track Analysis finished without problems.")
-                ANA.doAnalysis(trackfile,pixelsize=pxsize,frametime=frameT,minTrLength=minTrLength,fitrange=fitrange,bCleanUpTracks=True,bSingleTrackEndToEnd=True,bSingleTrackMSDanalysis=True,bCombineTrack=True)
+                    return
+                ANA.doAnalysis(trackfile,pixelsize=pxsize,frametime=frameT,minTrLength=minTrLength,fitrange=fitrange,bSingleTrackEndToEnd=True,bSingleTrackMSDanalysis=True,bCombineTrack=True)
                 on_main_thread(top1.destroy)
                 on_main_thread(done_mssg)
                 self.states[0] = True
@@ -211,7 +212,7 @@ class guiAnalysis(tk.Frame):
             def calc_comb_track():
                 def done_mssg():
                     messagebox.showinfo("Done!", "Combined Track Analysis finished without problems.")
-                ANA.doAnalysis(trackfile,pixelsize=pxsize,frametime=frameT,minTrLength=minTrLength,fitrange=fitrange,bCleanUpTracks=True,bSingleTrackEndToEnd=False,bSingleTrackMSDanalysis=False,bCombineTrack=True)
+                ANA.doAnalysis(trackfile,pixelsize=pxsize,frametime=frameT,minTrLength=minTrLength,fitrange=fitrange,bSingleTrackEndToEnd=False,bSingleTrackMSDanalysis=False,bCombineTrack=True)
                 on_main_thread(top1.destroy)
                 on_main_thread(done_mssg)
                 self.states[1] = True

@@ -242,6 +242,7 @@ def link_particles(particle_data, max_displacement,
     #print particle_data[0][16].next.shape
     ''' Begin Tracking process'''
     count = 0
+    print("Linking")
     print(('_'*52))
     sys.stdout.write("[")
     sys.stdout.flush()
@@ -333,7 +334,20 @@ def link_particles(particle_data, max_displacement,
     ######################################
     trajectories = []
     
+    count = 0
+    print("Building Tracks")
+    print(('_'*52))
+    sys.stdout.write("[")
+    sys.stdout.flush()
     for i in range(num_frames):
+        #print frame
+        #TODO: DEBUG
+        #print ("Image %s Processing" % (frame+1))
+        aaa = int(i * 50/(num_frames))
+        if aaa > count:
+            sys.stdout.write("#"*(aaa-count))
+            sys.stdout.flush()
+            count += aaa-count
         
         num_particles = len(particle_data[i])
         for j in range(num_particles):
@@ -445,6 +459,8 @@ def link_particles(particle_data, max_displacement,
                 
                 trajectories.append(particle_track)   
     
+    sys.stdout.write("#"*(50-aaa)+"]\n")
+    sys.stdout.flush()
     print("Done Linking")
     writeTrajectories(trajectories,filename=outfile)
     #writeTracks(trajectories,filename=outfile)
