@@ -167,9 +167,9 @@ def segmentstate(theta, rsquared, particleID, tau=1.):
 
 
 # Usage
-def doMetropolisOrig(dr2,particleID,MCsteps=10000,path='.'):
+def doMetropolisOrig(dr2,particleID,MCsteps=100000,path='.'):
 
-    s = np.array([0.01,0.01,0.01,0.01])
+    s = np.array([0.001,0.001,0.01,0.01])
     
     thetaprop = np.array([0,-1,0.1,0.4])
     ll = loglikelihood(thetaprop, dr2, 1.)
@@ -206,7 +206,7 @@ def doMetropolisOrig(dr2,particleID,MCsteps=10000,path='.'):
     return theta, L, MCsteps
 
 
-def runHiddenMarkov(tracks,MCMC=10000,ID=3,path='.'):
+def runHiddenMarkov(tracks,MCMC=100000,ID=3,path='.'):
 
     rsq,lengths,partid = squaredDisplacements(tracks)
     averagingStart = min(2000,MCMC)
@@ -257,7 +257,7 @@ def runHiddenMarkov(tracks,MCMC=10000,ID=3,path='.'):
     
     return Thetas
 
-def doHMM(trackfile,montecarlo=10000,SR=3):
+def doHMM(trackfile,montecarlo=100000,SR=3):
 
     part_tracks,part_list = ctrack.readTrajectoriesFromFile(trackfile)
 

@@ -106,14 +106,8 @@ def sci(track,L):
 def doSCI(trackfile):
     tracks = readTracks(trackfile)
     ct = combineTracks(tracks[:])
-    plt.plot(ct[:,1],ct[:,2],'k')
-    plt.xlabel("x [px]")
-    plt.ylabel("y [px]")
-    plt.show()
     C = sci(ct,1)
     print(C)
-    plt.plot(C,'k')
-    plt.show()
     return
 
 if __name__=="__main__":

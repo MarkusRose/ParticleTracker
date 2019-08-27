@@ -83,7 +83,7 @@ class guiAnalysis(tk.Frame):
         frame_MCMC = tk.Frame(self)
         tk.Label(frame_MCMC, text="Monte Carlo Runs").grid(row=0,sticky='e')
         self.v_montecarlo = tk.StringVar()
-        self.v_montecarlo.set('10000')
+        self.v_montecarlo.set('100000')
         tk.Entry(frame_MCMC,textvariable=self.v_montecarlo).grid(row=0,column=1,sticky='e')
         frame_MCMC.pack()
         tk.Label(frame_MCMC, text="Identifier").grid(row=1,sticky='e')
@@ -194,7 +194,6 @@ class guiAnalysis(tk.Frame):
                     messagebox.showinfo("Done!", "All single-state Track Analysis finished without problems.")
                     return
                 ANA.doAnalysis(trackfile,pixelsize=pxsize,frametime=frameT,minTrLength=minTrLength,fitrange=fitrange,bSingleTrackEndToEnd=True,bSingleTrackMSDanalysis=True,bCombineTrack=True)
-                on_main_thread(top1.destroy)
                 on_main_thread(done_mssg)
                 self.states[0] = True
                 self.states[1] = True
@@ -204,7 +203,6 @@ class guiAnalysis(tk.Frame):
                 def done_mssg():
                     messagebox.showinfo("Done!", "Individual Track Analysis finished without problems.")
                 ANA.doAnalysis(trackfile,pixelsize=pxsize,frametime=frameT,minTrLength=minTrLength,fitrange=fitrange,bCleanUpTracks=True,bSingleTrackEndToEnd=True,bSingleTrackMSDanalysis=True,bCombineTrack=False)
-                on_main_thread(top1.destroy)
                 on_main_thread(done_mssg)
                 self.states[0] = True
                 return
@@ -213,7 +211,6 @@ class guiAnalysis(tk.Frame):
                 def done_mssg():
                     messagebox.showinfo("Done!", "Combined Track Analysis finished without problems.")
                 ANA.doAnalysis(trackfile,pixelsize=pxsize,frametime=frameT,minTrLength=minTrLength,fitrange=fitrange,bSingleTrackEndToEnd=False,bSingleTrackMSDanalysis=False,bCombineTrack=True)
-                on_main_thread(top1.destroy)
                 on_main_thread(done_mssg)
                 self.states[1] = True
                 return
@@ -222,7 +219,6 @@ class guiAnalysis(tk.Frame):
                 def done_mssg():
                     messagebox.showinfo("Done!", "MCMC finished without problems.")
                 HMM.doHMM(trackfile,montecarlo=mcmcruns,SR=3)
-                on_main_thread(top3.destroy)
                 on_main_thread(done_mssg)
                 self.states[2] = True
                 return
@@ -231,7 +227,6 @@ class guiAnalysis(tk.Frame):
                 def done_mssg():
                     messagebox.showinfo("Done!", "SCI finished without problems.",parent=self.parent)
                 SCI.doSCI(trackfile)
-                on_main_thread(top4.destroy)
                 on_main_thread(done_mssg)
                 self.states[3] = True
                 return
@@ -252,55 +247,35 @@ class guiAnalysis(tk.Frame):
                 self.states[1] = False
                 print("combined and individual")
                 sys.stdout.flush()
-                top1 = tk.Toplevel(self)
-                top1.title("All Track Analysis")
-                top1.geometry("150x150+50+50")
-                tk.Message(top1, text="Doing all single-state track analysis. This might take a while.", padx=20, pady=20).pack()
-                #t1 = threading.Thread(target=calc_tracks_all)
-                #t1.start()
-                self.after(100,calc_tracks_all)
+                t1 = threading.Thread(target=calc_tracks_all)
+                t1.start()
+                #self.after(100,calc_tracks_all)
             elif int(self.f_individTrack.get()) == 1:
                 self.states[0] = False
                 print("individual tracks")
                 sys.stdout.flush()
-                top1 = tk.Toplevel(self)
-                top1.title("Individual Track")
-                top1.geometry("150x150+50+50")
-                tk.Message(top1, text="Analyzing all individual tracks. This might take a while.", padx=20, pady=20).pack()
-                #t1 = threading.Thread(target=calc_indiv_track)
-                #t1.start()
-                self.after(100,calc_indiv_track)
+                t1 = threading.Thread(target=calc_indiv_track)
+                t1.start()
+                #self.after(100,calc_indiv_track)
             elif int(self.f_combTrack.get()) == 1:
                 self.states[1] = False
                 print("Combined Track")
                 sys.stdout.flush()
-                top1 = tk.Toplevel(self)
-                top1.title("Combined Track")
-                top1.geometry("150x150+200+50")
-                tk.Message(top1, text="Combining Tracks and analyzing all. This might take a while.", padx=20, pady=20).pack()
-                #t1 = threading.Thread(target=calc_comb_track)
-                #t1.start()
-                self.after(100,calc_comb_track)
+                t1 = threading.Thread(target=calc_comb_track)
+                t1.start()
+                #self.after(100,calc_comb_track)
 
             if int(self.f_mcmc.get()) == 1:
                 self.states[2] = False
                 print("Monte Carlo")
-                top3 = tk.Toplevel(self)
-                top3.title("Markov Chain Monte Carlo")
-                top3.geometry("150x150+350+50")
-                tk.Message(top3, text="Doing a Markov Chain Monte Carlo analysis. This might take a while.", padx=20, pady=20).pack()
                 t3 = threading.Thread(target=calc_mcmc)
                 t3.start()
             if int(self.f_sci.get()) == 1:
                 self.states[3] = False
                 print("Speed Correlation Index")
-                top4 = tk.Toplevel(self)
-                top4.title("Speed Correlation Index")
-                top4.geometry("150x150+500+50")
-                tk.Message(top4, text="Doing a speed correlation index analysis. This will take a while.", padx=20, pady=20).pack()
-                #t4 = threading.Thread(target=calc_sci)
-                #t4.start()
-                self.after(100,calc_sci)
+                t4 = threading.Thread(target=calc_sci)
+                t4.start()
+                #self.after(100,calc_sci)
             self.after(100,check_queue)
         else:
             messagebox.showerror("Input Error!","Some inputs are invalid!")
