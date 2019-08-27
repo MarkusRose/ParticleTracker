@@ -20,7 +20,7 @@ import os
 
 import Detection.ctrack as ctrack
 
-#plt.ion()
+plt.ion()
 # Function definitions
 
 
@@ -300,7 +300,7 @@ def doMetropolisOrig(dr2,particleID,MCsteps=100000,path='.',thetastd=[0.001,0.00
                 plt.scatter(np.arange(len(L)),np.array(theta)[:,3])
                 plt.ylabel("p21")
                 plt.xlabel("Steps")
-                #plt.pause(0.1)
+                plt.pause(0.1)
             outf.write("{:} {:} {:} {:} {:} {:}\n".format(L[-1],10**theta[-1][0], 10**theta[-1][1], theta[-1][2], theta[-1][3], l))
     plt.savefig(path+"/Convergence{:}.png".format(particleID))
     plt.close()
@@ -330,15 +330,6 @@ def runHiddenMarkov(tracks,MCMC=100000,ID=3,path='.'):
         D2 = 10**theta[:,1]
         p12 = theta[:,2]
         p21 = theta[:,3]
-        
-        '''
-        fig1, (ax1,ax2) = plt.subplots(2,1)
-        ax1.plot(D1,'gx')
-        ax1.plot(D2,'rx')
-        ax2.plot(p12,'gx')
-        ax2.plot(p21,'rx')
-        plt.show()
-        '''
         
         thetaMean = [np.mean(D1[averagingStart:]),np.mean(D2[averagingStart:]),np.mean(p12[averagingStart:]), np.mean(p21[averagingStart:])]
         thetaSTD = [np.std(D1[averagingStart:]),np.std(D2[averagingStart:]),np.std(p12[averagingStart:]), np.std(p21[averagingStart:])]
