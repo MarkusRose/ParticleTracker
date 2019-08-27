@@ -3,9 +3,9 @@ import sys
 import os
 from multiprocessing import Pool, freeze_support
 
-from . import AnalysisTools.driftCorrection as dc
-from . import AnalysisTools.hiddenMarkov as hmm
-from . import Detection.ctrack as ctrack
+import AnalysisTools.driftCorrection as dc
+import AnalysisTools.hiddenMarkov as hmm
+import Detection.ctrack as ctrack
 
 SR = 3
 
@@ -89,6 +89,7 @@ filelist = [
             "L:/Cel9A-6-9-10/45C/OD06/Experiment2/C-2-AnalyzedData/foundTracks-SR5_20170209-160608.txt"]
         ]
 '''
+'''
 filelist = [ 
         "L:/Cel5A-6-22-10/45C/OD06/Experiment1/C-1-AnalyzedData/driftcorrectedTracks-SR3_20170224-183759.txt",
         "L:/Cel5A-6-22-10/45C/OD06/Experiment2/C-1-AnalyzedData/driftcorrectedTracks-SR3_20170224-183759.txt",
@@ -99,11 +100,13 @@ filelist = [
         "L:/Cel9A-6-9-10/45C/OD06/Experiment1/C-1-AnalyzedData/driftcorrectedTracks-SR3_20170224-183759.txt",
         "L:/Cel9A-6-9-10/45C/OD06/Experiment2/C-1-AnalyzedData/driftcorrectedTracks-SR3_20170224-183759.txt"
         ]
+        '''
+filelist = []
 
 
 def serial():
     for fn in filelist:
-        hmm.doHMM(fn,montecarlo=10000,SR=SR)
+        hmm.doHMM(fn,montecarlo=100000,SR=SR)
     return
 
 def multiproc():
@@ -117,7 +120,9 @@ def multiproc():
     return
 
 if __name__=="__main__":
-    #serial()
-    multiproc()
+    if len(sys.argv) > 1 :
+        filelist = sys.argv[1:]
+    serial()
+    #multiproc()
 
 

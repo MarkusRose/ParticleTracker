@@ -209,7 +209,7 @@ def doMetropolisOrig(dr2,particleID,MCsteps=100000,path='.'):
 def runHiddenMarkov(tracks,MCMC=100000,ID=3,path='.'):
 
     rsq,lengths,partid = squaredDisplacements(tracks)
-    averagingStart = min(2000,MCMC)
+    averagingStart = min(20000,MCMC)
     if averagingStart == MCMC:
         averagingStart /= 5
 
@@ -272,6 +272,7 @@ def doHMM(trackfile,montecarlo=100000,SR=3):
     sys.stdout.flush()
 
     print("Running HMM")
+    print("{:} Tracks found".format(len(part_tracks)))
     sys.stdout.flush()
 
     thetas = runHiddenMarkov(part_tracks,MCMC=montecarlo,ID=SR,path=subpath)
