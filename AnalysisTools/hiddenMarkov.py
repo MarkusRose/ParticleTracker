@@ -14,11 +14,13 @@ import csv
 import random
 import sys
 from time import gmtime, strftime
+import time
 import matplotlib.pyplot as plt
 import os
 
 import Detection.ctrack as ctrack
 
+#plt.ion()
 # Function definitions
 
 
@@ -165,21 +167,13 @@ def segmentstate(theta, rsquared, particleID, tau=1.):
             statemap[j] = 1
     return statemap
 
-
-# Usage
-def doMetropolisOrig(dr2,particleID,MCsteps=100000,path='.'):
-
-    s = np.array([0.001,0.001,0.01,0.01])
+def preMetropolis(dr2,theta,L,outf,MCsteps=10000,thetastd=[0.001,0.001,0.01,0.01],thetaguess=[0,-1,0.1,0.4],hot=0):
+    s = np.array(thetastd)
     
-    thetaprop = np.array([0,-1,0.1,0.4])
+    thetaprop = np.array(thetaguess)
     ll = loglikelihood(thetaprop, dr2, 1.)
-    theta = []
-    L = []
     theta.append(np.array(thetaprop))
     L.append(ll)
-
-    outf = open(path+"/hmmTrackAnalyzed-{:}.txt".format(particleID),'w')
-    outf.write("# L logD1 LogD2 p12 p21 n\n")
 
     for i in range(int(np.floor(MCsteps/4.))):
         for k in range(4):
@@ -194,28 +188,143 @@ def doMetropolisOrig(dr2,particleID,MCsteps=100000,path='.'):
                 theta.append(np.array(thetaprop))
                 L.append(ll)
             else:
-                u = random.random()
-                if log(u) <= ll - L[-1]:
-                    theta.append(np.array(thetaprop))
-                    L.append(ll)
+                if hot:
+                    u = random.random()
+                    if log(u) <= (ll - L[-1])*hot:
+                        theta.append(np.array(thetaprop))
+                        L.append(ll)
+                    else:
+                        theta.append(np.array(theta[-1]))
+                        L.append(L[-1])
                 else:
                     theta.append(np.array(theta[-1]))
                     L.append(L[-1])
+
+            if (len(L)+1) % 1000 == 0:
+
+                fig = plt.figure(1,figsize=(10,5))
+                fig.subplots_adjust(hspace=.3,wspace=.3)
+                plt.clf()
+                plt.subplot(231)
+                plt.scatter(np.arange(len(L)),L)
+                plt.ylabel("Likelihood")
+                plt.xlabel("Steps")
+                plt.subplot(232)
+                plt.scatter(np.arange(len(L)),np.exp(np.array(theta)[:,0]*np.log(10)))
+                plt.ylabel("D1")
+                plt.xlabel("Steps")
+                plt.subplot(233)
+                plt.scatter(np.arange(len(L)),np.exp(np.array(theta)[:,1]*np.log(10)))
+                plt.ylabel("D2")
+                plt.xlabel("Steps")
+                plt.subplot(235)
+                plt.scatter(np.arange(len(L)),np.array(theta)[:,2])
+                plt.ylabel("p12")
+                plt.xlabel("Steps")
+                plt.subplot(236)
+                plt.scatter(np.arange(len(L)),np.array(theta)[:,3])
+                plt.ylabel("p21")
+                plt.xlabel("Steps")
+                #plt.pause(0.1)
             outf.write("{:} {:} {:} {:} {:} {:}\n".format(L[-1],10**theta[-1][0], 10**theta[-1][1], theta[-1][2], theta[-1][3], l))
+    return theta, L, MCsteps
+
+
+
+# Usage
+def doMetropolisOrig(dr2,particleID,MCsteps=100000,path='.',thetastd=[0.001,0.001,0.01,0.01],thetaguess=[0,-1,0.1,0.4],hot=1):
+
+    s = np.array(thetastd)
+    
+    thetaprop = np.array(thetaguess)
+    ll = loglikelihood(thetaprop, dr2, 1.)
+    theta = []
+    L = []
+    theta.append(np.array(thetaprop))
+    L.append(ll)
+
+    outf = open(path+"/hmmTrackAnalyzed-{:}.txt".format(particleID),'w')
+    outf.write("# L logD1 LogD2 p12 p21 n\n")
+
+    theta, L, junk = preMetropolis(dr2,theta,L,outf,MCsteps=5000,thetastd=[0.01,0.01,0.00,0.00],thetaguess=thetaguess,hot=0)
+    printThetaOut(theta[-1])
+    theta, L, junk = preMetropolis(dr2,theta,L,outf,MCsteps=5000,thetastd=[0.00,0.00,0.01,0.01],thetaguess=theta[-1],hot=0)
+    printThetaOut(theta[-1])
+    for i in range(int(np.floor(MCsteps/4.))):
+        for k in range(4):
+            l = 4*i + k
+            #print l
+            sys.stdout.flush()
+            dtheta = random.gauss(0,s[k])
+            thetaprop = np.array(theta[-1])
+            thetaprop[k] += dtheta
+            ll = loglikelihood(thetaprop, dr2, 1.)
+            if ll >= L[-1]:
+                theta.append(np.array(thetaprop))
+                L.append(ll)
+            else:
+                if hot:
+                    u = random.random()
+                    if log(u) <= (ll - L[-1])*hot:
+                        theta.append(np.array(thetaprop))
+                        L.append(ll)
+                    else:
+                        theta.append(np.array(theta[-1]))
+                        L.append(L[-1])
+                else:
+                    theta.append(np.array(theta[-1]))
+                    L.append(L[-1])
+
+            if (len(L)+1) % 1000 == 0:
+
+                fig = plt.figure(1,figsize=(10,5))
+                fig.subplots_adjust(hspace=.3,wspace=.3)
+                plt.clf()
+                plt.subplot(231)
+                plt.scatter(np.arange(len(L)),L)
+                plt.ylabel("Likelihood")
+                plt.xlabel("Steps")
+                plt.subplot(232)
+                plt.scatter(np.arange(len(L)),np.exp(np.array(theta)[:,0]*np.log(10)))
+                plt.ylabel("D1")
+                plt.xlabel("Steps")
+                plt.subplot(233)
+                plt.scatter(np.arange(len(L)),np.exp(np.array(theta)[:,1]*np.log(10)))
+                plt.ylabel("D2")
+                plt.xlabel("Steps")
+                plt.subplot(235)
+                plt.scatter(np.arange(len(L)),np.array(theta)[:,2])
+                plt.ylabel("p12")
+                plt.xlabel("Steps")
+                plt.subplot(236)
+                plt.scatter(np.arange(len(L)),np.array(theta)[:,3])
+                plt.ylabel("p21")
+                plt.xlabel("Steps")
+                #plt.pause(0.1)
+            outf.write("{:} {:} {:} {:} {:} {:}\n".format(L[-1],10**theta[-1][0], 10**theta[-1][1], theta[-1][2], theta[-1][3], l))
+    plt.savefig(path+"/Convergence{:}.png".format(particleID))
+    plt.close()
     outf.close()
     return theta, L, MCsteps
 
+def printThetaOut(theta):
+    print("D1={:} ; D2={:} ; p12={:} ; p21={:}".format(10**theta[0],10**theta[1],theta[2],theta[3]))
+    return
 
 def runHiddenMarkov(tracks,MCMC=100000,ID=3,path='.'):
 
     rsq,lengths,partid = squaredDisplacements(tracks)
-    averagingStart = min(20000,MCMC)
+    averagingStart = min(30000,MCMC)
     if averagingStart == MCMC:
-        averagingStart /= 5
+        averagingStart = int(averagingStart/5)
 
     Thetas = []
+    timepertrack = 0
     for r2 in rsq:
-        theta, L, nurun = doMetropolisOrig(r2[0],r2[1],MCMC,path=path)
+        starttime = time.time()
+        firstguess = np.random.normal([-1,-2,0.2,0.1],[0.3,1,0.1,0.1])
+        printThetaOut(firstguess)
+        theta, L, nurun = doMetropolisOrig(r2[0],r2[1],MCsteps=MCMC,path=path,thetastd=[0.001,0.001,0.01,0.01],thetaguess=firstguess,hot=100)
         theta = np.array(theta)
         D1 = 10**theta[:,0]
         D2 = 10**theta[:,1]
@@ -234,9 +343,11 @@ def runHiddenMarkov(tracks,MCMC=100000,ID=3,path='.'):
         thetaMean = [np.mean(D1[averagingStart:]),np.mean(D2[averagingStart:]),np.mean(p12[averagingStart:]), np.mean(p21[averagingStart:])]
         thetaSTD = [np.std(D1[averagingStart:]),np.std(D2[averagingStart:]),np.std(p12[averagingStart:]), np.std(p21[averagingStart:])]
         Thetas.append(thetaMean + thetaSTD + [r2[1]])
-        print(thetaMean)
+        #print(thetaMean)
         
         statemap = segmentstate(thetaMean, r2[0],r2[1])
+        endtime = time.time()
+        timepertrack += endtime - starttime
         trackout = open(path+"/hmmTrackstates-{:}.txt".format(r2[1]),'w')
         for elem in statemap:
             trackout.write("{:}\n".format(elem))
@@ -254,6 +365,9 @@ def runHiddenMarkov(tracks,MCMC=100000,ID=3,path='.'):
             counter += 1
         outthetaf.write("\n")
     outthetaf.close()
+
+    print("Average time needed for {:} tracks:  {:} s".format(len(rsq),timepertrack/len(rsq)))
+    print("Average track length: {:} +- {:}".format(np.mean(lengths),np.std(lengths)))
     
     return Thetas
 
