@@ -169,10 +169,6 @@ def segmentstate(theta, rsquared, particleID, tau=1.):
 def preMetropolis(dr2,theta,L,outf,MCsteps=10000,thetastd=[0.001,0.001,0.01,0.01],thetaguess=[0,-1,0.1,0.4],hot=0,ViewLive=False):
     s = np.array(thetastd)
     
-    thetaprop = np.array(thetaguess)
-    ll = loglikelihood(thetaprop, dr2, 1.)
-    theta.append(np.array(thetaprop))
-    L.append(ll)
 
     for i in range(int(np.floor(MCsteps/4.))):
         for k in range(4):
@@ -224,10 +220,9 @@ def preMetropolis(dr2,theta,L,outf,MCsteps=10000,thetastd=[0.001,0.001,0.01,0.01
                     plt.scatter(np.arange(len(L)),np.array(theta)[:,3])
                     plt.ylabel("p21")
                     plt.xlabel("Steps")
-                    #plt.pause(0.1)
+                    plt.pause(0.1)
             outf.write("{:} {:} {:} {:} {:} {:}\n".format(L[-1],10**theta[-1][0], 10**theta[-1][1], theta[-1][2], theta[-1][3], l))
     return theta, L, MCsteps
-
 
 
 # Usage
@@ -237,6 +232,9 @@ def doMetropolisOrig(dr2,particleID,MCsteps=100000,path='.',thetastd=[0.001,0.00
     
     thetaprop = np.array(thetaguess)
     ll = loglikelihood(thetaprop, dr2, 1.)
+    if np.isnan(ll):
+        thetaprop = np.array([-1,-2,0.1,0.5])
+        ll = loglikelihood(thetaprop, dr2, 1.)
     theta = []
     L = []
     theta.append(np.array(thetaprop))
@@ -336,7 +334,7 @@ def printThetaOut(theta):
     print("D1={:} ; D2={:} ; p12={:} ; p21={:}".format(10**theta[0],10**theta[1],theta[2],theta[3]))
     return
 
-def runHiddenMarkov(tracks,MCMC=100000,ID=3,path='.'):
+def runHiddenMarkov(tracks,MCMC=100000,ID=3,path='.',ViewLive=False):
 
     rsq,lengths,partid = squaredDisplacements(tracks)
     averagingStart = min(30000,MCMC)
@@ -349,7 +347,7 @@ def runHiddenMarkov(tracks,MCMC=100000,ID=3,path='.'):
         starttime = time.time()
         firstguess = np.random.normal([-1,-2,0.2,0.1],[0.3,1,0.1,0.1])
         printThetaOut(firstguess)
-        theta, L, nurun = doMetropolisOrig(r2[0],r2[1],MCsteps=MCMC,path=path,thetastd=[0.001,0.001,0.01,0.01],thetaguess=firstguess,hot=100)
+        theta, L, nurun = doMetropolisOrig(r2[0],r2[1],MCsteps=MCMC,path=path,thetastd=[0.001,0.001,0.01,0.01],thetaguess=firstguess,hot=100,ViewLive=ViewLive)
         theta = np.array(theta)
         D1 = 10**theta[:,0]
         D2 = 10**theta[:,1]
@@ -387,7 +385,7 @@ def runHiddenMarkov(tracks,MCMC=100000,ID=3,path='.'):
     
     return Thetas
 
-def doHMM(trackfile,montecarlo=100000,SR=3):
+def doHMM(trackfile,montecarlo=100000,SR=3,ViewLive=False):
 
     part_tracks,part_list = ctrack.readTrajectoriesFromFile(trackfile)
 
@@ -405,7 +403,7 @@ def doHMM(trackfile,montecarlo=100000,SR=3):
     print("{:} Tracks found".format(len(part_tracks)))
     sys.stdout.flush()
 
-    thetas = runHiddenMarkov(part_tracks,MCMC=montecarlo,ID=SR,path=subpath)
+    thetas = runHiddenMarkov(part_tracks,MCMC=montecarlo,ID=SR,path=subpath,ViewLive=ViewLive)
 
     return thetas
 

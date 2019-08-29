@@ -106,7 +106,7 @@ filelist = []
 
 def serial():
     for fn in filelist:
-        hmm.doHMM(fn,montecarlo=100000,SR=SR)
+        hmm.doHMM(fn,montecarlo=100000,SR=SR,ViewLive=False)
     return
 
 def multiproc():
@@ -122,7 +122,7 @@ def multiproc():
 if __name__=="__main__":
     if len(sys.argv) > 1 :
         filelist = sys.argv[1:]
-    #serial()
-    multiproc()
+    serial()
+    #multiproc()
 
 
