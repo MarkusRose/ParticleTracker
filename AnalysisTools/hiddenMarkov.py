@@ -20,7 +20,6 @@ import os
 
 import Detection.ctrack as ctrack
 
-plt.ion()
 # Function definitions
 
 
@@ -167,7 +166,7 @@ def segmentstate(theta, rsquared, particleID, tau=1.):
             statemap[j] = 1
     return statemap
 
-def preMetropolis(dr2,theta,L,outf,MCsteps=10000,thetastd=[0.001,0.001,0.01,0.01],thetaguess=[0,-1,0.1,0.4],hot=0):
+def preMetropolis(dr2,theta,L,outf,MCsteps=10000,thetastd=[0.001,0.001,0.01,0.01],thetaguess=[0,-1,0.1,0.4],hot=0,ViewLive=False):
     s = np.array(thetastd)
     
     thetaprop = np.array(thetaguess)
@@ -200,39 +199,39 @@ def preMetropolis(dr2,theta,L,outf,MCsteps=10000,thetastd=[0.001,0.001,0.01,0.01
                     theta.append(np.array(theta[-1]))
                     L.append(L[-1])
 
-            if (len(L)+1) % 1000 == 0:
-
-                fig = plt.figure(1,figsize=(10,5))
-                fig.subplots_adjust(hspace=.3,wspace=.3)
-                plt.clf()
-                plt.subplot(231)
-                plt.scatter(np.arange(len(L)),L)
-                plt.ylabel("Likelihood")
-                plt.xlabel("Steps")
-                plt.subplot(232)
-                plt.scatter(np.arange(len(L)),np.exp(np.array(theta)[:,0]*np.log(10)))
-                plt.ylabel("D1")
-                plt.xlabel("Steps")
-                plt.subplot(233)
-                plt.scatter(np.arange(len(L)),np.exp(np.array(theta)[:,1]*np.log(10)))
-                plt.ylabel("D2")
-                plt.xlabel("Steps")
-                plt.subplot(235)
-                plt.scatter(np.arange(len(L)),np.array(theta)[:,2])
-                plt.ylabel("p12")
-                plt.xlabel("Steps")
-                plt.subplot(236)
-                plt.scatter(np.arange(len(L)),np.array(theta)[:,3])
-                plt.ylabel("p21")
-                plt.xlabel("Steps")
-                #plt.pause(0.1)
+            if ViewLive:
+                if (len(L)+1) % 1000 == 0:
+                    fig = plt.figure(1,figsize=(10,5))
+                    fig.subplots_adjust(hspace=.3,wspace=.3)
+                    plt.clf()
+                    plt.subplot(231)
+                    plt.scatter(np.arange(len(L)),L)
+                    plt.ylabel("Likelihood")
+                    plt.xlabel("Steps")
+                    plt.subplot(232)
+                    plt.scatter(np.arange(len(L)),np.exp(np.array(theta)[:,0]*np.log(10)))
+                    plt.ylabel("D1")
+                    plt.xlabel("Steps")
+                    plt.subplot(233)
+                    plt.scatter(np.arange(len(L)),np.exp(np.array(theta)[:,1]*np.log(10)))
+                    plt.ylabel("D2")
+                    plt.xlabel("Steps")
+                    plt.subplot(235)
+                    plt.scatter(np.arange(len(L)),np.array(theta)[:,2])
+                    plt.ylabel("p12")
+                    plt.xlabel("Steps")
+                    plt.subplot(236)
+                    plt.scatter(np.arange(len(L)),np.array(theta)[:,3])
+                    plt.ylabel("p21")
+                    plt.xlabel("Steps")
+                    #plt.pause(0.1)
             outf.write("{:} {:} {:} {:} {:} {:}\n".format(L[-1],10**theta[-1][0], 10**theta[-1][1], theta[-1][2], theta[-1][3], l))
     return theta, L, MCsteps
 
 
 
 # Usage
-def doMetropolisOrig(dr2,particleID,MCsteps=100000,path='.',thetastd=[0.001,0.001,0.01,0.01],thetaguess=[0,-1,0.1,0.4],hot=1):
+def doMetropolisOrig(dr2,particleID,MCsteps=100000,path='.',thetastd=[0.001,0.001,0.01,0.01],thetaguess=[0,-1,0.1,0.4],hot=1,ViewLive=False):
 
     s = np.array(thetastd)
     
@@ -245,10 +244,12 @@ def doMetropolisOrig(dr2,particleID,MCsteps=100000,path='.',thetastd=[0.001,0.00
 
     outf = open(path+"/hmmTrackAnalyzed-{:}.txt".format(particleID),'w')
     outf.write("# L logD1 LogD2 p12 p21 n\n")
+    if ViewLive:
+        plt.ion()
 
-    theta, L, junk = preMetropolis(dr2,theta,L,outf,MCsteps=5000,thetastd=[0.01,0.01,0.00,0.00],thetaguess=thetaguess,hot=0)
+    theta, L, junk = preMetropolis(dr2,theta,L,outf,MCsteps=5000,thetastd=[0.01,0.01,0.00,0.00],thetaguess=thetaguess,hot=0,ViewLive=ViewLive)
     printThetaOut(theta[-1])
-    theta, L, junk = preMetropolis(dr2,theta,L,outf,MCsteps=5000,thetastd=[0.00,0.00,0.01,0.01],thetaguess=theta[-1],hot=0)
+    theta, L, junk = preMetropolis(dr2,theta,L,outf,MCsteps=5000,thetastd=[0.00,0.00,0.01,0.01],thetaguess=theta[-1],hot=0,ViewLive=ViewLive)
     printThetaOut(theta[-1])
     for i in range(int(np.floor(MCsteps/4.))):
         for k in range(4):
@@ -275,33 +276,57 @@ def doMetropolisOrig(dr2,particleID,MCsteps=100000,path='.',thetastd=[0.001,0.00
                     theta.append(np.array(theta[-1]))
                     L.append(L[-1])
 
-            if (len(L)+1) % 1000 == 0:
-
-                fig = plt.figure(1,figsize=(10,5))
-                fig.subplots_adjust(hspace=.3,wspace=.3)
-                plt.clf()
-                plt.subplot(231)
-                plt.scatter(np.arange(len(L)),L)
-                plt.ylabel("Likelihood")
-                plt.xlabel("Steps")
-                plt.subplot(232)
-                plt.scatter(np.arange(len(L)),np.exp(np.array(theta)[:,0]*np.log(10)))
-                plt.ylabel("D1")
-                plt.xlabel("Steps")
-                plt.subplot(233)
-                plt.scatter(np.arange(len(L)),np.exp(np.array(theta)[:,1]*np.log(10)))
-                plt.ylabel("D2")
-                plt.xlabel("Steps")
-                plt.subplot(235)
-                plt.scatter(np.arange(len(L)),np.array(theta)[:,2])
-                plt.ylabel("p12")
-                plt.xlabel("Steps")
-                plt.subplot(236)
-                plt.scatter(np.arange(len(L)),np.array(theta)[:,3])
-                plt.ylabel("p21")
-                plt.xlabel("Steps")
-                plt.pause(0.1)
+            if ViewLive:
+                if (len(L)+1) % 1000 == 0:
+                    fig = plt.figure(1,figsize=(10,5))
+                    fig.subplots_adjust(hspace=.3,wspace=.3)
+                    plt.clf()
+                    plt.subplot(231)
+                    plt.scatter(np.arange(len(L)),L)
+                    plt.ylabel("Likelihood")
+                    plt.xlabel("Steps")
+                    plt.subplot(232)
+                    plt.scatter(np.arange(len(L)),np.exp(np.array(theta)[:,0]*np.log(10)))
+                    plt.ylabel("D1")
+                    plt.xlabel("Steps")
+                    plt.subplot(233)
+                    plt.scatter(np.arange(len(L)),np.exp(np.array(theta)[:,1]*np.log(10)))
+                    plt.ylabel("D2")
+                    plt.xlabel("Steps")
+                    plt.subplot(235)
+                    plt.scatter(np.arange(len(L)),np.array(theta)[:,2])
+                    plt.ylabel("p12")
+                    plt.xlabel("Steps")
+                    plt.subplot(236)
+                    plt.scatter(np.arange(len(L)),np.array(theta)[:,3])
+                    plt.ylabel("p21")
+                    plt.xlabel("Steps")
+                    plt.pause(0.1)
             outf.write("{:} {:} {:} {:} {:} {:}\n".format(L[-1],10**theta[-1][0], 10**theta[-1][1], theta[-1][2], theta[-1][3], l))
+    if not ViewLive:
+        fig = plt.figure(1,figsize=(10,5))
+        fig.subplots_adjust(hspace=.3,wspace=.3)
+        plt.clf()
+        plt.subplot(231)
+        plt.scatter(np.arange(len(L)),L)
+        plt.ylabel("Likelihood")
+        plt.xlabel("Steps")
+        plt.subplot(232)
+        plt.scatter(np.arange(len(L)),np.exp(np.array(theta)[:,0]*np.log(10)))
+        plt.ylabel("D1")
+        plt.xlabel("Steps")
+        plt.subplot(233)
+        plt.scatter(np.arange(len(L)),np.exp(np.array(theta)[:,1]*np.log(10)))
+        plt.ylabel("D2")
+        plt.xlabel("Steps")
+        plt.subplot(235)
+        plt.scatter(np.arange(len(L)),np.array(theta)[:,2])
+        plt.ylabel("p12")
+        plt.xlabel("Steps")
+        plt.subplot(236)
+        plt.scatter(np.arange(len(L)),np.array(theta)[:,3])
+        plt.ylabel("p21")
+        plt.xlabel("Steps")
     plt.savefig(path+"/Convergence{:}.png".format(particleID))
     plt.close()
     outf.close()

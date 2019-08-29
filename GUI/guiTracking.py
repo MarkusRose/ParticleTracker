@@ -40,11 +40,6 @@ class guiTracking(tk.Frame):
         self.labelframe = ttk.Frame(self.mainframe)
         self.labelframe.grid(column=0, row=0)
 
-        self.inImagesVar = tk.StringVar()
-        self.inImagesVar.set("Select Images")
-        ttk.Button(self.labelframe, text="Input Images", command = self.setFileName).grid(column=1, row=0, sticky='W')
-        ttk.Entry(self.labelframe, textvariable = self.inImagesVar).grid(column=2, row=0, sticky='W')
-
 
         self.inPosVar = tk.StringVar()
         self.inPosVar.set("Please select position file.")
@@ -76,11 +71,6 @@ class guiTracking(tk.Frame):
 
     def checkInputs(self):
         try:
-            #Input Images Folder exists
-            if not os.path.isfile(self.inImagesVar.get()):
-                messagebox.showerror("No Images", "Images could not be located.")
-                return False
-
             if not os.path.isfile(self.inPosVar.get()):
                 messagebox.showerror("Not a file", "File does not exist. Please choose the correct file!")
                 return False
@@ -120,13 +110,13 @@ class guiTracking(tk.Frame):
         outlist.append(int(self.minTrVar.get()))
         outlist.append(int(self.linkRaVar.get()))
         outlist.append(os.path.dirname(self.inPosVar.get()))
-        return outlist,self.inImagesVar.get()
+        return outlist
 
             
     def runTracking(self):
         if self.checkInputs():
             #print "Works now"
-            outv,img = self.varsToProgram()
+            outv = self.varsToProgram()
 
             top = tk.Toplevel()
             top.title("Tracking running")
@@ -155,7 +145,6 @@ class guiTracking(tk.Frame):
 
             def handle_calc():
                 def calculator():
-                    images = io.imread(img)
                     if not os.path.isdir(outv[4]):
                         os.mkdir(outv[4])
                     os.chdir(outv[4])
@@ -167,7 +156,6 @@ class guiTracking(tk.Frame):
                     on_main_thread(done_mssg)
                     #on_main_thread(self.parent.destroy)
                     print("Displaying Tracks now.")
-                    #ir.showTracks(images,[tracks,namelist])
 
                 #t = threading.Thread(target=calculator)
                 #t.start()
