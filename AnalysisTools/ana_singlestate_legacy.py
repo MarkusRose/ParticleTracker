@@ -555,7 +555,7 @@ def doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,minTrLength=10,fitrange=0
     if not os.path.isdir(spng):
         os.mkdir(spng)
     else:
-        spng = "-"+spng+strftime("%Y%m%d-%H%M%S")
+        spng = spng +"-"+strftime("%Y%m%d-%H%M%S")
         os.mkdir(spng)
     
     
