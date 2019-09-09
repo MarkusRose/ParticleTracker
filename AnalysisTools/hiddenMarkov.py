@@ -347,7 +347,7 @@ def runHiddenMarkov(tracks,MCMC=100000,ID=3,path='.',ViewLive=False):
     timepertrack = 0
     counter = 1
     for r2 in rsq:
-        print("Running Track {:} of {:}".format(counter,len(rsq))
+        print("Running Track {:} of {:}".format(counter,len(rsq)))
         starttime = time.time()
         firstguess = np.random.normal([-1,-2,0.2,0.1],[0.3,1,0.1,0.1])
         printThetaOut(firstguess)
