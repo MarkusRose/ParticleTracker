@@ -221,12 +221,13 @@ def preMetropolis(dr2,theta,L,outf,MCsteps=10000,thetastd=[0.001,0.001,0.01,0.01
                     plt.ylabel("p21")
                     plt.xlabel("Steps")
                     plt.pause(0.1)
-            outf.write("{:} {:} {:} {:} {:} {:}\n".format(L[-1],10**theta[-1][0], 10**theta[-1][1], theta[-1][2], theta[-1][3], l))
+            if l % 1000 == 0:            
+                outf.write("{:} {:} {:} {:} {:} {:} {:}\n".format(L[-1],10**theta[-1][0], 10**theta[-1][1], theta[-1][2], theta[-1][3], l))
     return theta, L, MCsteps
 
 
 # Usage
-def doMetropolisOrig(dr2,particleID,MCsteps=100000,path='.',thetastd=[0.001,0.001,0.01,0.01],thetaguess=[0,-1,0.1,0.4],hot=1,ViewLive=False):
+def doMetropolisOrig(dr2,particleID,MCsteps=100000,path='.',thetastd=[0.01,0.01,0.01,0.01],thetaguess=[0,-1,0.1,0.4],hot=1,ViewLive=False):
 
     s = np.array(thetastd)
     
@@ -247,7 +248,7 @@ def doMetropolisOrig(dr2,particleID,MCsteps=100000,path='.',thetastd=[0.001,0.00
 
     theta, L, junk = preMetropolis(dr2,theta,L,outf,MCsteps=5000,thetastd=[0.01,0.01,0.00,0.00],thetaguess=thetaguess,hot=0,ViewLive=ViewLive)
     printThetaOut(theta[-1])
-    theta, L, junk = preMetropolis(dr2,theta,L,outf,MCsteps=5000,thetastd=[0.00,0.00,0.01,0.01],thetaguess=theta[-1],hot=0,ViewLive=ViewLive)
+    theta, L, junk = preMetropolis(dr2,theta,L,outf,MCsteps=5000,thetastd=[0.00,0.00,0.05,0.05],thetaguess=theta[-1],hot=0,ViewLive=ViewLive)
     printThetaOut(theta[-1])
     for i in range(int(np.floor(MCsteps/4.))):
         for k in range(4):
@@ -300,7 +301,8 @@ def doMetropolisOrig(dr2,particleID,MCsteps=100000,path='.',thetastd=[0.001,0.00
                     plt.ylabel("p21")
                     plt.xlabel("Steps")
                     plt.pause(0.1)
-            outf.write("{:} {:} {:} {:} {:} {:}\n".format(L[-1],10**theta[-1][0], 10**theta[-1][1], theta[-1][2], theta[-1][3], l))
+            if l % 1000 == 0:            
+                outf.write("{:} {:} {:} {:} {:} {:}\n".format(L[-1],10**theta[-1][0], 10**theta[-1][1], theta[-1][2], theta[-1][3], l))
     if not ViewLive:
         fig = plt.figure(1,figsize=(10,5))
         fig.subplots_adjust(hspace=.3,wspace=.3)
@@ -347,7 +349,7 @@ def runHiddenMarkov(tracks,MCMC=100000,ID=3,path='.',ViewLive=False):
         starttime = time.time()
         firstguess = np.random.normal([-1,-2,0.2,0.1],[0.3,1,0.1,0.1])
         printThetaOut(firstguess)
-        theta, L, nurun = doMetropolisOrig(r2[0],r2[1],MCsteps=MCMC,path=path,thetastd=[0.001,0.001,0.01,0.01],thetaguess=firstguess,hot=100,ViewLive=ViewLive)
+        theta, L, nurun = doMetropolisOrig(r2[0],r2[1],MCsteps=MCMC,path=path,thetastd=[0.005,0.005,0.01,0.01],thetaguess=firstguess,hot=100,ViewLive=ViewLive)
         theta = np.array(theta)
         D1 = 10**theta[:,0]
         D2 = 10**theta[:,1]
@@ -385,7 +387,7 @@ def runHiddenMarkov(tracks,MCMC=100000,ID=3,path='.',ViewLive=False):
     
     return Thetas
 
-def doHMM(trackfile,montecarlo=100000,SR=3,ViewLive=False):
+def doHMM(trackfile,montecarlo=100000,SR=0,ViewLive=False):
 
     part_tracks,part_list = ctrack.readTrajectoriesFromFile(trackfile)
 
