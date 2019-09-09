@@ -345,7 +345,9 @@ def runHiddenMarkov(tracks,MCMC=100000,ID=3,path='.',ViewLive=False):
 
     Thetas = []
     timepertrack = 0
+    counter = 1
     for r2 in rsq:
+        print("Running Track {:} of {:}".format(counter,len(rsq))
         starttime = time.time()
         firstguess = np.random.normal([-1,-2,0.2,0.1],[0.3,1,0.1,0.1])
         printThetaOut(firstguess)
@@ -368,6 +370,7 @@ def runHiddenMarkov(tracks,MCMC=100000,ID=3,path='.',ViewLive=False):
         for elem in statemap:
             trackout.write("{:}\n".format(elem))
         trackout.close()
+        counter += 1
     date = strftime("%Y%m%d-%H%M%S")
     outthetaf = open(path+"/../hmmAveragedData-ID{:}_{:}.txt".format(ID,date),'w')
     outthetaf.write("#  D1 D2 p12 p21 stds: D1 D2 p12 p21 tracklength particle-ID\n")
