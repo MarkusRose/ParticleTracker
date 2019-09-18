@@ -394,7 +394,18 @@ def doHMM(trackfile,montecarlo=100000,SR=0,ViewLive=False):
 
     part_tracks,part_list = ctrack.readTrajectoriesFromFile(trackfile)
 
-    path = os.path.abspath(os.path.join(os.path.dirname(trackfile), 'HiddenMarkov'))
+    #make file path for save files. making sure not to override existing analysis
+    filepath = os.path.split(trackfile)[0]
+    trackfilename = os.path.split(trackfile)[1]
+    if len(trackfilename) > 35:
+        path = os.path.join(filepath,"HiddenMarkov_"+trackfilename[12:-4])
+    else:
+        path = os.path.join(filepath,"HiddenMarkov")
+    if not os.path.isdir(path):
+        os.mkdir(path)
+    else:
+        path = path +"-"+strftime("%Y%m%d-%H%M%S")
+        os.mkdir(path)
     subfolder="Identifier-{:}".format(SR)
     subpath = os.path.abspath(os.path.join(path,subfolder))
     if not os.path.isdir(path):

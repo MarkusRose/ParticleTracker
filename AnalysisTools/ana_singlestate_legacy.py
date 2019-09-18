@@ -29,8 +29,8 @@ def readTracks(infile):
     fopen = open(infile,'r')
 
     tracks = []
-    track = []
     brt = False
+    trackids = []
 
     for line in fopen:
 
@@ -38,6 +38,7 @@ def readTracks(infile):
             if brt:
                 brt = False
                 tracks.append(np.array(track))
+                trackids.append(trid)
                 del track
             continue
         elif line[0] == '#':
@@ -46,12 +47,13 @@ def readTracks(infile):
                 track = []
             continue
         track.append(np.array(list(map(float,line.split()[0:-1]))))
+        trid = line.split()[-1]
 
     if len(track) > 0:
         tracks.append(np.array(track))
         del track
 
-    return tracks
+    return tracks,trackids
 
 def cleanTracksFile(tracks,output="cleanedTracks.txt"):
     outfile = open(output,'w')
@@ -321,7 +323,7 @@ def eedispllist(tracks,numberofbins=50,path='.'):
     return histo
     
 
-def diffConstDistrib(tracks,pixelsize,frametime,Dfactor,numberofbins=50,path='.'):
+def diffConstDistrib(tracks,track_ids,pixelsize,frametime,Dfactor,numberofbins=50,path='.'):
 
     print(("Starting Analysis of " + str(len(tracks)) + " single tracks."))
     print("....This will take a while...")
@@ -419,10 +421,11 @@ def diffConstDistrib(tracks,pixelsize,frametime,Dfactor,numberofbins=50,path='.'
 
 
 #=== Combined Tracks analysis =================
-def combineTracks(tracks,path='.'):
+def combineTracks(tracks,track_ids,path='.'):
     lastpart = np.zeros((len(tracks[0][0])))
     combtr = [np.array(lastpart)]
     trlengths = []
+    count = 0
     for tr in tracks:
         trlengths.append(tr[-1][0]-tr[0][0])
         lastpart = np.array(combtr[-1])
@@ -433,18 +436,17 @@ def combineTracks(tracks,path='.'):
                     outpart.append(tr[part][i] - tr[0][i]+lastpart[i])
                 else:
                     outpart.append(tr[part][i])
+            outpart.append(track_ids[count])
             combtr.append(np.array(outpart))
+        count += 1
     outfile = open(path+"/combinedTrack.txt",'w')
-    head = ["Step","x","y","widthx","widthy","height","amplitude","sn","volume"]
+    head = ["Step","x","y","widthx","widthy","height","amplitude","sn","volume","track_id"]
     printArrayToFile(combtr,outfile,head)
     return np.array(combtr),np.mean(trlengths),np.std(trlengths)
 
-
-
-
-def analyzeCombinedTrack(tracks,pixelsize,frametime,Dfactor,lenMSD=500,fitrange=0.5,numberofbins=50,plotlen=30,path='.'):
+def analyzeCombinedTrack(tracks,track_ids,pixelsize,frametime,Dfactor,lenMSD=500,fitrange=0.5,numberofbins=50,plotlen=30,path='.'):
     print(("Combining " + str(len(tracks)) + " tracks."))
-    ct,averageL,stdL = combineTracks(tracks,path=path)
+    ct,averageL,stdL = combineTracks(tracks,track_ids,path=path)
     print("Average Track length is {:} +- {:}".format(averageL,stdL))
     plotTrack(ct.transpose(),path=path)
     print("Creating MSD for combined track.")
@@ -468,8 +470,6 @@ def distributionAnalysis(track,pixelsize,frametime,Dfactor,plotlen,numberofbins=
     print("....Saving Displacements to file.")
     outfile = open(path+"/combinedTrack-relativeXYDisplacements.txt",'w')
     printArrayToFile(dipllist,outfile,["Steppingtime","dx","dy"])
-    
-
 
     def gaussfunc(x,sig,amp):
         return amp * np.exp(-(x)**2/(2*sig))
@@ -544,8 +544,9 @@ def doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,minTrLength=10,fitrange=0
     print("Reading Tracks Now")
     print("------------------")
     sys.stdout.flush()
-    tracks = readTracks(trackfile)
+    tracks, track_ids = readTracks(trackfile)
 
+    #make file path for save files. making sure not to override existing analysis
     path = os.path.dirname(trackfile)
     trackfilename = trackfile[len(path)+1:]
     if len(trackfilename) > 35:
@@ -558,7 +559,7 @@ def doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,minTrLength=10,fitrange=0
         spng = spng +"-"+strftime("%Y%m%d-%H%M%S")
         os.mkdir(spng)
     
-    
+    #Produce a cleaned up track file 
     if bCleanUpTracks:
         print()
         print("Cleaning Track File from NAN")
@@ -566,10 +567,14 @@ def doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,minTrLength=10,fitrange=0
         sys.stdout.flush()
         cleanTracksFile(tracks,path+"/cleanedTracks.txt")
     
+
+    #Implement Track restrictions. (E.g. minimum accepted track length)
     considered = []
-    for i in tracks:
-        if len(i) >= minTrLength:
-            considered.append(i)
+    considered_ids = []
+    for i in range(len(tracks)):
+        if len(tracks[i]) >= minTrLength:
+            considered.append(tracks[i])
+            considered_ids.append(track_ids[i])
     if len(considered) == 0:
         print("Tracks are too short! Please adjust 'minTrackLen' to a lower value!")
         sys.stdout.flush()
@@ -579,14 +584,7 @@ def doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,minTrLength=10,fitrange=0
         print("***** You have less then 10 eligible tracks available for analysis!! ******")
         print("***** The algorithm may fail.                                        ******")
         sys.stdout.flush()
-    '''
-    if bSingleTrackEndToEnd:
-        print()
-        print()
-        print("Starting End-To-End Displacement Analysis for single tracks")
-        print("-----------------------------------------------------------")
-        #eehisto = eedispllist(considered,numberofbins=numberofbins,path=spng)
-    '''
+
     logfile = open(spng+'/analysis.log',"w")
     logfile.write("LogFile of the Analysis\n")
     logfile.write("=======================\n")
@@ -629,7 +627,7 @@ def doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,minTrLength=10,fitrange=0
         print()
         print("Starting Diffusion Constant Analysis for single tracks")
         print("------------------------------------------------------")
-        diffC = diffConstDistrib(considered,pixelsize,frametime,Dfactor,numberofbins=numberofbins,path=spng)
+        diffC = diffConstDistrib(considered,considered_ids,pixelsize,frametime,Dfactor,numberofbins=numberofbins,path=spng)
         sys.stdout.flush()
         logfile.write("Individual Track Analysis\n")
         logfile.write("-------------------------\n")
@@ -639,7 +637,7 @@ def doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,minTrLength=10,fitrange=0
         print()
         print("Starting Combined Track Analysis")
         print("--------------------------------")
-        Dmsd,Dmsd_err,Dstep,Dstep_err = analyzeCombinedTrack(considered,pixelsize,frametime,Dfactor,lenMSD=lenMSD_ct,fitrange=fitrange,numberofbins=numberofbins,plotlen=plotlen,path=spng)
+        Dmsd,Dmsd_err,Dstep,Dstep_err = analyzeCombinedTrack(considered,considered_ids,pixelsize,frametime,Dfactor,lenMSD=lenMSD_ct,fitrange=fitrange,numberofbins=numberofbins,plotlen=plotlen,path=spng)
         logfile.write("Combined Track Analysis\n")
         logfile.write("-----------------------\n")
         logfile.write("MSD diffusion constant: {:}+-{:} um^2/s\n".format(Dmsd,Dmsd_err))
