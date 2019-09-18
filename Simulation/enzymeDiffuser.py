@@ -200,7 +200,7 @@ def simulateTracks(inVars=None,path=".",imageoutput=True):
         if particle_size < 0.61*wavelength/numAperture:
             #Sigma = n * 0.211* lambda/NA; n = index of refraction (1.51 in oil, 1.33 in water, 1 in air)
             Fileio.createImages(path,framelist,numPixels,
-                    1.51*0.211*wavelength/numAperture/pixel_size,background,backnoise)
+                    1.00*0.211*wavelength/numAperture/pixel_size,background,backnoise)
         else:
             pass
     debug("Written output Images")
