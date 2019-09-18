@@ -218,7 +218,7 @@ class guiAnalysis(tk.Frame):
             def calc_mcmc():
                 def done_mssg():
                     messagebox.showinfo("Done!", "MCMC finished without problems.")
-                HMM.doHMM(trackfile,montecarlo=mcmcruns,SR=3)
+                HMM.doHMM(trackfile,montecarlo=mcmcruns)
                 on_main_thread(done_mssg)
                 self.states[2] = True
                 return

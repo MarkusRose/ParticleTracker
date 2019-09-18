@@ -222,7 +222,7 @@ def preMetropolis(dr2,theta,L,outf,MCsteps=10000,thetastd=[0.001,0.001,0.01,0.01
                     plt.xlabel("Steps")
                     plt.pause(0.1)
             if l % 1000 == 0:            
-                outf.write("{:} {:} {:} {:} {:} {:} {:}\n".format(L[-1],10**theta[-1][0], 10**theta[-1][1], theta[-1][2], theta[-1][3], l))
+                outf.write("{:} {:} {:} {:} {:} {:}\n".format(L[-1],10**theta[-1][0], 10**theta[-1][1], theta[-1][2], theta[-1][3], l))
     return theta, L, MCsteps
 
 
@@ -336,7 +336,7 @@ def printThetaOut(theta):
     print("D1={:} ; D2={:} ; p12={:} ; p21={:}".format(10**theta[0],10**theta[1],theta[2],theta[3]))
     return
 
-def runHiddenMarkov(tracks,MCMC=100000,ID=3,path='.',ViewLive=False):
+def runHiddenMarkov(tracks,MCMC=100000,path='.',ViewLive=False):
 
     rsq,lengths,partid = squaredDisplacements(tracks)
     averagingStart = min(30000,MCMC)
@@ -349,7 +349,7 @@ def runHiddenMarkov(tracks,MCMC=100000,ID=3,path='.',ViewLive=False):
     for r2 in rsq:
         print("Running Track {:} of {:}".format(counter,len(rsq)))
         starttime = time.time()
-        firstguess = np.random.normal([-1,-2,0.2,0.1],[0.3,1,0.1,0.1])
+        firstguess = np.random.normal([-3,-4,0.2,0.1],[0.4,0.4,0.1,0.1])
         printThetaOut(firstguess)
         theta, L, nurun = doMetropolisOrig(r2[0],r2[1],MCsteps=MCMC,path=path,thetastd=[0.005,0.005,0.01,0.01],thetaguess=firstguess,hot=100,ViewLive=ViewLive)
         theta = np.array(theta)
@@ -372,7 +372,7 @@ def runHiddenMarkov(tracks,MCMC=100000,ID=3,path='.',ViewLive=False):
         trackout.close()
         counter += 1
     date = strftime("%Y%m%d-%H%M%S")
-    outthetaf = open(path+"/../hmmAveragedData-ID{:}_{:}.txt".format(ID,date),'w')
+    outthetaf = open(path+"/../hmmAveragedData_{:}.txt".format(date),'w')
     outthetaf.write("#  D1 D2 p12 p21 stds: D1 D2 p12 p21 tracklength particle-ID\n")
     for i in range(len(Thetas)):
         counter = 0
@@ -390,7 +390,7 @@ def runHiddenMarkov(tracks,MCMC=100000,ID=3,path='.',ViewLive=False):
     
     return Thetas
 
-def doHMM(trackfile,montecarlo=100000,SR=0,ViewLive=False):
+def doHMM(trackfile,montecarlo=100000,minTrLength=20,ViewLive=False):
 
     part_tracks,part_list = ctrack.readTrajectoriesFromFile(trackfile)
 
@@ -406,7 +406,7 @@ def doHMM(trackfile,montecarlo=100000,SR=0,ViewLive=False):
     else:
         path = path +"-"+strftime("%Y%m%d-%H%M%S")
         os.mkdir(path)
-    subfolder="Identifier-{:}".format(SR)
+    subfolder="IndividualTracks"
     subpath = os.path.abspath(os.path.join(path,subfolder))
     if not os.path.isdir(path):
         os.mkdir(path)
@@ -415,11 +415,23 @@ def doHMM(trackfile,montecarlo=100000,SR=0,ViewLive=False):
     print(path)
     sys.stdout.flush()
 
+    #Implement Track restrictions. (E.g. minimum accepted track length)
+    considered = []
+    considered_ids = []
+    for i in range(len(part_tracks)):
+        if len(part_tracks[i].track) >= minTrLength:
+            considered.append(part_tracks[i])
+            considered_ids.append(part_list[i])
+    if len(considered) == 0:
+        print("Tracks are too short! Please adjust 'minTrackLen' to a lower value!")
+        sys.stdout.flush()
+        return
+
     print("Running HMM")
-    print("{:} Tracks found".format(len(part_tracks)))
+    print("{:} Tracks found".format(len(considered)))
     sys.stdout.flush()
 
-    thetas = runHiddenMarkov(part_tracks,MCMC=montecarlo,ID=SR,path=subpath,ViewLive=ViewLive)
+    thetas = runHiddenMarkov(considered,MCMC=montecarlo,path=subpath,ViewLive=ViewLive)
 
     return thetas
 
