@@ -357,9 +357,7 @@ def diffConstDistrib(tracks,track_ids,pixelsize,frametime,Dfactor,numberofbins=5
     plt.close('all')
     
     fo = open(path+"/Track_D_List.txt",'w')
-    print(Dlist)
     Doutlist = Dlist * np.array([frametime,Dfactor,Dfactor])
-    print(Doutlist)
     printArrayToFile(Dlist,fo,head=["TrackLength(s)","D(um^2/s)","D_err(um^2/s)"])
 
     outarray = np.array([(histo[1][:-1]+(histo[1][1]-histo[1][0])/2)*Dfactor,histo[0]]).transpose()

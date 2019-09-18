@@ -32,5 +32,8 @@ if __name__=="__main__":
     fitrange = 0.5
 
     for trackfile in filelist:
+        print()
+        print("***********************************************************")
+        print("Starting One State Analysis on: {:}".format(trackfile))
         doAnalysis(trackfile,pixelsize=pixelsize,frametime=frametime,minTrLength=minTrLength,fitrange=fitrange,bSingleTrackMSDanalysis=bSingleTrackMSDanalysis,bCombineTrack=bCombineTrack)
 
