@@ -193,7 +193,7 @@ class guiAnalysis(tk.Frame):
                 def done_mssg():
                     messagebox.showinfo("Done!", "All single-state Track Analysis finished without problems.")
                     return
-                ANA.doAnalysis(trackfile,pixelsize=pxsize,frametime=frameT,minTrLength=minTrLength,fitrange=fitrange,bSingleTrackEndToEnd=True,bSingleTrackMSDanalysis=True,bCombineTrack=True)
+                ANA.doAnalysis(trackfile,pixelsize=pxsize,frametime=frameT,minTrLength=minTrLength,fitrange=fitrange,bSingleTrackMSDanalysis=True,bCombineTrack=True)
                 on_main_thread(done_mssg)
                 self.states[0] = True
                 self.states[1] = True
@@ -202,7 +202,7 @@ class guiAnalysis(tk.Frame):
             def calc_indiv_track():
                 def done_mssg():
                     messagebox.showinfo("Done!", "Individual Track Analysis finished without problems.")
-                ANA.doAnalysis(trackfile,pixelsize=pxsize,frametime=frameT,minTrLength=minTrLength,fitrange=fitrange,bCleanUpTracks=True,bSingleTrackEndToEnd=True,bSingleTrackMSDanalysis=True,bCombineTrack=False)
+                ANA.doAnalysis(trackfile,pixelsize=pxsize,frametime=frameT,minTrLength=minTrLength,fitrange=fitrange,bCleanUpTracks=True,bSingleTrackMSDanalysis=True,bCombineTrack=False)
                 on_main_thread(done_mssg)
                 self.states[0] = True
                 return
@@ -210,7 +210,7 @@ class guiAnalysis(tk.Frame):
             def calc_comb_track():
                 def done_mssg():
                     messagebox.showinfo("Done!", "Combined Track Analysis finished without problems.")
-                ANA.doAnalysis(trackfile,pixelsize=pxsize,frametime=frameT,minTrLength=minTrLength,fitrange=fitrange,bSingleTrackEndToEnd=False,bSingleTrackMSDanalysis=False,bCombineTrack=True)
+                ANA.doAnalysis(trackfile,pixelsize=pxsize,frametime=frameT,minTrLength=minTrLength,fitrange=fitrange,bSingleTrackMSDanalysis=False,bCombineTrack=True)
                 on_main_thread(done_mssg)
                 self.states[1] = True
                 return

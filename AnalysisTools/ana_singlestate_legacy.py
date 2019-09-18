@@ -2,9 +2,8 @@
 # Analysis script for a track file
 # Author: Markus Rose
 # Date: 2015-11-30
-# email: markus.m.rose@gmail.com
+# email: rosemm2@mcmaster.ca
 #=====================================
-
 
 import numpy as np
 import math
@@ -13,7 +12,6 @@ import matplotlib.pyplot as plt
 import sys
 import os
 from time import strftime
-
 
 #========================================
 # Program functions
@@ -29,6 +27,7 @@ def readTracks(infile):
     fopen = open(infile,'r')
 
     tracks = []
+    track = []
     brt = False
     trackids = []
 
@@ -526,7 +525,7 @@ def distributionAnalysis(track,pixelsize,frametime,Dfactor,plotlen,numberofbins=
 #====================================
 #The big MAIN
 #====================================
-def doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,minTrLength=10,fitrange=0.5,bCleanUpTracks=False,bSingleTrackEndToEnd=False,bSingleTrackMSDanalysis=True,bCombineTrack=True):
+def doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,minTrLength=10,fitrange=0.5,bCleanUpTracks=False,bSingleTrackMSDanalysis=True,bCombineTrack=True):
     #plotting parameters
     Dfactor = pixelsize*pixelsize/frametime
 
@@ -536,7 +535,7 @@ def doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,minTrLength=10,fitrange=0
     small = 20
     large = 100
 
-    if (not bSingleTrackEndToEnd) and (not bSingleTrackMSDanalysis) and (not bCombineTrack):
+    if (not bSingleTrackMSDanalysis) and (not bCombineTrack):
         return
 
     print()
@@ -653,17 +652,5 @@ def doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,minTrLength=10,fitrange=0
 
 if __name__ == "__main__":
     trackfile = '/home/markus/Desktop/TestFiles/Analysis/foundTracks.txt'
-    doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,bCleanUpTracks=True,bSingleTrackEndToEnd=True,bSingleTrackMSDanalysis=True,bCombineTrack=True)
-
-
-
-#=== unused =======================
-def minimumEndToEnd(tracks):
-    minEE = []
-    for i in range(len(tracks)):
-        if endToEnd2(tracks[i]) > 400:
-            minEE.append([i,endToEnd2(tracks[i])])
-    return minEE
-#==================================
-
+    doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,bCleanUpTracks=True,bSingleTrackMSDanalysis=True,bCombineTrack=True)
 
