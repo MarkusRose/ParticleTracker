@@ -50,6 +50,7 @@ def readTracks(infile):
 
     if len(track) > 0:
         tracks.append(np.array(track))
+        trackids.append(trid)
         del track
 
     return tracks,trackids
@@ -356,7 +357,9 @@ def diffConstDistrib(tracks,track_ids,pixelsize,frametime,Dfactor,numberofbins=5
     plt.close('all')
     
     fo = open(path+"/Track_D_List.txt",'w')
+    print(Dlist)
     Doutlist = Dlist * np.array([frametime,Dfactor,Dfactor])
+    print(Doutlist)
     printArrayToFile(Dlist,fo,head=["TrackLength(s)","D(um^2/s)","D_err(um^2/s)"])
 
     outarray = np.array([(histo[1][:-1]+(histo[1][1]-histo[1][0])/2)*Dfactor,histo[0]]).transpose()
@@ -423,6 +426,7 @@ def diffConstDistrib(tracks,track_ids,pixelsize,frametime,Dfactor,numberofbins=5
 def combineTracks(tracks,track_ids,path='.'):
     lastpart = np.zeros((len(tracks[0][0])))
     combtr = [np.array(lastpart)]
+    combtracklist = [lastpart[:]]
     trlengths = []
     count = 0
     for tr in tracks:
@@ -435,12 +439,13 @@ def combineTracks(tracks,track_ids,path='.'):
                     outpart.append(tr[part][i] - tr[0][i]+lastpart[i])
                 else:
                     outpart.append(tr[part][i])
-            outpart.append(track_ids[count])
             combtr.append(np.array(outpart))
+            outpart.append(track_ids[count])
+            combtracklist.append(outpart[:])
         count += 1
     outfile = open(path+"/combinedTrack.txt",'w')
     head = ["Step","x","y","widthx","widthy","height","amplitude","sn","volume","track_id"]
-    printArrayToFile(combtr,outfile,head)
+    printArrayToFile(combtracklist,outfile,head)
     return np.array(combtr),np.mean(trlengths),np.std(trlengths)
 
 def analyzeCombinedTrack(tracks,track_ids,pixelsize,frametime,Dfactor,lenMSD=500,fitrange=0.5,numberofbins=50,plotlen=30,path='.'):
@@ -482,22 +487,21 @@ def distributionAnalysis(track,pixelsize,frametime,Dfactor,plotlen,numberofbins=
             pcov = [[1,1],[1,1]]
         return popt,pcov
 
-    print("....Creating distribution of stpngizes in x and y")
+    print("....Creating distribution of step sizes in x and y")
     dispdist = displacementDistro(dipllist)
     histograms = []
     fitparams = []
-    counter = 0
+    maxval = np.max(np.absolute(dispdist[-1]))
     for elr2 in dispdist:
-        histo = np.histogram(elr2*pixelsize,bins=numberofbins,range=(-plotlen*pixelsize,plotlen*pixelsize),density=False)
+        histo = np.histogram(elr2,bins=numberofbins,range=(-maxval,maxval),density=False)
         popt,pcov = fitgauss(histo)
-        counter += 1
         histograms.append(list(histo))
         fitparams.append(list(popt))
 
     selecttimes = [0,4,8,16]
     fitparams = np.array(fitparams)
     factor = np.arange(1,len(fitparams)+1,1)*2*frametime
-    Dfitlist = fitparams[:,0] / factor
+    Dfitlist = fitparams[:,0] / factor * pixelsize**2
     print(">>>> Average diffusion coefficent from fitting stepsize: {:.05f} +- {:.05f} um^2/s".format(Dfitlist.mean(),Dfitlist.std()))
 
     fig = plt.figure(figsize=(9,7))
@@ -508,9 +512,9 @@ def distributionAnalysis(track,pixelsize,frametime,Dfactor,plotlen,numberofbins=
     for elem in selecttimes:
         dbox = histograms[elem][1][1]-histograms[elem][1][0]
         xvals = histograms[elem][1][:-1]+dbox*0.5
-        ax.plot(xvals,histograms[elem][0],'o',color=colors[counter],label=r"$\tau =$ {:.03f}s".format((int(elem)+1)*frametime))
-        xvals = (np.arange(1000)/500 - 1)*plotlen*pixelsize
-        ax.plot(xvals,gaussfunc(xvals,fitparams[elem][0],fitparams[elem][1]),'-',color=colors[counter],label=r"$D =$ {:.04f}".format(Dfitlist[elem])+r"$\mu m^2s^{-1}$")
+        ax.plot(xvals*pixelsize,histograms[elem][0],'o',color=colors[counter],label=r"$\tau =$ {:.03f}s".format((int(elem)+1)*frametime))
+        xvals = (np.arange(1000)/500 - 1)*maxval
+        ax.plot(xvals*pixelsize,gaussfunc(xvals,fitparams[elem][0],fitparams[elem][1]),'-',color=colors[counter],label=r"$D =$ {:.04f}".format(Dfitlist[elem])+r"$\mu m^2s^{-1}$")
         counter += 1
     ax.set_xlabel(r"Displacement [$\mu m$]")
     ax.set_ylabel("Counts")
@@ -577,7 +581,6 @@ def doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,minTrLength=10,fitrange=0
     if len(considered) == 0:
         print("Tracks are too short! Please adjust 'minTrackLen' to a lower value!")
         sys.stdout.flush()
-        #raw_input("Please restart again...")
         return
     elif len(considered) < 10:
         print("***** You have less then 10 eligible tracks available for analysis!! ******")
