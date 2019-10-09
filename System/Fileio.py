@@ -28,8 +28,8 @@ import copy
  wavelength, Pixel size, NA, magnification, S/N, Intensity)
 '''
 #setter
-def setSysProps(paramArray):
-    outfile = open("SystemParameters.txt",'w')
+def setSysProps(paramArray,path='.'):
+    outfile = open(os.path.join(path,"SystemParameters.txt"),'w')
     outfile.write("#System Parameteres for [Program]\n")
     outfile.write("#\n")
 
@@ -48,9 +48,11 @@ def setSysProps(paramArray):
     outfile.write("\n\n#Camera Properties [lambda (nm), pixel size (um)]\n")
     for i in range(14,16,1):
         outfile.write(str(paramArray[i])+" ")
-    outfile.write("\n\n#Microscope Properties [NA, magnification, Background, Backnoise, Intensity (#photons)\n")
-    for i in range(16,21,1):
+    outfile.write("\n\n#Microscope Properties [NA, magnification, Background, Backnoise, Intensity (#photons)]\n")
+    for i in range(16,20,1):
         outfile.write(str(paramArray[i])+" ")
+    outfile.write("\n\n#Blinking?\n")
+    outfile.write(str(paramArray[20]))
     outfile.write("\n\n#EOF\n")
     
     outfile.close()
@@ -61,7 +63,11 @@ def setSysProps(paramArray):
 #getter
 def getSysProps():
     pA = []
-    infile = open("SystemParameters.txt",'r')
+    try:
+        infile = open("SystemParameters.txt",'r')
+    except FileNotFoundError:
+        print("SystemParameters.txt does not exist.")
+        sys.exit()
     for line in infile:
         if len(line) == 0 or line[0] == "#":
             continue

@@ -30,16 +30,19 @@ def debug(stringin):
     return
 
 
-def simulateTracks(inVars=None,path=".",imageoutput=True):
+def simulateTracks(inVars=[],path=".",imageoutput=True):
     print(">>>Simulation starting")
     sys.stdout.flush()
 
     if not os.path.isdir(path):
         os.mkdir(path)
 
-    if inVars==None:
+    if len(inVars) == 0:
         #Read in Values from file
-        sV = Fileio.getSysProps()
+        #sV = Fileio.getSysProps()
+        print("Nothing in place for this case.")
+        sys.exit()
+
     else:   
         #else read from input
         sV = list(inVars)
@@ -80,10 +83,10 @@ def simulateTracks(inVars=None,path=".",imageoutput=True):
     pi3 = ( p13 + p23 ) / (p12 + p13 + p21 + p23 + p31 + p32)
     '''
     statProbs = []
-    sumprobs = sV[4]+sV[5]+sV[6]+sV[7]+sV[8]+sV[9]
-    statProbs.append((sV[5]+sV[8])/sumprobs)
-    statProbs.append((sV[4]+sV[9])/sumprobs)
-    statProbs.append((sV[6]+sV[7])/sumprobs)
+    sumprobs = p[0,1] + p[1,0] + p[0,2] + p[2,0] + p[1,2] + p[2,1]
+    statProbs.append((p[1,0] + p[2,0])/sumprobs)
+    statProbs.append((p[0,1] + p[2,1])/sumprobs)
+    statProbs.append((p[0,2] + p[1,2])/sumprobs)
 
     debug("Done probs init")
 
@@ -220,9 +223,3 @@ def writeFrames(framelist,filename):
         count += 1
     return
 
-def simwrapper(D,N,F,p):
-    invars = [1,D*1e12,0,0,0,1,0,0,1,0,F,N,1,512,2000*1e6,1*1e6,1.45,1,1000,500,2000]
-    frames,tracks = simulateTracks(inVars=invars,path=p,imageoutput=False)
-    return frames,tracks
-
-    
