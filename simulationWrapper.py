@@ -3,9 +3,21 @@ import Simulation.simSetup as simSetup
 import multiprocessing as mp
 from System import Fileio
 import numpy as np
+import os
+import sys
 
 
 def runSimulation(simulationVariables,path='.'):
+    print("{:} - Process {:8d}".format(mp.current_process().name,os.getpid()))
+    print("Path = {:}".format(path))
+    print("D1 = {:2.02e}".format(simulationVariables[1]))
+    print("D2 = {:2.02e}".format(simulationVariables[2]))
+    print("p12 = {:2.02e}".format(simulationVariables[4]))
+    print("p21 = {:2.02e}".format(simulationVariables[5]))
+    sys.stdout.flush()
+
+    if not os.path.isdir(path):
+        os.mkdir(path)
     
     Fileio.setSysProps(simulationVariables,path=path)
     enzD.simulateTracks(inVars=simulationVariables,path=path,imageoutput=True)
@@ -14,9 +26,9 @@ def runSimulation(simulationVariables,path='.'):
 
 
 if __name__=="__main__":
-    simulationPath = 'C:/Users/Markus/Desktop/TestSimWrapper'
+    simulationPath = 'L:\Markus\TwoStateSimulation'
     if not os.path.isdir(simulationPath):
-        os.path.mkdir(simulationPath)
+        os.mkdir(simulationPath)
 
     simValues = np.zeros((21))
     simValues[0] = 2        # Number of states
@@ -47,11 +59,11 @@ if __name__=="__main__":
         simValues[4] = p12
         for D1 in [1e-4,2e-4,5e-4,1e-3]:
             simValues[1] = D1
-            taskQ.put([np.array(simValues),os.path.join(simulationPath+"D1-{:}_p12-{:}".format(D1,p12)]))
+            taskQ.put([np.array(simValues),os.path.join(simulationPath+"D1-{:}_p12-{:}".format(D1,p12))])
 
     processes = []
     while not taskQ.empty():
-        processes.append(mp.Process(target=print,args=taskQ.get()))
+        processes.append(mp.Process(target=runSimulation,args=taskQ.get()))
         processes[-1].start()
 
     for p in processes:
