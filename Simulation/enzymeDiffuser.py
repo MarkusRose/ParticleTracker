@@ -49,7 +49,7 @@ def simulateTracks(inVars=[],path=".",imageoutput=True):
     #Diff constants of 3 states
     D = np.array([sV[1],sV[2],sV[3]])*1e-12
     #Markov probability matrix for state switching
-    p = np.array([[0,sV[4],sV[6]],[sV[5],0,sV[7]],[sV[8],sV[9],0]]) 
+    p = np.array([[1-(sV[4]+sV[6],sV[4],sV[6]],[sV[5],1-(sV[5]+sV[7],sV[7]],[sV[8],sV[9],1-(sV[8]+sV[9])]]) 
     #Number of frames
     frames = int(sV[10])
     #Number of particles
