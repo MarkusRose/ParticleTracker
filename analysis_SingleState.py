@@ -24,8 +24,8 @@ if __name__=="__main__":
     frametime = 1 # frame interval in s
     pixelsize = 0.067 # in um
 
-    bSingleTrackMSDanalysis = True
-    bCombineTrack = True
+    bSingleTrackMSDanalysis = False
+    bCombineTrack = False
 
     #single track analysis input
     minTrLength = 20

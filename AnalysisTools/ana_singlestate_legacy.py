@@ -537,9 +537,6 @@ def doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,minTrLength=10,fitrange=0
     small = 20
     large = 100
 
-    if (not bSingleTrackMSDanalysis) and (not bCombineTrack):
-        return
-
     print()
     print()
     print("Reading Tracks Now")
@@ -620,6 +617,10 @@ def doAnalysis(trackfile,pixelsize=0.100,frametime=0.1,minTrLength=10,fitrange=0
         logfile.close()
         return
 
+
+    if (not bSingleTrackMSDanalysis) and (not bCombineTrack):
+        ct,averageL,stdL = combineTracks(considered,considered_ids,path=path)
+        return
 
     
     if bSingleTrackMSDanalysis:

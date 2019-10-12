@@ -84,9 +84,12 @@ def simulateTracks(inVars=[],path=".",imageoutput=True):
     '''
     statProbs = []
     sumprobs = p[0,1] + p[1,0] + p[0,2] + p[2,0] + p[1,2] + p[2,1]
-    statProbs.append((p[1,0] + p[2,0])/sumprobs)
-    statProbs.append((p[0,1] + p[2,1])/sumprobs)
-    statProbs.append((p[0,2] + p[1,2])/sumprobs)
+    if sumprobs == 0:
+        statProbs = [0.5,0.5,0]
+    else:
+        statProbs.append((p[1,0] + p[2,0])/sumprobs)
+        statProbs.append((p[0,1] + p[2,1])/sumprobs)
+        statProbs.append((p[0,2] + p[1,2])/sumprobs)
 
     debug("Done probs init")
 

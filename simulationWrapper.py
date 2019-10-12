@@ -26,23 +26,25 @@ def runSimulation(simulationVariables,path='.'):
 
 
 if __name__=="__main__":
-    simulationPath = 'L:\Markus\TwoStateSimulation'
+
+    simulationPath = "/home/markus/Desktop/ImmobileParticles"
     if not os.path.isdir(simulationPath):
         os.mkdir(simulationPath)
+    print("Starting simulation")
 
     simValues = np.zeros((21))
     simValues[0] = 2        # Number of states
     simValues[1] = 1e-3     # D1
-    simValues[2] = 1e-4     # D2
+    simValues[2] = 0        # D2
     simValues[3] = 0        # D3
-    simValues[4] = 0.3      # p12
-    simValues[5] = 0.1      # p21
+    simValues[4] = 0.0      # p12
+    simValues[5] = 0.0      # p21
     simValues[6] = 0        # p13
     simValues[7] = 0        # p23
     simValues[8] = 0        # p31
     simValues[9] = 0        # p32
     simValues[10] = 100     # Num Frames
-    simValues[11] = 300     # Num Particles
+    simValues[11] = 20     # Num Particles
     simValues[12] = 1       # frame interval tau
     simValues[13] = 512     # num pixels
     simValues[14] = 700     # wavelength
@@ -53,16 +55,17 @@ if __name__=="__main__":
     simValues[19] = 3000    # Intensity
     simValues[20] = False   # Blinking
 
-    taskQ = mp.Queue();
+    taskQ = mp.Queue()
 
-    for p12 in [0.1,0.3,0.5]:
-        simValues[4] = p12
-        for D1 in [1e-4,2e-4,5e-4,1e-3]:
-            simValues[1] = D1
-            taskQ.put([np.array(simValues),os.path.join(simulationPath+"D1-{:}_p12-{:}".format(D1,p12))])
-
+    print(simValues)
+    print(simulationPath)
+    taskQ.put([np.array(simValues),simulationPath])
+    
+    if taskQ.empty():
+        print(taskQ)
     processes = []
     while not taskQ.empty():
+        print("Yes")
         processes.append(mp.Process(target=runSimulation,args=taskQ.get()))
         processes[-1].start()
 
