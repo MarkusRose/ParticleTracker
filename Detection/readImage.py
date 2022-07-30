@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 from .pysm import thresholding
 from .pysm import new_cython
 from scipy import ndimage
-from scipy.misc import imsave
 
 
 '''First we have to read the image'''
@@ -96,7 +95,8 @@ def cutImage(image,cutoffMethod):
 
 def saveImageToFile(inArray,outName):
     #print inArray.dtype
-    imsave(outName,inArray)
+    image = Image.fromarray(inArray, mode="I;16")
+    image.save(outName)
 
 '''--------------------
 --  Testing methods  --

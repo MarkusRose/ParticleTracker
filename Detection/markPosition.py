@@ -1,6 +1,5 @@
 import numpy as np
 import math
-from scipy.misc import imsave
 from PIL import Image
 
 
@@ -277,7 +276,8 @@ def makeRegularImage(widget=treasure(7,7,0)):
         for j in range(512):
             if i%30 ==0 and j%30 == 0:
                 placeWidget(image,i,j,widget)
-    imsave('helloX.tif',image)
+    pil_img = Image.fromarray(image, mode="I;16")
+    pil_img.save('helloX.tif')
     return image
 
 if __name__=="__main__":
